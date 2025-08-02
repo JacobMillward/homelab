@@ -18,3 +18,7 @@ kubeconfig:
     echo "Generating kubeconfig..."
     talosctl kubeconfig --force
     echo "Kubeconfig generated successfully."
+
+# Helper for Talos upgrades. Ensures we pass the --preserve flag so as to not lose longhorn replica data
+talosUpgrade:
+    talhelper gencommand upgrade --extra-flags "--preserve"
