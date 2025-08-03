@@ -6,6 +6,9 @@ Currently, it is set up to use Talos Linux as the operating system for the clust
 
 This repo uses talhelper to manage the Talos cluster configuration.
 
+# SOPs
+This repository uses SOPs for managing secrets. The public key is available in the `.sops.yaml` file, and the private key is manually put in the cluster as a secret named `sops-age` in the `flux-system` namespace.
+
 # Justfile
 
 This contains tasks for managing the homelab setup using `just`.
