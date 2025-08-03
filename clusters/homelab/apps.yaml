@@ -11,7 +11,7 @@ spec:
     kind: GitRepository
     name: flux-system
   dependsOn:
-    - name: infra-config
+    - name: infra-configs
   decryption:
     provider: sops
     secretRef:
