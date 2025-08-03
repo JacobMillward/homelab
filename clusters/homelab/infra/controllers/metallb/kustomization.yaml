@@ -2,3 +2,12 @@ namespace: metallb-system
 
 resources:
   - github.com/metallb/metallb/config/native?ref=v0.15.2
+
+patches:
+  - target:
+      kind: DaemonSet
+      name: speaker
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --ignore-exclude-lb
