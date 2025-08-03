@@ -1,14 +1,18 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: metallb-config
+  name: apps
   namespace: flux-system
 spec:
   interval: 10m
-  path: ./clusters/homelab/infra/metallb/config
+  path: ./clusters/homelab/apps
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
   dependsOn:
-    - name: metallb
+    - name: infra
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
