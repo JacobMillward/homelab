@@ -1,4 +1,4 @@
+namespace: metallb-system
+
 resources:
-  - namespace.yaml
-  - helmrepo.yaml
-  - helmrelease.yaml
+  - github.com/metallb/metallb/config/native?ref=v0.15.2
