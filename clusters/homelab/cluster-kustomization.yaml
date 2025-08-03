@@ -25,3 +25,7 @@ spec:
     name: flux-system
   dependsOn:
     - name: infra
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
