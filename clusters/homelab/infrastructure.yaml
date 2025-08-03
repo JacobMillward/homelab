@@ -23,6 +23,7 @@ spec:
   interval: 10m
   path: ./clusters/homelab/infra/configs
   prune: true
+  wait: true
   retryInterval: 1m
   timeout: 5m
   sourceRef:
