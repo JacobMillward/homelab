@@ -13,6 +13,10 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -31,3 +35,7 @@ spec:
     name: flux-system
   dependsOn:
     - name: infra-controllers
+  decryption:
+  provider: sops
+  secretRef:
+    name: sops-age
