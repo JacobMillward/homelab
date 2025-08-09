@@ -1,3 +1,5 @@
 resources:
   - namespace.yaml
   - tsig-secret.sops.yaml
+  - helmrepo.yaml
+  - helmrelease.yaml
