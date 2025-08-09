@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  path: ./clusters/homelab/infra/controllers
+  path: ./infra/controllers
   prune: true
   wait: true
   timeout: 5m
@@ -25,7 +25,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  path: ./clusters/homelab/infra/configs
+  path: ./infra/configs
   prune: true
   wait: true
   retryInterval: 1m
