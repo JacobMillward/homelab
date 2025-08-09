@@ -36,6 +36,6 @@ spec:
   dependsOn:
     - name: infra-controllers
   decryption:
-  provider: sops
-  secretRef:
-    name: sops-age
+    provider: sops
+    secretRef:
+      name: sops-age
