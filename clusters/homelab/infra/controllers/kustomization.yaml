@@ -2,3 +2,4 @@ resources:
   - ./metallb
   - ./longhorn
   - ./technetium
+  - ./external-dns
