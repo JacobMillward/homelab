@@ -24,7 +24,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  path: ./infra/configs
+  path: ./infra/config
   prune: true
   wait: true
   retryInterval: 1m
