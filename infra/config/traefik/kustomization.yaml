@@ -1,3 +1,2 @@
 resources:
-  - wildcard-certificate.yaml
   - tlsstore.yaml
