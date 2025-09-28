@@ -23,10 +23,10 @@ spec:
               value: "0.0.0.0"
           ports:
             - name: dns-udp
-              containerPort: 53
+              containerPort: 1053
               protocol: UDP
             - name: dns-tcp
-              containerPort: 53
+              containerPort: 1053
               protocol: TCP
             - name: dns-https
               containerPort: 443
