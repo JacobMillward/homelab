@@ -3,3 +3,4 @@ resources:
   - ./longhorn
   - ./technetium
   - ./external-dns
+  - ./traefik
