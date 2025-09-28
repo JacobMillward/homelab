@@ -14,11 +14,11 @@ spec:
     - name: dns-udp
       port: 53
       protocol: UDP
-      targetPort: 1053
+      targetPort: 53
     - name: dns-tcp
       port: 53
       protocol: TCP
-      targetPort: 1053
+      targetPort: 53
     - name: web
       port: 5380
       protocol: TCP
