@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zigbee2mqtt-ingress
+  namespace: home-automation
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: zigbee2mqtt.millward-yuan.net
+spec:
+  rules:
+    - host: zigbee2mqtt.millward-yuan.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: zigbee2mqtt
+                port:
+                  number: 8080
