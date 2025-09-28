@@ -1,0 +1,38 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: zigbee2mqtt
+  namespace: home-automation
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: zigbee2mqtt
+      version: '1.37.1'
+      sourceRef:
+        kind: HelmRepository
+        name: zigbee2mqtt
+        namespace: flux-system
+      interval: 30m
+  values:
+    # Configuration taken from the dashboard of the SLZB-MR3
+    serial:
+    # Location of SLZB-MR3
+      port: tcp://192.168.100.149:6638
+      baudrate: 115200
+      adapter: ember
+    # Disable green led?
+      disable_led: true
+    # Set output power to max 20
+    advanced:
+      transmit_power: 20
+    # MQTT configuration
+    mqtt:
+      server: mqtt://mosquitto.home-automation.svc.cluster.local:1883
+      base_topic: zigbee2mqtt
+      client_id: zigbee2mqtt
+      include_device_information: true
+    frontend:
+      enabled: true
+    homeassistant:
+      enabled: true
