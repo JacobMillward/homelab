@@ -1,0 +1,10 @@
+# We use a dedicated namespace for Zigbee2MQTT to apply the privileged Pod Security Standards
+# that the helm chart requires.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zigbee2mqtt
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
