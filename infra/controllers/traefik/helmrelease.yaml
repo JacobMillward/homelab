@@ -1,0 +1,31 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  releaseName: traefik
+  interval: 30m
+  chart:
+    spec:
+      chart: traefik
+      version: 37.1.1
+      sourceRef:
+        kind: HelmRepository
+        name: traefik-charts
+        namespace: flux-system
+  values:
+    ingressRoute:
+      dashboard:
+        enabled: true
+        matchRule: Host(`dashboard.localhost`)
+        entryPoints:
+          - web
+    providers:
+      kubernetesGateway:
+        enabled: true
+    gateway:
+      listeners:
+        web:
+          namespacePolicy:
+            from: All
