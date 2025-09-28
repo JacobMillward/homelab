@@ -1,2 +1,4 @@
 resources:
   - ./metallb
+  - ./cert-manager
+  - ./traefik
