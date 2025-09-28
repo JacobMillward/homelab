@@ -14,5 +14,4 @@ spec:
   interval: 15m
   releaseName: cert-manager
   values:
-    crds:
-      enabled: true
+    installCRDs: true
