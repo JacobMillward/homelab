@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homeassistant-ingress
+  namespace: home-automation
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: homeassistant.millward-yuan.net
+spec:
+  rules:
+    - host: homeassistant.millward-yuan.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: homeassistant
+                port:
+                  number: 8123
