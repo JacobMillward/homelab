@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Secret
 metadata:
     name: cloudflare-api-token-secret
+    namespace: cert-manager
 type: Opaque
 stringData:
     api-token: ENC[AES256_GCM,data:RHluQ6zDkRuH1Whx2hFBQNr1EfflClg/1BCbMIdI0NjcLi++AYgfoQ==,iv:8I6mZIB+ZMCgeUQZoz042cF2Oad32KIKt5DI42ABJhs=,tag:mIumZToPtWvX3vI7lG7DbQ==,type:str]
