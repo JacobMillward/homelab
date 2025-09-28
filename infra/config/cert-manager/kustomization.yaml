@@ -1,3 +1,2 @@
 resources:
   - issuer.yaml
-  - wildcard-certificate.yaml
