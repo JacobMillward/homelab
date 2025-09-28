@@ -16,10 +16,18 @@ spec:
         namespace: flux-system
   values:
     deployment:
-      kind: DaemonSet     
+      kind: DaemonSet    
+    ports:
+      web:
+        redirectTo: websecure
+      websecure:
+        tls:
+          enabled: true 
     providers:
       kubernetesGateway:
         enabled: true
+    persistence:
+      enabled: false # Disabled as cert-manager handles cert storage
     gateway:
       listeners:
         web:

@@ -4,3 +4,4 @@ resources:
   - ./technetium
   - ./external-dns
   - ./traefik
+  - ./cert-manager

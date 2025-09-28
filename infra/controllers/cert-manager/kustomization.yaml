@@ -1,0 +1,6 @@
+resources:
+  - cloudflare-api-token.sops.yaml
+  - helmrepo.yaml
+  - helmrelease.yaml
+  - issuer.yaml
+  - wildcard-certificate.yaml
