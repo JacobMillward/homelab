@@ -15,7 +15,7 @@ To bootstrap the Talos cluster, follow these steps:
 5. Bootstrap the Kubernetes cluster using `talhelper gencommand bootstrap | bash`.
 6. Bootstrap FluxCD using `flux bootstrap github --owner=JacobMillward --repository=homelab --branch=main --path=clusters/homelab --personal`.
 7. Ensure there is a secret in the `flux-system` namespace called `sops-age` containing the private key for SOPS.
-  e.g. `kubectl create secret generic sops-age --from-file=age.key=~/.config/sops/age/keys.txt -n flux-system`
+  e.g. `cat ~/.config/sops/age/keys.txt | kubectl create secret generic sops-age --namespace=flux-system --from-file=age.agekey=/dev/stdin`
 
 # SOPs
 This repository uses SOPs for managing secrets. The public key is available in the `.sops.yaml` file, and the private key is manually put in the cluster as a secret named `sops-age` in the `flux-system` namespace. Files encrypted with SOPs have the `.sops.yaml` suffix.
