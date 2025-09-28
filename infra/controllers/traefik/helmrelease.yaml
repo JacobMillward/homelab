@@ -19,7 +19,11 @@ spec:
       kind: DaemonSet    
     ports:
       web:
-        redirectTo: websecure
+        http:
+          redirections:
+            entryPoint:
+              to: websecure
+              scheme: https
       websecure:
         tls:
           enabled: true 
