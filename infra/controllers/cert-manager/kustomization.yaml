@@ -3,4 +3,3 @@ resources:
   - helmrepo.yaml
   - helmrelease.yaml
   - issuer.yaml
-  - wildcard-certificate.yaml
