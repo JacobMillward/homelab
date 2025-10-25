@@ -16,6 +16,7 @@ data:
     - Home Automation:
       - Zigbee Radio (SLZB-MR3):
           href: http://192.168.100.149
+          icon: si-zigbee
           description: Zigbee Radio management interface
     - Cluster Management:
       - Technitium DNS:
