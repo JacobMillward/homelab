@@ -7,5 +7,4 @@ data:
   config.json: |-
     {
       "repositories": ["JacobMillward/homelab"],
-      "dryRun" : "full"
     }
