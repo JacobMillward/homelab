@@ -14,6 +14,11 @@ spec:
             - image: renovate/renovate:41.152.9
               name: renovate-bot
               env:
+                - name: RENOVATE_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: github-secret
+                      key: renovate-token
                 - name: RENOVATE_AUTODISCOVER
                   value: 'false'
                 - name: RENOVATE_BASE_DIR
