@@ -11,16 +11,18 @@ data:
   settings.yaml: ""
   custom.css: ""
   custom.js: ""
-  bookmarks.yaml: |
-    - Developer:
-        - Github:
-            - abbr: GH
-              href: https://github.com/
+  bookmarks.yaml: ""
   services.yaml: |
-    - My First Group:
-        - My First Service:
-            href: http://localhost/
-            description: Homepage is awesome
+    - Home Automation:
+        - Home Assistant:
+            href: https://homeassistant.millward-yuan.net
+            description: Home Assistant web UI (8123)
+        - Zigbee2MQTT:
+            href: https://zigbee2mqtt.millward-yuan.net
+            description: Zigbee2MQTT frontend
+        - Zigbee Radio (SLZB-MR3):
+            href: http://192.168.100.149
+            description: Zigbee Radio management interface
   widgets.yaml: |
     - kubernetes:
         cluster:
