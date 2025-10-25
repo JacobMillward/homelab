@@ -1,10 +1,19 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base"],
-  "enabledManagers": ["kubernetes", "github-actions", "regex"],
-  "regexManagers": [
+  "extends": [
+    "config:recommended"
+  ],
+  "enabledManagers": [
+    "kubernetes",
+    "github-actions",
+    "custom.regex"
+  ],
+  "customManagers": [
     {
-      "fileMatch": ["(^|/).*\\.ya?ml$"],
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/).*\\.ya?ml$/"
+      ],
       "matchStrings": [
         "image:\\s(?<depName>\\S+?)(?::(?<currentValue>\\S+))?$",
         "image:\\s?\"(?<depName>\\S+?):(?<currentValue>\\S+?)\"",
@@ -16,20 +25,36 @@
   ],
   "packageRules": [
     {
-      "matchManagers": ["kubernetes", "regex"],
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchManagers": [
+        "kubernetes",
+        "custom.regex"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "automerge": true,
       "automergeType": "branch"
     },
     {
-      "matchManagers": ["github-actions"],
+      "matchManagers": [
+        "github-actions"
+      ],
       "automerge": true
     },
     {
-      "matchPaths": ["apps/**", "clusters/**", "infra/**", "controllers/**"],
+      "matchFileNames": [
+        "apps/**",
+        "clusters/**",
+        "infra/**",
+        "controllers/**"
+      ],
       "groupName": "k8s-manifests",
       "commitMessageTopic": "k8s manifests"
     }
   ],
-  "ignorePaths": ["**/*.sops.yaml", ".sops.yaml"]
+  "ignorePaths": [
+    "**/*.sops.yaml",
+    ".sops.yaml"
+  ]
 }
