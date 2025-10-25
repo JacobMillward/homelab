@@ -44,5 +44,32 @@ renovate:
     fi
 
 # Force a reconciliation of the flux-system Git source
-flux:
+sync:
+    #!/usr/bin/env bash
     flux reconcile source git flux-system
+
+    # Get known reconcilations by counting lines that do not start with "NAME" and are not empty
+    RECONCILIATIONS=$(flux get all | grep -v '^NAME' | grep -v '^$' | wc -l)
+
+    # Set a timeout of 5 minutes
+    TIMEOUT=300
+
+    # In a loop, wait for all reconcilations to complete. Make a progress bar with a count of X/Y
+    echo -n "Waiting for $RECONCILIATIONS reconcilations to complete"
+    START_TIME=$(date +%s)
+    while true; do
+        CURRENT_TIME=$(date +%s)
+        ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
+        if [ "$ELAPSED_TIME" -ge "$TIMEOUT" ]; then
+            echo -e "\nTimeout reached while waiting for reconcilations to complete."
+            exit 1
+        fi
+
+        REMAINING=$(flux get all --status-selector ready=false | grep -v '^NAME' | grep -v '^$' | wc -l)
+        if [ "$REMAINING" -eq 0 ]; then
+            break
+        fi
+        echo -ne "\rWaiting for $REMAINING/$RECONCILIATIONS reconcilations to complete"
+        sleep 5
+    done
+    echo -e "\nAll reconcilations completed."
