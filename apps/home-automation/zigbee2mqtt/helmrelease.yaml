@@ -21,6 +21,7 @@ spec:
         enabled: true
         size: 2Gi
         storageClassName: longhorn
+        volumeName: zigbee2mqtt-config
     # Configuration for SLZB-MR3 TCP connection
     zigbee2mqtt:
       serial:
