@@ -42,3 +42,7 @@ renovate:
         kubectl describe pods -n renovate -l job-name="$JOB"
         exit 1
     fi
+
+# Force a reconciliation of the flux-system Git source
+flux:
+    flux reconcile source git flux-system
