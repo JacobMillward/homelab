@@ -13,9 +13,15 @@ data:
   custom.js: ""
   bookmarks.yaml: ""
   services.yaml: |
+    - Home Automation:
       - Zigbee Radio (SLZB-MR3):
           href: http://192.168.100.149
           description: Zigbee Radio management interface
+    - Cluster Management:
+      - Technitium DNS:
+          href: http://dns.millward-yuan.net:5380/
+          description: Technitium DNS web interface
+          icon: sh-technitium
   widgets.yaml: |
     - kubernetes:
         cluster:
