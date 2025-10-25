@@ -13,20 +13,9 @@ data:
   custom.js: ""
   bookmarks.yaml: ""
   services.yaml: |
-    - Home Automation:
-        - Home Assistant:
-            href: https://homeassistant.millward-yuan.net
-            description: Home Assistant web UI (8123)
-            namespace: home-automation
-            app: homeassistant
-        - Zigbee2MQTT:
-            href: https://zigbee2mqtt.millward-yuan.net
-            description: Zigbee2MQTT frontend
-            namespace: home-automation
-            app: zigbee2mqtt
-        - Zigbee Radio (SLZB-MR3):
-            href: http://192.168.100.149
-            description: Zigbee Radio management interface
+      - Zigbee Radio (SLZB-MR3):
+          href: http://192.168.100.149
+          description: Zigbee Radio management interface
   widgets.yaml: |
     - kubernetes:
         cluster:
