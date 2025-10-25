@@ -6,8 +6,10 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: homeassistant.millward-yuan.net
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: "Home Assistant"
     gethomepage.dev/description: "Home Assistant web UI"
-    gethomepage.dev/icon: "mdi:home-assistant"
+    gethomepage.dev/group: "Home Automation"
+    gethomepage.dev/icon: "sh-home-assistant"
 spec:
   rules:
     - host: homeassistant.millward-yuan.net
