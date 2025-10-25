@@ -12,6 +12,7 @@ spec:
       app: homeassistant
   template:
     metadata:
+      name: homeassistant
       labels:
         app: homeassistant
     spec:
