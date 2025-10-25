@@ -6,8 +6,10 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: zigbee2mqtt.millward-yuan.net
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: "Zigbee2MQTT"
     gethomepage.dev/description: "Zigbee2MQTT web UI"
-    gethomepage.dev/icon: "mdi:zigbee"
+    gethomepage.dev/group: "Home Automation"
+    gethomepage.dev/icon: "sh-zigbee2mqtt"
 spec:
   rules:
     - host: zigbee2mqtt.millward-yuan.net
