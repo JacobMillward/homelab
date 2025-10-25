@@ -19,9 +19,13 @@ spec:
     statefulset:
       storage:
         enabled: true
-        size: 2Gi
-        storageClassName: longhorn
-        volumeName: zigbee2mqtt-config
+        volumeMounts:
+          - name: config
+            mountPath: /app/data
+        volumes:
+          - name: config
+            persistentVolumeClaim:
+              claimName: zigbee2mqtt-config
     # Configuration for SLZB-MR3 TCP connection
     zigbee2mqtt:
       serial:
