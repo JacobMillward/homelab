@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: technitium-dns
-          image: technitium/dns-server:14.0.1
+          image: technitium/dns-server:14.2.0
           env:
             - name: DNS_SERVER_WEB_SERVICE_LOCAL_ADDRESSES
               value: "0.0.0.0"
