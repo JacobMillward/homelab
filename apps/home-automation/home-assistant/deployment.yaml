@@ -19,7 +19,7 @@ spec:
       containers:
       - name: homeassistant
         image: homeassistant/home-assistant:2026.1.0
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         env:
         - name: TZ
           value: "Europe/London"
