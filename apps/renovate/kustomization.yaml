@@ -1,5 +1,0 @@
-resources:
-  - namespace.yaml
-  - github-secret.sops.yaml
-  - configmap.yaml
-  - cronjob.yaml

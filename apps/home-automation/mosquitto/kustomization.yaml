@@ -1,5 +1,0 @@
-resources:
-  - pvc.yaml
-  - mosquitto-config.yaml
-  - deployment.yaml
-  - service.yaml
