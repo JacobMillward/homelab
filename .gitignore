@@ -1,0 +1,3 @@
+.pulumi/
+kubeconfig.yaml
+pulumi/node_modules/

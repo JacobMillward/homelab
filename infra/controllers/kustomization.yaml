@@ -1,7 +1,0 @@
-resources:
-  - ./metallb
-  - ./longhorn
-  - ./technetium
-  - ./external-dns
-  - ./traefik
-  - ./cert-manager

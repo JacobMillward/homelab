@@ -1,7 +1,0 @@
-resources:
-  - namespace.yaml
-  - pvc.yaml
-  - helmrepo.yaml
-  - helmrelease.yaml
-  - service.yaml
-  - ingress.yaml
