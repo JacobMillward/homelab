@@ -41,7 +41,7 @@ preview:
 
 # Apply infrastructure changes
 up:
-    just _pulumi up
+    just _pulumi up --yes
 
 # Destroy all infrastructure
 destroy:
