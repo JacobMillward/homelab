@@ -1,0 +1,7 @@
+name: homelab-apps
+runtime:
+  name: nodejs
+  options:
+    typescript: true
+    packagemanager: bun
+description: User applications
