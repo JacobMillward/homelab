@@ -1,55 +1,55 @@
 export PULUMI_BACKEND_URL := "file://" + justfile_directory() / ".pulumi"
-talos_version := "v1.12.5"
+stacks := "talos platform apps"
 
 [private]
 default:
     @just --list
 
-# Private helper: run a pulumi command with 1password-injected passphrase
+# Private helper: run a pulumi command for a given stack
 [private]
-_pulumi *args:
-    cd pulumi && op run --env-file={{ justfile_directory() }}/.env -- pulumi {{ args }}
+_pulumi STACK *args:
+    cd stacks/{{ STACK }} && op run --env-file={{ justfile_directory() }}/.env -- pulumi {{ args }}
 
-talosVersion:
-    #!/usr/bin/env bash
-    echo "Current Talos version: {{ talos_version }}"
-    latest_version=$(curl -s https://factory.talos.dev/versions | jq -r '[.[] | select(contains("-") | not)] | .[-1]')
-    echo "Latest Talos version: $latest_version"
-
-[doc("""
-POST a node schematic to factory.talos.dev, set talosSchematicId config, and print the ISO download URL
-    Usage: just schematic nuc12i7
-""")]
-schematic NODE:
+# Install dependencies for all stacks
+install:
     #!/usr/bin/env bash
     set -euo pipefail
-    SCHEMATIC_ID=$(curl -s -X POST \
-        --data-binary @"talos/schematics/{{ NODE }}.yaml" \
-        https://factory.talos.dev/schematics | jq -r '.id')
-    echo "Schematic ID: $SCHEMATIC_ID"
-    cd pulumi && pulumi config set talosSchematicId "$SCHEMATIC_ID"
-    echo "ISO: https://factory.talos.dev/image/$SCHEMATIC_ID/{{ talos_version }}/metal-amd64.iso"
+    for s in {{ stacks }}; do
+      echo "==> Installing $s"
+      cd stacks/$s && bun install && cd ../..
+    done
 
-# Initialize the Pulumi stack (run once)
+# Initialize all Pulumi stacks (run once)
 init:
-    just _pulumi stack init homelab
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for s in {{ stacks }}; do just _pulumi $s stack init homelab; done
 
-# Preview infrastructure changes
-preview:
-    just _pulumi preview
+# Preview changes (all stacks, or just one)
+preview STACK="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -n "{{ STACK }}" ]; then just _pulumi "{{ STACK }}" preview
+    else for s in {{ stacks }}; do just _pulumi "$s" preview; done; fi
 
-# Apply infrastructure changes
-up:
-    just _pulumi up --yes
+# Deploy (all stacks in order, or just one)
+up STACK="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -n "{{ STACK }}" ]; then just _pulumi "{{ STACK }}" up --yes
+    else for s in {{ stacks }}; do just _pulumi "$s" up --yes; done; fi
 
-# Destroy all infrastructure
-destroy:
-    just _pulumi destroy
+# Destroy (all stacks in reverse order, or just one)
+destroy STACK="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -n "{{ STACK }}" ]; then just _pulumi "{{ STACK }}" destroy
+    else for s in apps platform talos; do just _pulumi "$s" destroy; done; fi
 
 # Export kubeconfig to kubeconfig.yaml
 kubeconfig:
-    just _pulumi stack output kubeconfigRaw --show-secrets > kubeconfig.yaml
+    just _pulumi talos stack output kubeconfigRaw --show-secrets > kubeconfig.yaml
 
 # Export talosconfig to talosconfig.yaml
 talosconfig:
-    just _pulumi stack output talosconfigRaw --show-secrets > talosconfig.yaml
+    just _pulumi talos stack output talosconfigRaw --show-secrets > talosconfig.yaml

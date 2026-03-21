@@ -1,4 +1,4 @@
 .pulumi/
 kubeconfig.yaml
 talosconfig.yaml
-pulumi/node_modules/
+stacks/*/node_modules/
