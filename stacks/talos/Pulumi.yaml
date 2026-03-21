@@ -1,0 +1,7 @@
+name: homelab-talos
+runtime:
+  name: nodejs
+  options:
+    typescript: true
+    packagemanager: bun
+description: Talos cluster bootstrap and lifecycle
