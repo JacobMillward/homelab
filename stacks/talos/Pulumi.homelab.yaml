@@ -1,0 +1,11 @@
+config:
+  homelab-talos:clusterName: homelab
+  homelab-talos:clusterEndpoint: https://192.168.100.10:6443
+  homelab-talos:talosVersion: v1.12.6
+  homelab-talos:kubernetesVersion: v1.35.3
+  homelab-talos:nodes:
+    - name: nuc12i7
+      ip: 192.168.100.10
+      installDisk: /dev/nvme0n1
+      machineType: controlplane
+      schematic: nuc12i7
