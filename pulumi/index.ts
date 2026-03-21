@@ -62,12 +62,10 @@ const bootstrap = new talos.machine.Bootstrap("bootstrap", {
 
 const upgrade = new command.local.Command("talos-upgrade", {
     create: `
-        TMPFILE=$(mktemp) &&
-        printf '%s' "$TALOS_CONFIG" > "$TMPFILE" &&
+        TMPFILE=$(mktemp)
+        trap 'rm -f "$TMPFILE"' EXIT
+        printf '%s' "$TALOS_CONFIG" > "$TMPFILE"
         talosctl upgrade --talosconfig "$TMPFILE" --nodes "$NODE_IP" --image "$UPGRADE_IMAGE" --preserve
-        EXIT=$?
-        rm -f "$TMPFILE"
-        exit $EXIT
     `,
     environment: {
         TALOS_CONFIG: talosconfigRaw,
@@ -77,10 +75,25 @@ const upgrade = new command.local.Command("talos-upgrade", {
     triggers: [talosVersion, talosSchematicId],
 }, { dependsOn: [bootstrap] });
 
+const k8sUpgrade = new command.local.Command("k8s-upgrade", {
+    create: `
+        TMPFILE=$(mktemp)
+        trap 'rm -f "$TMPFILE"' EXIT
+        printf '%s' "$TALOS_CONFIG" > "$TMPFILE"
+        talosctl upgrade-k8s --talosconfig "$TMPFILE" --nodes "$NODE_IP" --to "$K8S_VERSION"
+    `,
+    environment: {
+        TALOS_CONFIG: talosconfigRaw,
+        NODE_IP: nodeIp,
+        K8S_VERSION: kubernetesVersion,
+    },
+    triggers: [kubernetesVersion],
+}, { dependsOn: [upgrade] });
+
 const kubeconfig = new talos.cluster.Kubeconfig("kubeconfig", {
     clientConfiguration: secrets.clientConfiguration,
     node: nodeIp,
-}, { dependsOn: [upgrade] });
+}, { dependsOn: [k8sUpgrade] });
 
 const k8sProvider = new k8s.Provider("k8s-provider", {
     kubeconfig: kubeconfig.kubeconfigRaw,
