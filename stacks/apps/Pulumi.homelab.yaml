@@ -1,0 +1,3 @@
+config:
+  homelab-apps:talosStackRef: organization/homelab-talos/homelab
+  homelab-apps:platformStackRef: organization/homelab-platform/homelab
