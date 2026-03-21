@@ -6,6 +6,8 @@ const config = new pulumi.Config();
 const nodeIp = config.require("nodeIp");
 const clusterEndpoint = config.require("clusterEndpoint");
 const talosVersion = config.require("talosVersion");
+const nodeVersion = config.get("nodeVersion") ?? talosVersion;
+const kubernetesVersion = config.require("kubernetesVersion");
 const installDisk = config.require("installDisk");
 const talosSchematicId = config.require("talosSchematicId");
 
@@ -16,7 +18,8 @@ const machineConfig = talos.machine.getConfigurationOutput({
     clusterEndpoint,
     machineType: "controlplane",
     machineSecrets: secrets.machineSecrets,
-    talosVersion,
+    talosVersion: nodeVersion,
+    kubernetesVersion,
     configPatches: [
         pulumi.interpolate`machine:
   install:
