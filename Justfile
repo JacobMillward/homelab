@@ -50,3 +50,7 @@ destroy:
 # Export kubeconfig to kubeconfig.yaml
 kubeconfig:
     just _pulumi stack output kubeconfigRaw --show-secrets > kubeconfig.yaml
+
+# Export talosconfig to talosconfig.yaml
+talosconfig:
+    just _pulumi stack output talosconfigRaw --show-secrets > talosconfig.yaml
