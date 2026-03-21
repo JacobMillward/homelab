@@ -7,7 +7,6 @@ const config = new pulumi.Config();
 const nodeIp = config.require("nodeIp");
 const clusterEndpoint = config.require("clusterEndpoint");
 const talosVersion = config.require("talosVersion");
-const nodeVersion = config.get("nodeVersion") ?? talosVersion;
 const kubernetesVersion = config.require("kubernetesVersion");
 const installDisk = config.require("installDisk");
 const talosSchematicId = config.require("talosSchematicId");
@@ -29,7 +28,7 @@ const machineConfig = talos.machine.getConfigurationOutput({
     clusterEndpoint,
     machineType: "controlplane",
     machineSecrets: secrets.machineSecrets,
-    talosVersion: nodeVersion,
+    talosVersion,
     kubernetesVersion,
     configPatches: [
         pulumi.interpolate`machine:
@@ -60,28 +59,41 @@ const bootstrap = new talos.machine.Bootstrap("bootstrap", {
     node: nodeIp,
 }, { dependsOn: [configApply] });
 
+const talosUpgradeScript = `
+    TMPFILE=$(mktemp)
+    trap 'rm -f "$TMPFILE"' EXIT
+    printf '%s' "$TALOS_CONFIG" > "$TMPFILE"
+    CURRENT=$(talosctl version --talosconfig "$TMPFILE" --nodes "$NODE_IP" 2>/dev/null | awk '/Server:/{found=1} found && /Tag:/{print $2; exit}')
+    if [ "$CURRENT" = "$TALOS_VERSION" ]; then echo "talos: $CURRENT (up to date)"; exit 0; fi
+    echo "talos: $CURRENT -> $TALOS_VERSION"
+    talosctl upgrade --talosconfig "$TMPFILE" --nodes "$NODE_IP" --image "$UPGRADE_IMAGE" --preserve
+`;
+
 const upgrade = new command.local.Command("talos-upgrade", {
-    create: `
-        TMPFILE=$(mktemp)
-        trap 'rm -f "$TMPFILE"' EXIT
-        printf '%s' "$TALOS_CONFIG" > "$TMPFILE"
-        talosctl upgrade --talosconfig "$TMPFILE" --nodes "$NODE_IP" --image "$UPGRADE_IMAGE" --preserve
-    `,
+    create: talosUpgradeScript,
     environment: {
         TALOS_CONFIG: talosconfigRaw,
         NODE_IP: nodeIp,
-        UPGRADE_IMAGE: pulumi.interpolate`factory.talos.dev/installer/${talosSchematicId}:${talosVersion}`,
+        TALOS_VERSION: talosVersion,
+        UPGRADE_IMAGE: `factory.talos.dev/installer/${talosSchematicId}:${talosVersion}`,
     },
     triggers: [talosVersion, talosSchematicId],
 }, { dependsOn: [bootstrap] });
 
+const k8sUpgradeScript = `
+    TMPFILE=$(mktemp)
+    KUBECFG=$(mktemp)
+    trap 'rm -f "$TMPFILE" "$KUBECFG"' EXIT
+    printf '%s' "$TALOS_CONFIG" > "$TMPFILE"
+    talosctl kubeconfig "$KUBECFG" --talosconfig "$TMPFILE" --nodes "$NODE_IP" --force 2>/dev/null
+    CURRENT=$(kubectl --kubeconfig "$KUBECFG" version -o json 2>/dev/null | jq -r '.serverVersion.gitVersion')
+    if [ "$CURRENT" = "$K8S_VERSION" ]; then echo "k8s: $CURRENT (up to date)"; exit 0; fi
+    echo "k8s: $CURRENT -> $K8S_VERSION"
+    talosctl upgrade-k8s --talosconfig "$TMPFILE" --nodes "$NODE_IP" --to "$K8S_VERSION"
+`;
+
 const k8sUpgrade = new command.local.Command("k8s-upgrade", {
-    create: `
-        TMPFILE=$(mktemp)
-        trap 'rm -f "$TMPFILE"' EXIT
-        printf '%s' "$TALOS_CONFIG" > "$TMPFILE"
-        talosctl upgrade-k8s --talosconfig "$TMPFILE" --nodes "$NODE_IP" --to "$K8S_VERSION"
-    `,
+    create: k8sUpgradeScript,
     environment: {
         TALOS_CONFIG: talosconfigRaw,
         NODE_IP: nodeIp,
