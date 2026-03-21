@@ -6,6 +6,11 @@ talos_version := "v1.12.5"
 default:
     @just --list
 
+# Private helper: run a pulumi command with op-injected passphrase
+[private]
+_pulumi *args:
+    cd pulumi && op run --env-file={{justfile_directory()}}/.env -- pulumi {{args}}
+
 talosVersion:
     #!/usr/bin/env bash
     echo "Current Talos version: {{talos_version}}"
@@ -13,7 +18,7 @@ talosVersion:
     echo "Latest Talos version: $latest_version"
 
 [doc("""
-POST a node schematic to factory.talos.dev and print the schematic ID and ISO download URL
+POST a node schematic to factory.talos.dev, set talosSchematicId config, and print the ISO download URL
     Usage: just schematic nuc12i7
 """)]
 schematic NODE:
@@ -23,4 +28,25 @@ schematic NODE:
         --data-binary @"talos/schematics/{{NODE}}.yaml" \
         https://factory.talos.dev/schematics | jq -r '.id')
     echo "Schematic ID: $SCHEMATIC_ID"
+    cd pulumi && pulumi config set talosSchematicId "$SCHEMATIC_ID"
     echo "ISO: https://factory.talos.dev/image/$SCHEMATIC_ID/{{talos_version}}/metal-amd64.iso"
+
+# Initialize the Pulumi stack (run once)
+init:
+    just _pulumi stack init homelab
+
+# Preview infrastructure changes
+preview:
+    just _pulumi preview
+
+# Apply infrastructure changes
+up:
+    just _pulumi up
+
+# Destroy all infrastructure
+destroy:
+    just _pulumi destroy
+
+# Export kubeconfig to kubeconfig.yaml
+kubeconfig:
+    just _pulumi stack output kubeconfigRaw --show-secrets > kubeconfig.yaml

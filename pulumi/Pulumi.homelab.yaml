@@ -1,0 +1,5 @@
+config:
+  homelab:nodeIp: 192.168.100.10
+  homelab:clusterEndpoint: https://192.168.100.10:6443
+  homelab:talosVersion: v1.12.5
+  homelab:installDisk: /dev/nvme0n1
