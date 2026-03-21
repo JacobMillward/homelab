@@ -1,6 +1,7 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as talos from "@pulumiverse/talos";
+import * as command from "@pulumi/command";
 
 const config = new pulumi.Config();
 const nodeIp = config.require("nodeIp");
@@ -12,6 +13,16 @@ const installDisk = config.require("installDisk");
 const talosSchematicId = config.require("talosSchematicId");
 
 const secrets = new talos.machine.Secrets("secrets", { talosVersion });
+
+export const talosconfigRaw = pulumi.interpolate`context: homelab
+contexts:
+  homelab:
+    endpoints:
+      - ${nodeIp}
+    ca: ${secrets.clientConfiguration.caCertificate}
+    crt: ${secrets.clientConfiguration.clientCertificate}
+    key: ${secrets.clientConfiguration.clientKey}
+`;
 
 const machineConfig = talos.machine.getConfigurationOutput({
     clusterName: "homelab",
@@ -49,10 +60,27 @@ const bootstrap = new talos.machine.Bootstrap("bootstrap", {
     node: nodeIp,
 }, { dependsOn: [configApply] });
 
+const upgrade = new command.local.Command("talos-upgrade", {
+    create: `
+        TMPFILE=$(mktemp) &&
+        printf '%s' "$TALOS_CONFIG" > "$TMPFILE" &&
+        talosctl upgrade --talosconfig "$TMPFILE" --nodes "$NODE_IP" --image "$UPGRADE_IMAGE" --preserve
+        EXIT=$?
+        rm -f "$TMPFILE"
+        exit $EXIT
+    `,
+    environment: {
+        TALOS_CONFIG: talosconfigRaw,
+        NODE_IP: nodeIp,
+        UPGRADE_IMAGE: pulumi.interpolate`factory.talos.dev/installer/${talosSchematicId}:${talosVersion}`,
+    },
+    triggers: [talosVersion, talosSchematicId],
+}, { dependsOn: [bootstrap] });
+
 const kubeconfig = new talos.cluster.Kubeconfig("kubeconfig", {
     clientConfiguration: secrets.clientConfiguration,
     node: nodeIp,
-}, { dependsOn: [bootstrap] });
+}, { dependsOn: [upgrade] });
 
 const k8sProvider = new k8s.Provider("k8s-provider", {
     kubeconfig: kubeconfig.kubeconfigRaw,
