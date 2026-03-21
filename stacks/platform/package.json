@@ -1,0 +1,17 @@
+{
+  "name": "homelab-platform",
+  "version": "0.1.0",
+  "main": "index.ts",
+  "devDependencies": {
+    "@types/node": "^18",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@pulumi/pulumi": "^3.226.0",
+    "@pulumi/kubernetes": "^4.25.0"
+  },
+  "trustedDependencies": [
+    "@pulumi/kubernetes",
+    "protobufjs"
+  ]
+}

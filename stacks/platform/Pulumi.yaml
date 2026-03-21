@@ -1,0 +1,7 @@
+name: homelab-platform
+runtime:
+  name: nodejs
+  options:
+    typescript: true
+    packagemanager: bun
+description: Platform services (cert-manager, metallb, traefik, etc.)
