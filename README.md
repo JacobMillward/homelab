@@ -34,14 +34,14 @@ just init       # Initialise Pulumi stacks (run once)
 
 ## Justfile recipes
 
-- `just up` — Deploy all stacks in order (talos → platform → apps)
-- `just up talos` — Deploy a single stack
-- `just preview` — Preview changes across all stacks
-- `just preview talos` — Preview a single stack
-- `just destroy` — Destroy all stacks in reverse order
-- `just pulumi talos ...` — Run any Pulumi command against a stack
-- `just kubeconfig` — Export kubeconfig to `kubeconfig.yaml`
-- `just talosconfig` — Export talosconfig to `talosconfig.yaml`
+- `just up`: Deploy all stacks in order (talos → platform → apps)
+- `just up talos`: Deploy a single stack
+- `just preview`: Preview changes across all stacks
+- `just preview talos`: Preview a single stack
+- `just destroy`: Destroy all stacks in reverse order
+- `just pulumi talos <command>`: Run any Pulumi command against a stack
+- `just kubeconfig`: Export kubeconfig to `kubeconfig.yaml`
+- `just talosconfig`: Export talosconfig to `talosconfig.yaml`
 
 ## Adding a node
 
