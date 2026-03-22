@@ -1,12 +1,4 @@
 {
-  "compilerOptions": {
-    "strict": true,
-    "target": "ES2022",
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "sourceMap": true,
-    "experimentalDecorators": true,
-    "forceConsistentCasingInFileNames": true
-  },
-  "include": ["index.ts", "../../lib/**/*.ts"]
+  "extends": "../../tsconfig.base.json",
+  "include": ["**/*.ts", "../../lib/**/*.ts"]
 }
