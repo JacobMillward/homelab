@@ -1,8 +1,0 @@
-config:
-  homelab:nodeIp: 192.168.100.10
-  homelab:clusterEndpoint: https://192.168.100.10:6443
-  homelab:talosVersion: v1.12.6
-  homelab:kubernetesVersion: v1.35.3
-  homelab:installDisk: /dev/nvme0n1
-  homelab:talosSchematicId: c099efd7bdc56308c8fc66fbf0b513412b9ce1b0b36e49b3cb363c216acb7100
-encryptionsalt: v1:wkrv5rL2kBg=:v1:DOPi+4bK9TawRmTX:kH2NOeP6oyIKAk1AQUEIvTGAZijEvQ==

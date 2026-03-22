@@ -1,7 +1,0 @@
-name: homelab
-runtime:
-  name: nodejs
-  options:
-    typescript: true
-    packagemanager: bun
-description: Homelab infrastructure
