@@ -1,34 +1,49 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import { deployMosquitto } from "./mosquitto";
+import { deployZigbee2mqtt } from "./zigbee2mqtt";
 
 const config = new pulumi.Config();
 const talosStack = new pulumi.StackReference(config.require("talosStackRef"));
-const _platformStack = new pulumi.StackReference(config.require("platformStackRef"));
+const platformStack = new pulumi.StackReference(
+  config.require("platformStackRef"),
+);
 
-const kubeconfig = talosStack.requireOutput("kubeconfigRaw").apply(v => v as string);
+const kubeconfig = talosStack
+  .requireOutput("kubeconfigRaw")
+  .apply((v) => v as string);
+const storageClassName = platformStack
+  .requireOutput("storageClassName")
+  .apply((v) => v as string);
 const k8sProvider = new k8s.Provider("k8s-provider", { kubeconfig });
 
-const ns = new k8s.core.v1.Namespace("hello-world", {
-    metadata: { name: "hello-world" },
-}, { provider: k8sProvider });
+// --- Home Automation ---
 
-new k8s.apps.v1.Deployment("hello-world", {
+const homeAutomationNs = new k8s.core.v1.Namespace(
+  "home-automation",
+  {
     metadata: {
-        name: "hello-world",
-        namespace: ns.metadata.name,
+      name: "home-automation",
+      labels: {
+        "pod-security.kubernetes.io/enforce": "privileged",
+        "pod-security.kubernetes.io/audit": "privileged",
+        "pod-security.kubernetes.io/warn": "privileged",
+      },
     },
-    spec: {
-        replicas: 1,
-        selector: { matchLabels: { app: "hello-world" } },
-        template: {
-            metadata: { labels: { app: "hello-world" } },
-            spec: {
-                containers: [{
-                    name: "nginx",
-                    image: "nginx:alpine",
-                    ports: [{ containerPort: 80 }],
-                }],
-            },
-        },
-    },
-}, { provider: k8sProvider });
+  },
+  { provider: k8sProvider },
+);
+
+const mqtt = deployMosquitto({
+  namespace: homeAutomationNs,
+  provider: k8sProvider,
+  storageClassName,
+  clients: ["zigbee2mqtt"],
+});
+deployZigbee2mqtt({
+  namespace: homeAutomationNs,
+  mqttUrl: mqtt.url,
+  mqttCredentials: mqtt.credentials["zigbee2mqtt"],
+  provider: k8sProvider,
+  storageClassName,
+});
