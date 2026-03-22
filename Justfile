@@ -45,10 +45,10 @@ destroy STACK="":
     if [ -n "{{ STACK }}" ]; then just pulumi "{{ STACK }}" destroy
     else for s in apps platform talos; do just pulumi "$s" destroy; done; fi
 
-# Export kubeconfig to kubeconfig.yaml
+# Export kubeconfig to ~/.kube/config
 kubeconfig:
-    just pulumi talos stack output kubeconfigRaw --show-secrets > kubeconfig.yaml
+    just pulumi talos stack output kubeconfigRaw --show-secrets > ~/.kube/config
 
-# Export talosconfig to talosconfig.yaml
+# Export talosconfig to ~/.talos/config
 talosconfig:
-    just pulumi talos stack output talosconfigRaw --show-secrets > talosconfig.yaml
+    just pulumi talos stack output talosconfigRaw --show-secrets > ~/.talos/config
