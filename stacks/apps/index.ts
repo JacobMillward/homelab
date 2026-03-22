@@ -14,6 +14,7 @@ const kubeconfig = talosStack
 const storageClassName = platformStack
   .requireOutput("storageClassName")
   .apply((v) => v as string);
+
 const k8sProvider = new k8s.Provider("k8s-provider", { kubeconfig });
 
 deployHomeAutomation({ provider: k8sProvider, storageClassName });
