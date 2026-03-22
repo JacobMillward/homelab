@@ -1,4 +1,6 @@
 config:
   homelab-platform:talosStackRef: organization/homelab-talos/homelab
   homelab-platform:metallbAddresses: 192.168.100.20-192.168.100.49
+  homelab-platform:cloudflareApiToken:
+    secure: v1:xEHoDTXAAB/g1t7y:sTiAeUTtODJ2BFhI5gTzgdXklaLkxyfUQUfCqc5r7bSJSUUT5GK6qMMYD+lcfyQngFZMEGwXul9XQsSoiu+qhJn7J6tZ
 encryptionsalt: v1:U+FSf0F20a0=:v1:Ulpuhm9q96ymFN4D:jEp0DLgPxKc+v5nYxRKuDLQ7yIsO7Q==
