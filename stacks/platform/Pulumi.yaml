@@ -5,3 +5,9 @@ runtime:
     typescript: true
     packagemanager: pnpm
 description: Platform services (cert-manager, metallb, traefik, etc.)
+packages:
+  netbird:
+    source: pulumi/pulumi/terraform-provider
+    version: 1.1.1
+    parameters:
+      - netbirdio/netbird@0.0.9

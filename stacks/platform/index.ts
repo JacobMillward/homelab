@@ -4,6 +4,7 @@ import { deployLonghorn, storageClassName } from "./longhorn";
 import { deployMetallb } from "./metallb";
 import { deployCertManager } from "./cert-manager";
 import { deployTraefik } from "./traefik";
+import { setupNetbird } from "./netbird";
 
 const config = new pulumi.Config();
 const talosStack = new pulumi.StackReference(config.require("talosStackRef"));
@@ -18,4 +19,10 @@ deployMetallb(k8sProvider);
 deployCertManager(k8sProvider);
 deployTraefik(k8sProvider);
 
+const netbird = setupNetbird({
+  k8sProvider,
+  storageClassName,
+});
+
 export { storageClassName };
+export const relayAuthSecret = netbird.relayAuthSecret;
