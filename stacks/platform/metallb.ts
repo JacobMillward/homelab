@@ -29,6 +29,14 @@ export function deployMetallb(provider: k8s.Provider) {
       repositoryOpts: {
         repo: "https://metallb.github.io/metallb",
       },
+      values: {
+        speaker: {
+          // Talos labels control plane nodes with
+          // node.kubernetes.io/exclude-from-external-load-balancers
+          // which makes the speaker skip them. This flag overrides that.
+          ignoreExcludeLB: true,
+        },
+      },
     },
     { provider },
   );
