@@ -31,14 +31,14 @@ ${nodes.map(n => `      - ${n.ip}`).join("\n")}
 
 // --- Schematics (deduplicated) ---
 
-const schematics = new Map<string, talos.imageFactory.Schematic>();
+const schematics = new Map<string, talos.imagefactory.Schematic>();
 for (const node of nodes) {
     if (!schematics.has(node.schematic)) {
         const yamlContent = fs.readFileSync(
             path.resolve(__dirname, `../../talos/schematics/${node.schematic}.yaml`),
             "utf-8",
         );
-        schematics.set(node.schematic, new talos.imageFactory.Schematic(`schematic-${node.schematic}`, {
+        schematics.set(node.schematic, new talos.imagefactory.Schematic(`schematic-${node.schematic}`, {
             schematic: yamlContent,
         }));
     }
@@ -94,7 +94,7 @@ const talosUpgradeScript = `
 
 for (const node of nodes) {
     const schematic = schematics.get(node.schematic)!;
-    const installerUrl = talos.imageFactory.getUrlsOutput({
+    const installerUrl = talos.imagefactory.getUrlsOutput({
         schematicId: schematic.id,
         talosVersion,
         platform: "metal",
@@ -127,7 +127,7 @@ const bootstrap = new talos.machine.Bootstrap("bootstrap", {
 
 for (const node of nodes) {
     const schematic = schematics.get(node.schematic)!;
-    const installerUrl = talos.imageFactory.getUrlsOutput({
+    const installerUrl = talos.imagefactory.getUrlsOutput({
         schematicId: schematic.id,
         talosVersion,
         platform: "metal",
