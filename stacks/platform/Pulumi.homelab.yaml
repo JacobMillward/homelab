@@ -1,2 +1,3 @@
 config:
   homelab-platform:talosStackRef: organization/homelab-talos/homelab
+encryptionsalt: v1:U+FSf0F20a0=:v1:Ulpuhm9q96ymFN4D:jEp0DLgPxKc+v5nYxRKuDLQ7yIsO7Q==

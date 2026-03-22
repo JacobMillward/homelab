@@ -9,3 +9,4 @@ config:
       installDisk: /dev/nvme0n1
       machineType: controlplane
       schematic: nuc12i7
+encryptionsalt: v1:Coxxi0mIYoA=:v1:Wj8EZ5vzVhGn3uVG:1TgiKs5M3QiGauVd5tdqB2dm+pkYrQ==
