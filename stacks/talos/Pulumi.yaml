@@ -3,5 +3,5 @@ runtime:
   name: nodejs
   options:
     typescript: true
-    packagemanager: bun
+    packagemanager: pnpm
 description: Talos cluster bootstrap and lifecycle

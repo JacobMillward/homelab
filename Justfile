@@ -15,7 +15,7 @@ install:
     set -euo pipefail
     for s in {{ stacks }}; do
       echo "==> Installing $s"
-      cd stacks/$s && bun install && cd ../..
+      cd stacks/$s && pnpm install && cd ../..
     done
 
 # Initialize all Pulumi stacks (run once)
