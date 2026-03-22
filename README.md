@@ -2,32 +2,54 @@
 
 This repository contains configuration files and scripts for managing my homelab environment.
 
-Currently, it is set up to use Talos Linux as the operating system for the cluster nodes, with Kubernetes managed by FluxCD.
+It uses [Talos Linux](https://www.talos.dev/) as the OS for cluster nodes, with infrastructure managed by [Pulumi](https://www.pulumi.com/) (TypeScript).
 
-This repo uses talhelper to manage the Talos cluster configuration.
+## Structure
 
-# Bootstrapping the cluster
-To bootstrap the Talos cluster, follow these steps:
-1. Install Talos on each node using the Talos ISO or USB image.
-2. Generate the machine configuration using `talhelper genconfig`.
-3. Apply the Talos configuration to each node (currently one node only) using `talosctl apply-config -n <node-ip> --insecure --file clusterconfig/homelab-main.yaml`.
-4. Generate and set the Talos config using `just talosconfig`.
-5. Bootstrap the Kubernetes cluster using `talhelper gencommand bootstrap | bash`.
-6. Bootstrap FluxCD using `flux bootstrap github --owner=JacobMillward --repository=homelab --branch=main --path=clusters/homelab --personal`.
-7. Ensure there is a secret in the `flux-system` namespace called `sops-age` containing the private key for SOPS.
-  e.g. `cat ~/.config/sops/age/keys.txt | kubectl create secret generic sops-age --namespace=flux-system --from-file=age.agekey=/dev/stdin`
+```
+stacks/
+  talos/       Cluster bootstrap and lifecycle (Talos + K8s upgrades)
+  platform/    Infrastructure services (cert-manager, metallb, etc.)
+  apps/        User applications
+lib/           Shared TypeScript types
+```
 
-# SOPs
-This repository uses SOPs for managing secrets. The public key is available in the `.sops.yaml` file, and the private key is manually put in the cluster as a secret named `sops-age` in the `flux-system` namespace. Files encrypted with SOPs have the `.sops.yaml` suffix.
+## Prerequisites
 
-# Justfile
+- [Pulumi CLI](https://www.pulumi.com/docs/install/)
+- [1Password CLI](https://developer.1password.com/docs/cli/) (`op`)
+- [just](https://github.com/casey/just)
+- [pnpm](https://pnpm.io/)
+- [talosctl](https://www.talos.dev/latest/talos-guides/install/talosctl/)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
 
-This contains tasks for managing the homelab setup using `just`.
+## Getting started
 
-## Recipes
-- `talosconfig`: Generates the talosconfig file for the Talos cluster and sets it as the current context.
-- `kubeconfig`: Generates the kubeconfig file for accessing the Talos cluster. Requires a valid talosconfig file.
-- `talosUpgrade`: Upgrades the Talos cluster to the latest version.
+Install dependencies and initialise the Pulumi stacks:
 
-## Talos Upgrades
-To upgrade the Talos cluster, run the `talosUpgrade` recipe. This ensures that the Talos nodes are updated to the version in `talconfig.yaml`. Notably, it also ensures the `--preserve` flag is used which prevents the loss of the longhorn replica data on each node.
+```bash
+just install    # Install pnpm dependencies for all stacks
+just init       # Initialise Pulumi stacks (run once)
+```
+
+## Justfile recipes
+
+- `just up` — Deploy all stacks in order (talos → platform → apps)
+- `just up talos` — Deploy a single stack
+- `just preview` — Preview changes across all stacks
+- `just preview talos` — Preview a single stack
+- `just destroy` — Destroy all stacks in reverse order
+- `just pulumi talos ...` — Run any Pulumi command against a stack
+- `just kubeconfig` — Export kubeconfig to `kubeconfig.yaml`
+- `just talosconfig` — Export talosconfig to `talosconfig.yaml`
+
+## Adding a node
+
+1. Create a schematic YAML if new hardware: `stacks/talos/schematics/<name>.yaml`
+2. Add an entry to `stacks/talos/Pulumi.homelab.yaml` under `nodes`
+3. Boot the node from the Talos ISO
+4. Run `just up talos`
+
+## Upgrades
+
+Talos and Kubernetes versions are configured in `stacks/talos/Pulumi.homelab.yaml`. Bumping the version and running `just up talos` will upgrade the cluster. The upgrade scripts short-circuit if the running version already matches the target, so re-runs are safe and fast.
