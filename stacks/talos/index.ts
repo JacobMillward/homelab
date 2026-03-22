@@ -35,7 +35,7 @@ const schematics = new Map<string, talos.imagefactory.Schematic>();
 for (const node of nodes) {
     if (!schematics.has(node.schematic)) {
         const yamlContent = fs.readFileSync(
-            path.resolve(__dirname, `../../talos/schematics/${node.schematic}.yaml`),
+            path.resolve(__dirname, `schematics/${node.schematic}.yaml`),
             "utf-8",
         );
         schematics.set(node.schematic, new talos.imagefactory.Schematic(`schematic-${node.schematic}`, {
