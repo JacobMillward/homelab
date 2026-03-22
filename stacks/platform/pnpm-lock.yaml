@@ -11,9 +11,15 @@ importers:
       '@pulumi/kubernetes':
         specifier: ^4.25.0
         version: 4.28.0(typescript@5.9.3)
+      '@pulumi/netbird':
+        specifier: file:sdks/netbird
+        version: file:sdks/netbird
       '@pulumi/pulumi':
         specifier: ^3.226.0
         version: 3.227.0(typescript@5.9.3)
+      '@pulumi/random':
+        specifier: ^4.19.1
+        version: 4.19.1(typescript@5.9.3)
     devDependencies:
       '@types/node':
         specifier: ^18
@@ -254,6 +260,9 @@ packages:
   '@pulumi/kubernetes@4.28.0':
     resolution: {integrity: sha512-tdoUN7blJv1rrwr+2Pc55CP/+L1sMkH3z5Y7DI2yfNiGgdeaOHYia+hYsnLgR4HtBSfIfuBVWxGkZwGWOgUmOQ==}
 
+  '@pulumi/netbird@file:sdks/netbird':
+    resolution: {directory: sdks/netbird, type: directory}
+
   '@pulumi/pulumi@3.227.0':
     resolution: {integrity: sha512-0G7C5gHyx65wIciTfSTw8WcXh3MOWQx/9ZEpWroFCgHrChTg9osUXQPzeKXwcuIiWu76vLWZe9PmmtLTTbOs3Q==}
     engines: {node: '>=20'}
@@ -265,6 +274,9 @@ packages:
         optional: true
       typescript:
         optional: true
+
+  '@pulumi/random@4.19.1':
+    resolution: {integrity: sha512-gDotQyxtl+pcJb4oaGfbi6PsK8OtzjBmF1D8PYLvr13kCup98KTIIv/8wF2xbgbFf7ljJn3EblADxZ0u8AC/Dg==}
 
   '@sigstore/bundle@4.0.0':
     resolution: {integrity: sha512-NwCl5Y0V6Di0NexvkTqdoVfmjTaQwoLM236r89KEojGmq/jMls8S+zb7yOwAPdXvbwfKDlP+lmXgAL4vKSQT+A==}
@@ -361,6 +373,9 @@ packages:
 
   argparse@1.0.10:
     resolution: {integrity: sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==}
+
+  async-mutex@0.5.0:
+    resolution: {integrity: sha512-1A94B18jkJ3DYq284ohPxoXbfTA5HsQ7/Mf4DEhcyLx3Bz27Rh59iScbB6EPiP+B+joue6YCxcMXSbFC1tZKwA==}
 
   balanced-match@4.0.4:
     resolution: {integrity: sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==}
@@ -977,9 +992,17 @@ packages:
     resolution: {integrity: sha512-gcANaAnd2QDZFmHFEOF4k7uc1J/6a6z3DJMd/QwEyxLoKGiptJRwid582r7QIsFlFMIZ3SnxfS52S4hm2DHkuQ==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
 
+  tslib@2.8.1:
+    resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
+
   tuf-js@4.1.0:
     resolution: {integrity: sha512-50QV99kCKH5P/Vs4E2Gzp7BopNV+KzTXqWeaxrfu5IQJBOULRsTIS9seSsOVT8ZnGXzCyx55nYWAi4qJzpZKEQ==}
     engines: {node: ^20.17.0 || >=22.9.0}
+
+  typescript@4.9.5:
+    resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
 
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
@@ -1355,6 +1378,52 @@ snapshots:
       - ts-node
       - typescript
 
+  '@pulumi/netbird@file:sdks/netbird':
+    dependencies:
+      '@pulumi/pulumi': 3.227.0(typescript@4.9.5)
+      '@types/node': 18.19.130
+      async-mutex: 0.5.0
+      typescript: 4.9.5
+    transitivePeerDependencies:
+      - supports-color
+      - ts-node
+
+  '@pulumi/pulumi@3.227.0(typescript@4.9.5)':
+    dependencies:
+      '@grpc/grpc-js': 1.14.3
+      '@logdna/tail-file': 2.2.0
+      '@npmcli/arborist': 9.4.2
+      '@opentelemetry/api': 1.9.0
+      '@opentelemetry/exporter-trace-otlp-grpc': 0.57.2(@opentelemetry/api@1.9.0)
+      '@opentelemetry/exporter-zipkin': 1.30.1(@opentelemetry/api@1.9.0)
+      '@opentelemetry/instrumentation': 0.57.2(@opentelemetry/api@1.9.0)
+      '@opentelemetry/instrumentation-grpc': 0.57.2(@opentelemetry/api@1.9.0)
+      '@opentelemetry/resources': 1.30.1(@opentelemetry/api@1.9.0)
+      '@opentelemetry/sdk-trace-base': 1.30.1(@opentelemetry/api@1.9.0)
+      '@opentelemetry/sdk-trace-node': 1.30.1(@opentelemetry/api@1.9.0)
+      '@types/google-protobuf': 3.15.12
+      '@types/semver': 7.7.1
+      '@types/tmp': 0.2.6
+      execa: 5.1.1
+      fdir: 6.5.0(picomatch@3.0.1)
+      google-protobuf: 3.21.4
+      got: 11.8.6
+      ini: 2.0.0
+      js-yaml: 3.14.2
+      minimist: 1.2.8
+      normalize-package-data: 6.0.2
+      package-directory: 8.2.0
+      picomatch: 3.0.1
+      require-from-string: 2.0.2
+      semver: 7.7.4
+      source-map-support: 0.5.21
+      tmp: 0.2.5
+      upath: 1.2.0
+    optionalDependencies:
+      typescript: 4.9.5
+    transitivePeerDependencies:
+      - supports-color
+
   '@pulumi/pulumi@3.227.0(typescript@5.9.3)':
     dependencies:
       '@grpc/grpc-js': 1.14.3
@@ -1390,6 +1459,14 @@ snapshots:
       typescript: 5.9.3
     transitivePeerDependencies:
       - supports-color
+
+  '@pulumi/random@4.19.1(typescript@5.9.3)':
+    dependencies:
+      '@pulumi/pulumi': 3.227.0(typescript@5.9.3)
+    transitivePeerDependencies:
+      - supports-color
+      - ts-node
+      - typescript
 
   '@sigstore/bundle@4.0.0':
     dependencies:
@@ -1484,6 +1561,10 @@ snapshots:
   argparse@1.0.10:
     dependencies:
       sprintf-js: 1.0.3
+
+  async-mutex@0.5.0:
+    dependencies:
+      tslib: 2.8.1
 
   balanced-match@4.0.4: {}
 
@@ -2132,6 +2213,8 @@ snapshots:
 
   treeverse@3.0.0: {}
 
+  tslib@2.8.1: {}
+
   tuf-js@4.1.0:
     dependencies:
       '@tufjs/models': 4.1.0
@@ -2139,6 +2222,8 @@ snapshots:
       make-fetch-happen: 15.0.5
     transitivePeerDependencies:
       - supports-color
+
+  typescript@4.9.5: {}
 
   typescript@5.9.3: {}
 

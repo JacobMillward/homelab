@@ -1,0 +1,2 @@
+allowBuilds:
+  '@pulumi/netbird': true

@@ -2,3 +2,4 @@
 kubeconfig.yaml
 talosconfig.yaml
 stacks/*/node_modules/
+stacks/*/sdks/
