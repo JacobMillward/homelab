@@ -24,9 +24,12 @@ export function setupNetbird(args: NetbirdArgs) {
 
   // 2. Configure NetBird via API (groups, networks, DNS, setup key).
   //    Waits for the server deployment to be ready.
+  const managementUrl = "https://netbird.millward-yuan.net";
+  const pat = config.requireSecret("netbirdPat");
+
   const nbProvider = new netbird.Provider("netbird", {
-    managementUrl: "https://netbird.millward-yuan.net",
-    token: config.requireSecret("netbirdPat"),
+    managementUrl,
+    token: pat,
   });
 
   const nbConfig = configureNetbird(nbProvider, [server.serverDeployment]);
@@ -38,5 +41,10 @@ export function setupNetbird(args: NetbirdArgs) {
     setupKey: nbConfig.setupKey,
   });
 
-  return { relayAuthSecret: server.relayAuthSecret };
+  return {
+    relayAuthSecret: server.relayAuthSecret,
+    dnsZoneId: nbConfig.dnsZoneId,
+    managementUrl,
+    pat,
+  };
 }

@@ -26,3 +26,6 @@ const netbird = setupNetbird({
 
 export { storageClassName };
 export const relayAuthSecret = netbird.relayAuthSecret;
+export const netbirdDnsZoneId = netbird.dnsZoneId;
+export const netbirdManagementUrl = netbird.managementUrl;
+export const netbirdPat = netbird.pat;
