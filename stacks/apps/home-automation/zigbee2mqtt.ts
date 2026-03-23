@@ -1,5 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import { DnsRegistrar } from "../dns";
 import { MqttCredentials } from "./mosquitto";
 
 interface Zigbee2mqttArgs {
@@ -8,6 +9,7 @@ interface Zigbee2mqttArgs {
   mqttCredentials: MqttCredentials;
   provider: k8s.Provider;
   storageClassName: pulumi.Output<string>;
+  dns: DnsRegistrar;
 }
 
 export function deployZigbee2mqtt(args: Zigbee2mqttArgs) {
@@ -17,9 +19,10 @@ export function deployZigbee2mqtt(args: Zigbee2mqttArgs) {
     mqttCredentials,
     provider,
     storageClassName,
+    dns,
   } = args;
 
-  new k8s.helm.v3.Release(
+  const release = new k8s.helm.v3.Release(
     "zigbee2mqtt",
     {
       chart: "zigbee2mqtt",
@@ -68,4 +71,12 @@ export function deployZigbee2mqtt(args: Zigbee2mqttArgs) {
     },
     { provider },
   );
+
+  const svc = k8s.core.v1.Service.get(
+    "zigbee2mqtt-svc",
+    pulumi.interpolate`${release.status.namespace}/${release.status.name}`,
+    { provider },
+  );
+
+  dns.register("z2m", svc.spec.clusterIP);
 }

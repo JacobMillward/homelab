@@ -1,15 +1,17 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import { DnsRegistrar } from "../dns";
 import { deployMosquitto } from "./mosquitto";
 import { deployZigbee2mqtt } from "./zigbee2mqtt";
 
 interface HomeAutomationArgs {
   provider: k8s.Provider;
   storageClassName: pulumi.Output<string>;
+  dns: DnsRegistrar;
 }
 
 export function deployHomeAutomation(args: HomeAutomationArgs) {
-  const { provider, storageClassName } = args;
+  const { provider, storageClassName, dns } = args;
 
   const ns = new k8s.core.v1.Namespace(
     "home-automation",
@@ -39,5 +41,6 @@ export function deployHomeAutomation(args: HomeAutomationArgs) {
     mqttCredentials: mqtt.credentials["zigbee2mqtt"],
     provider,
     storageClassName,
+    dns,
   });
 }
