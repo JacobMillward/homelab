@@ -5,3 +5,10 @@ runtime:
     typescript: true
     packagemanager: pnpm
 description: User applications
+packages:
+  netbird:
+    source: terraform-provider
+    version: 1.1.1
+    parameters:
+      - netbirdio/netbird
+      - 0.0.9

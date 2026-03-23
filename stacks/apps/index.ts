@@ -1,6 +1,7 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import { deployHomeAutomation } from "./home-automation";
+import { DnsRegistrar } from "./dns";
 
 const config = new pulumi.Config();
 const talosStack = new pulumi.StackReference(config.require("talosStackRef"));
@@ -17,4 +18,14 @@ const storageClassName = platformStack
 
 const k8sProvider = new k8s.Provider("k8s-provider", { kubeconfig });
 
-deployHomeAutomation({ provider: k8sProvider, storageClassName });
+const dns = new DnsRegistrar({
+  managementUrl: platformStack
+    .requireOutput("netbirdManagementUrl")
+    .apply((v) => v as string),
+  pat: platformStack.requireOutput("netbirdPat").apply((v) => v as string),
+  dnsZoneId: platformStack
+    .requireOutput("netbirdDnsZoneId")
+    .apply((v) => v as string),
+});
+
+deployHomeAutomation({ provider: k8sProvider, storageClassName, dns });
