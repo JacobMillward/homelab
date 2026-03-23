@@ -80,18 +80,5 @@ export function configureNetbird(
     opts,
   );
 
-  // DNS records for cluster services
-  new netbird.DnsRecord(
-    "z2m-dns",
-    {
-      name: "z2m.home.internal",
-      zoneId: zone.id,
-      type: "A",
-      content: "10.105.119.13",
-      ttl: 300,
-    },
-    opts,
-  );
-
-  return { setupKey: setupKey.key };
+  return { setupKey: setupKey.key, dnsZoneId: zone.id };
 }
