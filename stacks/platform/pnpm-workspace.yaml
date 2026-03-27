@@ -1,2 +1,4 @@
 allowBuilds:
+  '@pulumi/kubernetes': true
   '@pulumi/netbird': true
+  protobufjs: true

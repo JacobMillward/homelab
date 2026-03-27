@@ -4,6 +4,7 @@ import { deployLonghorn, storageClassName } from "./longhorn";
 import { deployMetallb } from "./metallb";
 import { deployCertManager } from "./cert-manager";
 import { deployTraefik } from "./traefik";
+import { deployPostgresql } from "./postgresql";
 import { setupNetbird } from "./netbird";
 
 const config = new pulumi.Config();
@@ -18,6 +19,8 @@ deployLonghorn(k8sProvider);
 deployMetallb(k8sProvider);
 deployCertManager(k8sProvider);
 deployTraefik(k8sProvider);
+
+deployPostgresql(k8sProvider);
 
 const netbird = setupNetbird({
   k8sProvider,
