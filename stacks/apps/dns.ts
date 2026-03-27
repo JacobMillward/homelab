@@ -1,4 +1,5 @@
 import * as pulumi from "@pulumi/pulumi";
+import * as k8s from "@pulumi/kubernetes";
 import * as netbird from "@pulumi/netbird";
 
 const ZONE_DOMAIN = "millward-yuan.net";
@@ -7,18 +8,24 @@ interface DnsRegistrarArgs {
   managementUrl: pulumi.Output<string>;
   pat: pulumi.Output<string>;
   dnsZoneId: pulumi.Output<string>;
+  k8sProvider: k8s.Provider;
+  traefikInternalIp: pulumi.Output<string>;
 }
 
 export class DnsRegistrar {
-  private provider: netbird.Provider;
+  private netbirdProvider: netbird.Provider;
   private zoneId: pulumi.Output<string>;
+  private k8sProvider: k8s.Provider;
+  private traefikInternalIp: pulumi.Output<string>;
 
   constructor(args: DnsRegistrarArgs) {
-    this.provider = new netbird.Provider("netbird", {
+    this.netbirdProvider = new netbird.Provider("netbird", {
       managementUrl: args.managementUrl,
       token: args.pat,
     });
     this.zoneId = args.dnsZoneId;
+    this.k8sProvider = args.k8sProvider;
+    this.traefikInternalIp = args.traefikInternalIp;
   }
 
   register(name: string, ip: pulumi.Input<string>) {
@@ -31,7 +38,43 @@ export class DnsRegistrar {
         content: ip,
         ttl: 300,
       },
-      { provider: this.provider },
+      { provider: this.netbirdProvider },
     );
+  }
+
+  expose(
+    name: string,
+    opts: {
+      host: string;
+      namespace: pulumi.Input<string>;
+      serviceName: pulumi.Input<string>;
+      servicePort: number;
+    },
+  ) {
+    new k8s.apiextensions.CustomResource(
+      `${name}-ingress`,
+      {
+        apiVersion: "traefik.io/v1alpha1",
+        kind: "IngressRoute",
+        metadata: {
+          name,
+          namespace: opts.namespace,
+        },
+        spec: {
+          entryPoints: ["websecure"],
+          routes: [
+            {
+              match: `Host(\`${opts.host}\`)`,
+              kind: "Rule",
+              services: [{ name: opts.serviceName, port: opts.servicePort }],
+            },
+          ],
+          tls: {},
+        },
+      },
+      { provider: this.k8sProvider },
+    );
+
+    this.register(name, this.traefikInternalIp);
   }
 }

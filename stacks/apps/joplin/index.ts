@@ -5,11 +5,10 @@ interface JoplinArgs {
   provider: k8s.Provider;
   storageClassName: pulumi.Output<string>;
   dns: DnsRegistrar;
-  traefikInternalIp: pulumi.Output<string>;
 }
 
 export function deployJoplin(args: JoplinArgs) {
-  const { provider, storageClassName, dns, traefikInternalIp } = args;
+  const { provider, storageClassName, dns } = args;
   const host = "joplin.millward-yuan.net";
 
   const ns = new k8s.core.v1.Namespace(
@@ -126,30 +125,10 @@ export function deployJoplin(args: JoplinArgs) {
     { provider },
   );
 
-  new k8s.apiextensions.CustomResource(
-    "joplin-ingress",
-    {
-      apiVersion: "traefik.io/v1alpha1",
-      kind: "IngressRoute",
-      metadata: {
-        name: "joplin",
-        namespace: ns.metadata.name,
-      },
-      spec: {
-        entryPoints: ["websecure"],
-        routes: [
-          {
-            match: `Host(\`${host}\`)`,
-            kind: "Rule",
-            services: [{ name: svc.metadata.name, port: 22300 }],
-          },
-        ],
-        tls: {},
-      },
-    },
-    { provider },
-  );
-
-  // Points at Traefik's internal ClusterIP, only reachable via NetBird
-  dns.register("joplin", traefikInternalIp);
+  dns.expose("joplin", {
+    host,
+    namespace: ns.metadata.name,
+    serviceName: svc.metadata.name,
+    servicePort: 22300,
+  });
 }

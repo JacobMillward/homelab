@@ -22,6 +22,8 @@ export function deployZigbee2mqtt(args: Zigbee2mqttArgs) {
     dns,
   } = args;
 
+  const host = "z2m.millward-yuan.net";
+
   const release = new k8s.helm.v3.Release(
     "zigbee2mqtt",
     {
@@ -78,5 +80,10 @@ export function deployZigbee2mqtt(args: Zigbee2mqttArgs) {
     { provider },
   );
 
-  dns.register("z2m", svc.spec.clusterIP);
+  dns.expose("z2m", {
+    host,
+    namespace: ns.metadata.name,
+    serviceName: svc.metadata.name,
+    servicePort: 8080,
+  });
 }

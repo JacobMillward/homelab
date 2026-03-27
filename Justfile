@@ -1,4 +1,8 @@
 export PULUMI_BACKEND_URL := "file://" + justfile_directory() / ".pulumi"
+
+# List of stacks to manage
+# Order matters, stacks are initialized and deployed in order
+
 stacks := "talos platform apps"
 
 [private]
