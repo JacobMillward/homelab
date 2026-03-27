@@ -67,12 +67,14 @@ export function deployTraefik(provider: k8s.Provider) {
     { provider, dependsOn: [release] },
   );
 
-  // ClusterIP service for internal apps (NetBird-only, not LAN-reachable)
-  const internalLabels = {
-    "app.kubernetes.io/name": "traefik",
-    "app.kubernetes.io/instance": "traefik-traefik",
-  };
+  // Look up the Helm-created service to reuse its selector
+  const helmSvc = k8s.core.v1.Service.get(
+    "traefik-helm-svc",
+    pulumi.interpolate`${release.status.namespace}/${release.status.name}`,
+    { provider },
+  );
 
+  // ClusterIP service for internal apps (NetBird-only, not LAN-reachable)
   const internalSvc = new k8s.core.v1.Service(
     "traefik-internal",
     {
@@ -82,7 +84,7 @@ export function deployTraefik(provider: k8s.Provider) {
       },
       spec: {
         type: "ClusterIP",
-        selector: internalLabels,
+        selector: helmSvc.spec.selector,
         ports: [{ name: "websecure", port: 443, targetPort: 8443 }],
       },
     },
