@@ -7,7 +7,7 @@ interface Zigbee2mqttArgs {
   namespace: k8s.core.v1.Namespace;
   mqttUrl: pulumi.Output<string>;
   mqttCredentials: MqttCredentials;
-  provider: k8s.Provider;
+  parent: pulumi.Resource;
   storageClassName: pulumi.Output<string>;
   dns: DnsRegistrar;
 }
@@ -17,12 +17,12 @@ export function deployZigbee2mqtt(args: Zigbee2mqttArgs) {
     namespace: ns,
     mqttUrl,
     mqttCredentials,
-    provider,
+    parent,
     storageClassName,
     dns,
   } = args;
 
-  const host = "z2m.millward-yuan.net";
+  const childOpts = { parent };
 
   const release = new k8s.helm.v3.Release(
     "zigbee2mqtt",
@@ -71,19 +71,20 @@ export function deployZigbee2mqtt(args: Zigbee2mqttArgs) {
         },
       },
     },
-    { provider },
+    { ...childOpts, aliases: [{ name: "release" }] },
   );
 
   const svc = k8s.core.v1.Service.get(
     "zigbee2mqtt-svc",
     pulumi.interpolate`${release.status.namespace}/${release.status.name}`,
-    { provider },
+    { ...childOpts, aliases: [{ name: "service" }] },
   );
 
   dns.expose("z2m", {
-    host,
+    host: "z2m.millward-yuan.net",
     namespace: ns.metadata.name,
     serviceName: svc.metadata.name,
     servicePort: 8080,
+    parent,
   });
 }

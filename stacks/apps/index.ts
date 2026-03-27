@@ -1,8 +1,9 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
-import { deployHomeAutomation } from "./home-automation";
-import { deployJoplin } from "./joplin";
+import { HomeAutomation } from "./home-automation";
+import { Joplin } from "./joplin";
 import { DnsRegistrar } from "./dns";
+import { AppCtx } from "./app";
 
 const config = new pulumi.Config();
 const talosStack = new pulumi.StackReference(config.require("talosStackRef"));
@@ -31,18 +32,14 @@ const dns = new DnsRegistrar({
   dnsZoneId: platformStack
     .requireOutput("netbirdDnsZoneId")
     .apply((v) => v as string),
-  k8sProvider,
   traefikInternalIp,
 });
 
-deployHomeAutomation({
+const ctx: AppCtx = {
   provider: k8sProvider,
   storageClassName,
   dns,
-});
+};
 
-deployJoplin({
-  provider: k8sProvider,
-  storageClassName,
-  dns,
-});
+new HomeAutomation(ctx);
+new Joplin(ctx);
