@@ -18,7 +18,7 @@ const k8sProvider = new k8s.Provider("k8s-provider", { kubeconfig });
 deployLonghorn(k8sProvider);
 deployMetallb(k8sProvider);
 deployCertManager(k8sProvider);
-deployTraefik(k8sProvider);
+const traefik = deployTraefik(k8sProvider);
 
 deployPostgresql(k8sProvider);
 
@@ -32,3 +32,5 @@ export const relayAuthSecret = netbird.relayAuthSecret;
 export const netbirdDnsZoneId = netbird.dnsZoneId;
 export const netbirdManagementUrl = netbird.managementUrl;
 export const netbirdPat = netbird.pat;
+export const traefikIp = traefik.loadBalancerIp;
+export const traefikInternalIp = traefik.internalIp;
