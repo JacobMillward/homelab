@@ -1,7 +1,7 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as netbird from "@pulumi/netbird";
 
-const ZONE_DOMAIN = "home.internal";
+const ZONE_DOMAIN = "millward-yuan.net";
 
 interface DnsRegistrarArgs {
   managementUrl: pulumi.Output<string>;

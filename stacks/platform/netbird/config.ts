@@ -67,14 +67,14 @@ export function configureNetbird(
     opts,
   );
 
-  // DNS zone for internal service names
+  // DNS zone for app subdomains (*.millward-yuan.net)
   const zone = new netbird.DnsZone(
-    "home-internal",
+    "millward-yuan",
     {
-      name: "home.internal",
-      domain: "home.internal",
+      name: "millward-yuan.net",
+      domain: "millward-yuan.net",
       enabled: true,
-      enableSearchDomain: true,
+      enableSearchDomain: false,
       distributionGroups: [allGroup.apply((g) => g.id)],
     },
     opts,
