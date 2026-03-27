@@ -8,14 +8,12 @@ interface DnsRegistrarArgs {
   managementUrl: pulumi.Output<string>;
   pat: pulumi.Output<string>;
   dnsZoneId: pulumi.Output<string>;
-  k8sProvider: k8s.Provider;
   traefikInternalIp: pulumi.Output<string>;
 }
 
 export class DnsRegistrar {
   private netbirdProvider: netbird.Provider;
   private zoneId: pulumi.Output<string>;
-  private k8sProvider: k8s.Provider;
   private traefikInternalIp: pulumi.Output<string>;
 
   constructor(args: DnsRegistrarArgs) {
@@ -24,7 +22,6 @@ export class DnsRegistrar {
       token: args.pat,
     });
     this.zoneId = args.dnsZoneId;
-    this.k8sProvider = args.k8sProvider;
     this.traefikInternalIp = args.traefikInternalIp;
   }
 
@@ -49,6 +46,7 @@ export class DnsRegistrar {
       namespace: pulumi.Input<string>;
       serviceName: pulumi.Input<string>;
       servicePort: number;
+      parent: pulumi.Resource;
     },
   ) {
     new k8s.apiextensions.CustomResource(
@@ -72,7 +70,7 @@ export class DnsRegistrar {
           tls: {},
         },
       },
-      { provider: this.k8sProvider },
+      { parent: opts.parent },
     );
 
     this.register(name, this.traefikInternalIp);

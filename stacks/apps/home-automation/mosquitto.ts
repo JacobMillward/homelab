@@ -9,7 +9,7 @@ export interface MqttCredentials {
 
 interface MosquittoArgs<T extends readonly string[]> {
   namespace: k8s.core.v1.Namespace;
-  provider: k8s.Provider;
+  parent: pulumi.Resource;
   storageClassName: pulumi.Output<string>;
   clients: T;
 }
@@ -17,7 +17,8 @@ interface MosquittoArgs<T extends readonly string[]> {
 export function deployMosquitto<const T extends readonly string[]>(
   args: MosquittoArgs<T>,
 ) {
-  const { namespace: ns, provider, storageClassName, clients } = args;
+  const { namespace: ns, parent, storageClassName, clients } = args;
+  const childOpts = { parent };
   const credentials = {} as Record<T[number], MqttCredentials>;
   const passwordEntries: pulumi.Output<string>[] = [];
 
@@ -41,21 +42,19 @@ export function deployMosquitto<const T extends readonly string[]>(
     "mosquitto-credentials",
     {
       metadata: {
-        name: "mosquitto-credentials",
         namespace: ns.metadata.name,
       },
       stringData: {
         "password_list.txt": passwordFileContent,
       },
     },
-    { provider },
+    { ...childOpts, aliases: [{ name: "mqtt-credentials" }] },
   );
 
   const config = new k8s.core.v1.ConfigMap(
     "mosquitto-config",
     {
       metadata: {
-        name: "mosquitto-config",
         namespace: ns.metadata.name,
       },
       data: {
@@ -67,14 +66,13 @@ export function deployMosquitto<const T extends readonly string[]>(
         ].join("\n"),
       },
     },
-    { provider },
+    { ...childOpts, aliases: [{ name: "mqtt-config" }] },
   );
 
   const pvc = new k8s.core.v1.PersistentVolumeClaim(
     "mosquitto-data",
     {
       metadata: {
-        name: "mosquitto-data",
         namespace: ns.metadata.name,
       },
       spec: {
@@ -83,7 +81,7 @@ export function deployMosquitto<const T extends readonly string[]>(
         storageClassName,
       },
     },
-    { provider },
+    { ...childOpts, aliases: [{ name: "mqtt-data" }] },
   );
 
   const labels = { app: "mosquitto" };
@@ -92,7 +90,6 @@ export function deployMosquitto<const T extends readonly string[]>(
     "mosquitto",
     {
       metadata: {
-        name: "mosquitto",
         namespace: ns.metadata.name,
       },
       spec: {
@@ -153,14 +150,13 @@ export function deployMosquitto<const T extends readonly string[]>(
         },
       },
     },
-    { provider },
+    { ...childOpts, aliases: [{ name: "mqtt-server" }] },
   );
 
   const service = new k8s.core.v1.Service(
     "mosquitto",
     {
       metadata: {
-        name: "mosquitto",
         namespace: ns.metadata.name,
       },
       spec: {
@@ -168,7 +164,7 @@ export function deployMosquitto<const T extends readonly string[]>(
         ports: [{ name: "mqtt", port: 1883, targetPort: 1883 }],
       },
     },
-    { provider },
+    { ...childOpts, aliases: [{ name: "mqtt-service" }] },
   );
 
   const url = service.metadata.apply(
