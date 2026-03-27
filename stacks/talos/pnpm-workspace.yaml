@@ -1,0 +1,3 @@
+allowBuilds:
+  '@pulumi/command': true
+  protobufjs: true
