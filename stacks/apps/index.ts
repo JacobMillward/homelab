@@ -1,6 +1,7 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import { deployHomeAutomation } from "./home-automation";
+import { deployJoplin } from "./joplin";
 import { DnsRegistrar } from "./dns";
 
 const config = new pulumi.Config();
@@ -29,3 +30,14 @@ const dns = new DnsRegistrar({
 });
 
 deployHomeAutomation({ provider: k8sProvider, storageClassName, dns });
+
+const traefikInternalIp = platformStack
+  .requireOutput("traefikInternalIp")
+  .apply((v) => v as string);
+
+deployJoplin({
+  provider: k8sProvider,
+  storageClassName,
+  dns,
+  traefikInternalIp,
+});
