@@ -5,3 +5,4 @@ customization:
       - siderolabs/i915
       - siderolabs/iscsi-tools
       - siderolabs/thunderbolt
+      - siderolabs/nfsd

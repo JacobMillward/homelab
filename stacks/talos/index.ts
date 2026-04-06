@@ -32,6 +32,7 @@ ${nodes.map(n => `      - ${n.ip}`).join("\n")}
 // --- Schematics (deduplicated) ---
 
 const schematics = new Map<string, talos.imagefactory.Schematic>();
+
 for (const node of nodes) {
     if (!schematics.has(node.schematic)) {
         const yamlContent = fs.readFileSync(
@@ -40,6 +41,12 @@ for (const node of nodes) {
         );
         schematics.set(node.schematic, new talos.imagefactory.Schematic(`schematic-${node.schematic}`, {
             schematic: yamlContent,
+        }, {
+            // The schematic ID is content-addressed. Force a replace when content
+            // changes so resource.id always reflects the current hash rather than
+            // staying stale from the initial create.
+            replaceOnChanges: ["schematic"],
+            deleteBeforeReplace: true,
         }));
     }
 }
