@@ -148,7 +148,7 @@ export class NetbirdServer extends pulumi.ComponentResource {
               containers: [
                 {
                   name: "netbird-server",
-                  image: "netbirdio/netbird-server:0.66.4",
+                  image: "netbirdio/netbird-server:0.67.3",
                   args: ["--config", "/etc/netbird/config.yaml"],
                   ports: [
                     { name: "http", containerPort: 80 },
@@ -228,7 +228,7 @@ export class NetbirdServer extends pulumi.ComponentResource {
               containers: [
                 {
                   name: "dashboard",
-                  image: "netbirdio/dashboard:v2.34.2",
+                  image: "netbirdio/dashboard:v2.36.0",
                   ports: [{ name: "http", containerPort: 80 }],
                   livenessProbe: {
                     httpGet: { path: "/", port: "http" },
