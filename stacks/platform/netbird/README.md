@@ -110,3 +110,31 @@ in-cluster services. A `NameserverGroup` directs peers to resolve
 2. NetBird API config via Pulumi provider (groups, networks, DNS zone, setup key)
 3. Router peer (uses setup key from step 2)
 4. WireGuard tunnel pod (if VPS stack is configured)
+
+## Runbooks
+
+### VPS recreated / IP changed
+
+The WireGuard tunnel pod has the VPS IP baked into its config at deploy time.
+If the VPS is recreated (e.g. via `just up vps`) and gets a new IP:
+
+1. **Sync the new IP into cluster config:**
+   ```
+   just up platform
+   ```
+
+2. **Restart the WireGuard tunnel pod** (picks up new VPS endpoint):
+   ```
+   kubectl rollout restart deployment/wg-home-peer -n netbird
+   kubectl rollout status deployment/wg-home-peer -n netbird
+   ```
+
+3. **Restart the routing peer** (re-registers with management once tunnel is up):
+   ```
+   kubectl rollout restart deployment/netbird-router -n netbird
+   kubectl rollout status deployment/netbird-router -n netbird
+   ```
+
+`netbird-server` does not need restarting — its PVC data lives in the cluster
+and its config uses the domain name (`netbird.millward-yuan.net`), not the raw
+VPS IP.
