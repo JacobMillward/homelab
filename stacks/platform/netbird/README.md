@@ -14,8 +14,7 @@ graph TB
 
     subgraph VPS ["Hetzner VPS (Flatcar Linux)"]
         caddy["Caddy<br/>TLS termination<br/>:443 / :33443"]
-        relay["NetBird Relay<br/>:33080"]
-        stun_vps["STUN<br/>UDP :3478"]
+        relay["NetBird Relay + STUN<br/>:33080 / UDP :3478"]
         wg_vps["WireGuard<br/>10.99.0.1/24<br/>UDP :51820"]
     end
 
@@ -27,7 +26,7 @@ graph TB
         end
 
         subgraph routing ["Routing Peer"]
-            router["netbird-router<br/>(netbird client)<br/>NET_ADMIN"]
+            router["netbird-router<br/>(netbird client)<br/>NET_ADMIN + SYS_RESOURCE + SYS_ADMIN"]
         end
 
         subgraph tunnel ["WG Tunnel Pod"]
@@ -52,7 +51,7 @@ graph TB
     %% VPS internal
     caddy -- "HTTPS :443" --> wg_vps
     caddy -- ":33443" --> relay
-    stun_vps -. "UDP :3478" .-> peers
+    relay -. "STUN UDP :3478" .-> peers
 
     %% WireGuard tunnel
     wg_vps -- "WireGuard tunnel<br/>UDP :51820" --- wg_home
