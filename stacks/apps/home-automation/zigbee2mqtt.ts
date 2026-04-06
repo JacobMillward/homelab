@@ -10,6 +10,7 @@ interface Zigbee2mqttArgs {
   parent: pulumi.Resource;
   storageClassName: pulumi.Output<string>;
   dns: DnsRegistrar;
+  host: string;
 }
 
 export function deployZigbee2mqtt(args: Zigbee2mqttArgs) {
@@ -20,6 +21,7 @@ export function deployZigbee2mqtt(args: Zigbee2mqttArgs) {
     parent,
     storageClassName,
     dns,
+    host,
   } = args;
 
   const childOpts = { parent };
@@ -81,7 +83,7 @@ export function deployZigbee2mqtt(args: Zigbee2mqttArgs) {
   );
 
   dns.expose("z2m", {
-    host: "z2m.millward-yuan.net",
+    host,
     namespace: ns.metadata.name,
     serviceName: svc.metadata.name,
     servicePort: 8080,

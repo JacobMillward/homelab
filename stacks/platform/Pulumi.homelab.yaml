@@ -1,4 +1,5 @@
 config:
+  homelab-platform:domain: millward-yuan.net
   homelab-platform:talosStackRef: organization/homelab-talos/homelab
   homelab-platform:metallbAddresses: 192.168.100.20-192.168.100.49
   homelab-platform:traefikIp: 192.168.100.20

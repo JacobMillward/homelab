@@ -3,8 +3,6 @@ import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
 import { PlatformCtx } from "../context";
 
-const domain = "netbird.millward-yuan.net";
-
 export interface VpsServerConfig {
   relayAuthSecret: pulumi.Input<string>;
   relayAddress: pulumi.Input<string>;
@@ -29,6 +27,7 @@ export class NetbirdServer extends pulumi.ComponentResource {
 
     const { storageClassName, vps } = args;
     const config = new pulumi.Config();
+    const domain = `netbird.${config.require("domain")}`;
 
     this.namespace = new k8s.core.v1.Namespace(
       "netbird",

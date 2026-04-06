@@ -15,6 +15,9 @@ export class HomeAutomation extends pulumi.ComponentResource {
       },
     );
 
+    const config = new pulumi.Config();
+    const domain = config.require("domain");
+
     const ns = new k8s.core.v1.Namespace(
       "home-automation",
       {
@@ -43,6 +46,7 @@ export class HomeAutomation extends pulumi.ComponentResource {
       parent: this,
       storageClassName: ctx.storageClassName,
       dns: ctx.dns,
+      host: `z2m.${domain}`,
     });
   }
 }

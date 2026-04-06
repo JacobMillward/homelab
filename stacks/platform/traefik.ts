@@ -14,6 +14,8 @@ export class Traefik extends pulumi.ComponentResource {
     const config = new pulumi.Config();
     this.loadBalancerIp = config.require("traefikIp");
 
+    const domain = config.require("domain");
+
     const ns = new k8s.core.v1.Namespace(
       "traefik",
       {
@@ -42,7 +44,7 @@ export class Traefik extends pulumi.ComponentResource {
       { parent: this },
     );
 
-    // Wildcard cert for *.millward-yuan.net via Let's Encrypt DNS-01
+    // Wildcard cert for *.${domain} via Let's Encrypt DNS-01
     new k8s.apiextensions.CustomResource(
       "wildcard-cert",
       {
@@ -52,7 +54,7 @@ export class Traefik extends pulumi.ComponentResource {
         spec: {
           secretName: "wildcard-tls",
           issuerRef: { name: "letsencrypt-prod", kind: "ClusterIssuer" },
-          dnsNames: ["*.millward-yuan.net"],
+          dnsNames: [`*.${domain}`],
         },
       },
       { parent: this },

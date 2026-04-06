@@ -6,6 +6,7 @@ import { DnsRegistrar } from "./dns";
 import { AppCtx } from "./app";
 
 const config = new pulumi.Config();
+const domain = config.require("domain");
 const talosStack = new pulumi.StackReference(config.require("talosStackRef"));
 const platformStack = new pulumi.StackReference(
   config.require("platformStackRef"),
@@ -25,6 +26,7 @@ const traefikInternalIp = platformStack
   .apply((v) => v as string);
 
 const dns = new DnsRegistrar({
+  domain,
   managementUrl: platformStack
     .requireOutput("netbirdManagementUrl")
     .apply((v) => v as string),

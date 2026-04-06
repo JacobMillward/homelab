@@ -1,4 +1,5 @@
 config:
+  homelab-apps:domain: millward-yuan.net
   homelab-apps:talosStackRef: organization/homelab-talos/homelab
   homelab-apps:platformStackRef: organization/homelab-platform/homelab
 encryptionsalt: v1:jg2Lf4U0Yb8=:v1:622zu2eL7CaUcblQ:sETSfDIFhfqdqF/4uzlIfAEEn47Anw==
