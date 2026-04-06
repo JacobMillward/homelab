@@ -1,0 +1,10 @@
+{
+  "name": "homelab-lib",
+  "version": "0.1.0",
+  "description": "Shared helpers for homelab Pulumi stacks",
+  "main": "index.ts",
+  "peerDependencies": {
+    "@1password/pulumi-onepassword": "^1.1.3",
+    "@pulumi/pulumi": "^3.226.0"
+  }
+}

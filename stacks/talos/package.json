@@ -7,6 +7,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "homelab-lib": "workspace:*",
     "@pulumi/pulumi": "^3.226.0",
     "@pulumi/command": "^1.0.0",
     "@pulumiverse/talos": "^0.7.1"

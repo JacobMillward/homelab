@@ -6,14 +6,97 @@ settings:
 
 importers:
 
-  .:
+  .: {}
+
+  lib:
+    dependencies:
+      '@1password/pulumi-onepassword':
+        specifier: ^1.1.3
+        version: 1.1.3(typescript@5.9.3)
+      '@pulumi/pulumi':
+        specifier: ^3.226.0
+        version: 3.229.0(typescript@5.9.3)
+
+  stacks/apps:
+    dependencies:
+      '@pulumi/kubernetes':
+        specifier: ^4.25.0
+        version: 4.28.0(typescript@5.9.3)
+      '@pulumi/netbird':
+        specifier: file:sdks/netbird
+        version: file:stacks/apps/sdks/netbird
+      '@pulumi/pulumi':
+        specifier: ^3.226.0
+        version: 3.229.0(typescript@5.9.3)
+      '@pulumi/random':
+        specifier: ^4.19.1
+        version: 4.19.2(typescript@5.9.3)
+    devDependencies:
+      '@types/node':
+        specifier: ^18
+        version: 18.19.130
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
+  stacks/platform:
+    dependencies:
+      '@1password/pulumi-onepassword':
+        specifier: ^1.1.3
+        version: 1.1.3(typescript@5.9.3)
+      '@pulumi/kubernetes':
+        specifier: ^4.25.0
+        version: 4.28.0(typescript@5.9.3)
+      '@pulumi/netbird':
+        specifier: file:sdks/netbird
+        version: file:stacks/platform/sdks/netbird
+      '@pulumi/pulumi':
+        specifier: ^3.226.0
+        version: 3.229.0(typescript@5.9.3)
+      '@pulumi/random':
+        specifier: ^4.19.1
+        version: 4.19.2(typescript@5.9.3)
+      homelab-lib:
+        specifier: workspace:*
+        version: link:../../lib
+    devDependencies:
+      '@types/node':
+        specifier: ^18
+        version: 18.19.130
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
+  stacks/talos:
+    dependencies:
+      '@pulumi/command':
+        specifier: ^1.0.0
+        version: 1.2.1(typescript@5.9.3)
+      '@pulumi/pulumi':
+        specifier: ^3.226.0
+        version: 3.229.0(typescript@5.9.3)
+      '@pulumiverse/talos':
+        specifier: ^0.7.1
+        version: 0.7.1(typescript@5.9.3)
+      homelab-lib:
+        specifier: workspace:*
+        version: link:../../lib
+    devDependencies:
+      '@types/node':
+        specifier: ^18
+        version: 18.19.130
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
+  stacks/vps:
     dependencies:
       '@1password/pulumi-onepassword':
         specifier: ^1.1.3
         version: 1.1.3(typescript@5.9.3)
       '@pulumi/cloudflare':
         specifier: ^6.13.0
-        version: 6.13.0(typescript@5.9.3)
+        version: 6.14.0(typescript@5.9.3)
       '@pulumi/command':
         specifier: ^1.2.1
         version: 1.2.1(typescript@5.9.3)
@@ -22,10 +105,13 @@ importers:
         version: 1.32.1(typescript@5.9.3)
       '@pulumi/pulumi':
         specifier: ^3.226.0
-        version: 3.228.0(typescript@5.9.3)
+        version: 3.229.0(typescript@5.9.3)
       '@pulumi/random':
         specifier: ^4.19.1
-        version: 4.19.1(typescript@5.9.3)
+        version: 4.19.2(typescript@5.9.3)
+      homelab-lib:
+        specifier: workspace:*
+        version: link:../../lib
     devDependencies:
       '@types/node':
         specifier: ^18
@@ -51,6 +137,10 @@ packages:
     resolution: {integrity: sha512-rc1hOQtjIWGxcxpb9aHAfLpIctjEnsDehj0DAiVfBlmT84uvR0uUtN2hEi/ecvWVjXUGf5qPF4qEgiLOx1YIMQ==}
     engines: {node: '>=6'}
     hasBin: true
+
+  '@isaacs/cliui@9.0.0':
+    resolution: {integrity: sha512-AokJm4tuBHillT+FpMtxQ60n8ObyXBatq7jD2/JA9dxbDDokKQm8KMht5ibGzLVU9IJDIKK4TPKgMHEYMn3lMg==}
+    engines: {node: '>=18'}
 
   '@isaacs/fs-minipass@4.0.1':
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
@@ -262,8 +352,8 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
-  '@pulumi/cloudflare@6.13.0':
-    resolution: {integrity: sha512-M3tMo5/1S2NgOiCBhrN6gUYZg50/59HlAYQ1NsLkfb7prgH4aSdh7R01wgXlBQPu2BtiZswCtAigMdyAXVA+Ig==}
+  '@pulumi/cloudflare@6.14.0':
+    resolution: {integrity: sha512-YKH9x7UsNg5iI92g9hVL893MzF8VS4W7nANFvr1TN99mQczPKNi0Z1abTBxyZ4DcB/JWi5zq+va7rJuKkuVr6Q==}
 
   '@pulumi/command@1.2.1':
     resolution: {integrity: sha512-mutNDIUYP67yCBYOVIidQyxuTwZDY9v/sx9EGbgIv4PXfyfolOKGgGLeoHEbI1lxRwaw2wbTZ3VNIynDnA5VKA==}
@@ -271,20 +361,32 @@ packages:
   '@pulumi/hcloud@1.32.1':
     resolution: {integrity: sha512-BpsKKQ83Mt7l+0m07S97gSACT0p9dzehtJUyLvTwuOfFY8JKcG8hgfwt7IMjFqR3HfK4+EX12Qpb8H9gNkM/Kg==}
 
-  '@pulumi/pulumi@3.228.0':
-    resolution: {integrity: sha512-yAwieapB/Huro8/psool1sKhe2rGT80GTnEFLDWbKPHTMo6oSegGb6aYg+bzPuC3vgBOn2dnHkobSuwbBhQ7gQ==}
+  '@pulumi/kubernetes@4.28.0':
+    resolution: {integrity: sha512-tdoUN7blJv1rrwr+2Pc55CP/+L1sMkH3z5Y7DI2yfNiGgdeaOHYia+hYsnLgR4HtBSfIfuBVWxGkZwGWOgUmOQ==}
+
+  '@pulumi/netbird@file:stacks/apps/sdks/netbird':
+    resolution: {directory: stacks/apps/sdks/netbird, type: directory}
+
+  '@pulumi/netbird@file:stacks/platform/sdks/netbird':
+    resolution: {directory: stacks/platform/sdks/netbird, type: directory}
+
+  '@pulumi/pulumi@3.229.0':
+    resolution: {integrity: sha512-SoGAonHOrGP/NQQivq3gMz0nlebVUYOf6TgpsPHqvFARsHz4JIR+/fpFm/8JW+Ev5o6tvb6g04a+STmpdxoaOg==}
     engines: {node: '>=20'}
     peerDependencies:
       ts-node: '>= 7.0.1 < 12'
-      typescript: '>= 3.8.3 < 6'
+      typescript: '>= 3.8.3 < 7'
     peerDependenciesMeta:
       ts-node:
         optional: true
       typescript:
         optional: true
 
-  '@pulumi/random@4.19.1':
-    resolution: {integrity: sha512-gDotQyxtl+pcJb4oaGfbi6PsK8OtzjBmF1D8PYLvr13kCup98KTIIv/8wF2xbgbFf7ljJn3EblADxZ0u8AC/Dg==}
+  '@pulumi/random@4.19.2':
+    resolution: {integrity: sha512-ee77eUIfPMekYi9x7/3iDVIhqUcZrvXQpC8YNTRN8XKfRDuuWio4xu2CvoHeEBDOov84FumMafFqn+xSf+XlDQ==}
+
+  '@pulumiverse/talos@0.7.1':
+    resolution: {integrity: sha512-bofeJ0x/NB2lEaehrcOORuxd3BOhqY0/+DsPE2AOMYvtpW2is22NBPb8jrttWX7Z733NmI1b3CuVdHQCdeTp+g==}
 
   '@sigstore/bundle@4.0.0':
     resolution: {integrity: sha512-NwCl5Y0V6Di0NexvkTqdoVfmjTaQwoLM236r89KEojGmq/jMls8S+zb7yOwAPdXvbwfKDlP+lmXgAL4vKSQT+A==}
@@ -381,6 +483,9 @@ packages:
 
   argparse@1.0.10:
     resolution: {integrity: sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==}
+
+  async-mutex@0.5.0:
+    resolution: {integrity: sha512-1A94B18jkJ3DYq284ohPxoXbfTA5HsQ7/Mf4DEhcyLx3Bz27Rh59iScbB6EPiP+B+joue6YCxcMXSbFC1tZKwA==}
 
   balanced-match@4.0.4:
     resolution: {integrity: sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==}
@@ -503,6 +608,10 @@ packages:
     resolution: {integrity: sha512-afd4O7zpqHeRyg4PfDQsXmlDe2PfdHtJt6Akt8jOWaApLOZk5JXs6VMR29lz03pRe9mpykrRCYIYxaJYcfpncQ==}
     engines: {node: '>=18'}
 
+  foreground-child@3.3.1:
+    resolution: {integrity: sha512-gIXjKqtFuWEgzFRJA9WCQeSJLZDjgJUOMCMzxtvFq/37KojM1BFGufqsCy0r4qSQmYLsZYMeyRqzIWOMup03sw==}
+    engines: {node: '>=14'}
+
   fs-minipass@3.0.3:
     resolution: {integrity: sha512-XUBA9XClHbnJWSfBzjkm6RvPsyg3sryZt06BEQoXcF7EK/xpGaQYJgQKDJSUH5SGZ76Y7pFx1QBnXz09rU5Fbw==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
@@ -521,6 +630,11 @@ packages:
   get-stream@6.0.1:
     resolution: {integrity: sha512-ts6Wi+2j3jQjqi70w5AlN8DFnkSwC+MqmxEzdEALB2qXZYV3X/b1CTfgPLGJNMeAWxdPfU8FO1ms3NUfaHCPYg==}
     engines: {node: '>=10'}
+
+  glob@12.0.0:
+    resolution: {integrity: sha512-5Qcll1z7IKgHr5g485ePDdHcNQY0k2dtv/bjYy0iuyGxQw2qSOiiXUXJ+AYQpg3HNoUMHqAruX478Jeev7UULw==}
+    engines: {node: 20 || >=22}
+    hasBin: true
 
   glob@13.0.6:
     resolution: {integrity: sha512-Wjlyrolmm8uDpm/ogGyXZXb1Z+Ca2B8NbJwqBVg0axK9GbBeoS7yGV6vjXnYdGm6X53iehEuxxbyiKp8QmN4Vw==}
@@ -609,6 +723,10 @@ packages:
     resolution: {integrity: sha512-FFUtZMpoZ8RqHS3XeXEmHWLA4thH+ZxCv2lOiPIn1Xc7CxrqhWzNSDzD+/chS/zbYezmiwWLdQC09JdQKmthOw==}
     engines: {node: '>=20'}
 
+  jackspeak@4.2.3:
+    resolution: {integrity: sha512-ykkVRwrYvFm1nb2AJfKKYPr0emF6IiXDYUaFx4Zn9ZuIH7MrzEZ3sD5RlqGXNRpHtvUHJyOnCEFxOlNDtGo7wg==}
+    engines: {node: 20 || >=22}
+
   js-yaml@3.14.2:
     resolution: {integrity: sha512-PMSmkqxr106Xa156c2M265Z+FTrPl+oxd/rgOQy2tijQeK5TxQ43psO1ZCwhVOSdnn+RzkzlRz/eY4BgJBYVpg==}
     hasBin: true
@@ -649,8 +767,8 @@ packages:
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
 
-  lru-cache@11.2.7:
-    resolution: {integrity: sha512-aY/R+aEsRelme17KGQa/1ZSIpLpNYYrhcrepKTZgE+W3WM16YMCaPwOHLHsmopZHELU0Ojin1lPVxKR0MihncA==}
+  lru-cache@11.3.0:
+    resolution: {integrity: sha512-sr8xPKE25m6vJVcrdn6NxtC0fVfuPowbscLypegRgOm0yXSqr5JNHCAY3hnusdJ7HRBW04j6Ip4khvHU778DuQ==}
     engines: {node: 20 || >=22}
 
   make-fetch-happen@15.0.5:
@@ -672,8 +790,8 @@ packages:
     resolution: {integrity: sha512-z0yWI+4FDrrweS8Zmt4Ej5HdJmky15+L2e6Wgn3+iK5fWzb6T3fhNFq2+MeTRb064c6Wr4N/wv0DzQTjNzHNGQ==}
     engines: {node: '>=10'}
 
-  minimatch@10.2.4:
-    resolution: {integrity: sha512-oRjTw/97aTBN0RHbYCdtF1MQfvusSIBQM0IZEgzl6426+8jSC0nF1a/GmnVLpfB9yyr6g6FTqWqiZVbxrtaCIg==}
+  minimatch@10.2.5:
+    resolution: {integrity: sha512-MULkVLfKGYDFYejP07QOurDLLQpcjk7Fw+7jXS2R2czRQzR56yHRveU5NDJEOviH+hETZKSkIk5c+T23GjFUMg==}
     engines: {node: 18 || 20 || >=22}
 
   minimist@1.2.8:
@@ -790,6 +908,9 @@ packages:
     resolution: {integrity: sha512-qJSu5Mo6tHmRxCy2KCYYKYgcfBdUpy9dwReaZD/xwf608AUk/MoRtIOWzgDtUeGeC7n/55yC3MI1Q+MbSoektw==}
     engines: {node: '>=18'}
 
+  package-json-from-dist@1.0.1:
+    resolution: {integrity: sha512-UEZIS3/by4OC8vL3P2dTXRETpebLI2NiI5vIrjaD/5UtrkFX/tNbwjTSRAGC/+7CAo2pIcBaRgWmcBBHcsaCIw==}
+
   pacote@21.5.0:
     resolution: {integrity: sha512-VtZ0SB8mb5Tzw3dXDfVAIjhyVKUHZkS/ZH9/5mpKenwC9sFOXNI0JI7kEF7IMkwOnsWMFrvAZHzx1T5fmrp9FQ==}
     engines: {node: ^20.17.0 || >=22.9.0}
@@ -809,10 +930,6 @@ packages:
   path-scurry@2.0.2:
     resolution: {integrity: sha512-3O/iVVsJAPsOnpwWIeD+d6z/7PmqApyQePUtCndjatj/9I5LylHvt5qluFaBT3I5h3r1ejfR056c+FCv+NnNXg==}
     engines: {node: 18 || 20 || >=22}
-
-  picomatch@3.0.2:
-    resolution: {integrity: sha512-cfDHL6LStTEKlNilboNtobT/kEa30PtAf2Q1OgszfrG/rpVl1xaFWT9ktfkS306GmHgmnad1Sw4wabhlvFtsTw==}
-    engines: {node: '>=10'}
 
   picomatch@4.0.4:
     resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
@@ -889,6 +1006,10 @@ packages:
   shebang-regex@3.0.0:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
+
+  shell-quote@1.8.3:
+    resolution: {integrity: sha512-ObmnIF4hXNg1BqhnHmgbDETF8dLPCggZWBjkQfhZpbszZnYur5DUljTcCHii5LC3J5E0yeO/1LIMyH+UvHQgyw==}
+    engines: {node: '>= 0.4'}
 
   shimmer@1.2.1:
     resolution: {integrity: sha512-sQTKC1Re/rM6XyFM6fIAGHRPVGvyXfgzIDvzoq608vM+jeyVD0Tu1E6Np0Kc2zAIFWIj963V2800iF/9LPieQw==}
@@ -977,9 +1098,17 @@ packages:
     resolution: {integrity: sha512-gcANaAnd2QDZFmHFEOF4k7uc1J/6a6z3DJMd/QwEyxLoKGiptJRwid582r7QIsFlFMIZ3SnxfS52S4hm2DHkuQ==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
 
+  tslib@2.8.1:
+    resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
+
   tuf-js@4.1.0:
     resolution: {integrity: sha512-50QV99kCKH5P/Vs4E2Gzp7BopNV+KzTXqWeaxrfu5IQJBOULRsTIS9seSsOVT8ZnGXzCyx55nYWAi4qJzpZKEQ==}
     engines: {node: ^20.17.0 || >=22.9.0}
+
+  typescript@4.9.5:
+    resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
 
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
@@ -1051,7 +1180,7 @@ snapshots:
 
   '@1password/pulumi-onepassword@1.1.3(typescript@5.9.3)':
     dependencies:
-      '@pulumi/pulumi': 3.228.0(typescript@5.9.3)
+      '@pulumi/pulumi': 3.229.0(typescript@5.9.3)
     transitivePeerDependencies:
       - supports-color
       - ts-node
@@ -1071,6 +1200,8 @@ snapshots:
       protobufjs: 7.5.4
       yargs: 17.7.2
 
+  '@isaacs/cliui@9.0.0': {}
+
   '@isaacs/fs-minipass@4.0.1':
     dependencies:
       minipass: 7.1.3
@@ -1086,7 +1217,7 @@ snapshots:
       agent-base: 7.1.4
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6
-      lru-cache: 11.2.7
+      lru-cache: 11.3.0
       socks-proxy-agent: 8.0.5
     transitivePeerDependencies:
       - supports-color
@@ -1110,8 +1241,8 @@ snapshots:
       common-ancestor-path: 2.0.0
       hosted-git-info: 9.0.2
       json-stringify-nice: 1.1.4
-      lru-cache: 11.2.7
-      minimatch: 10.2.4
+      lru-cache: 11.3.0
+      minimatch: 10.2.5
       nopt: 9.0.0
       npm-install-checks: 8.0.0
       npm-package-arg: 13.0.2
@@ -1139,7 +1270,7 @@ snapshots:
       '@gar/promise-retry': 1.0.3
       '@npmcli/promise-spawn': 9.0.1
       ini: 6.0.0
-      lru-cache: 11.2.7
+      lru-cache: 11.3.0
       npm-pick-manifest: 11.0.3
       proc-log: 6.1.0
       semver: 7.7.4
@@ -1155,7 +1286,7 @@ snapshots:
       '@npmcli/name-from-folder': 4.0.0
       '@npmcli/package-json': 7.0.5
       glob: 13.0.6
-      minimatch: 10.2.4
+      minimatch: 10.2.5
 
   '@npmcli/metavuln-calculator@9.0.3':
     dependencies:
@@ -1351,9 +1482,9 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@pulumi/cloudflare@6.13.0(typescript@5.9.3)':
+  '@pulumi/cloudflare@6.14.0(typescript@5.9.3)':
     dependencies:
-      '@pulumi/pulumi': 3.228.0(typescript@5.9.3)
+      '@pulumi/pulumi': 3.229.0(typescript@5.9.3)
     transitivePeerDependencies:
       - supports-color
       - ts-node
@@ -1361,7 +1492,7 @@ snapshots:
 
   '@pulumi/command@1.2.1(typescript@5.9.3)':
     dependencies:
-      '@pulumi/pulumi': 3.228.0(typescript@5.9.3)
+      '@pulumi/pulumi': 3.229.0(typescript@5.9.3)
     transitivePeerDependencies:
       - supports-color
       - ts-node
@@ -1369,13 +1500,43 @@ snapshots:
 
   '@pulumi/hcloud@1.32.1(typescript@5.9.3)':
     dependencies:
-      '@pulumi/pulumi': 3.228.0(typescript@5.9.3)
+      '@pulumi/pulumi': 3.229.0(typescript@5.9.3)
     transitivePeerDependencies:
       - supports-color
       - ts-node
       - typescript
 
-  '@pulumi/pulumi@3.228.0(typescript@5.9.3)':
+  '@pulumi/kubernetes@4.28.0(typescript@5.9.3)':
+    dependencies:
+      '@pulumi/pulumi': 3.229.0(typescript@5.9.3)
+      glob: 12.0.0
+      shell-quote: 1.8.3
+    transitivePeerDependencies:
+      - supports-color
+      - ts-node
+      - typescript
+
+  '@pulumi/netbird@file:stacks/apps/sdks/netbird':
+    dependencies:
+      '@pulumi/pulumi': 3.229.0(typescript@4.9.5)
+      '@types/node': 18.19.130
+      async-mutex: 0.5.0
+      typescript: 4.9.5
+    transitivePeerDependencies:
+      - supports-color
+      - ts-node
+
+  '@pulumi/netbird@file:stacks/platform/sdks/netbird':
+    dependencies:
+      '@pulumi/pulumi': 3.229.0(typescript@4.9.5)
+      '@types/node': 18.19.130
+      async-mutex: 0.5.0
+      typescript: 4.9.5
+    transitivePeerDependencies:
+      - supports-color
+      - ts-node
+
+  '@pulumi/pulumi@3.229.0(typescript@4.9.5)':
     dependencies:
       '@grpc/grpc-js': 1.14.3
       '@logdna/tail-file': 2.2.0
@@ -1392,7 +1553,7 @@ snapshots:
       '@types/semver': 7.7.1
       '@types/tmp': 0.2.6
       execa: 5.1.1
-      fdir: 6.5.0(picomatch@3.0.2)
+      fdir: 6.5.0(picomatch@4.0.4)
       google-protobuf: 3.21.4
       got: 11.8.6
       ini: 2.0.0
@@ -1400,7 +1561,43 @@ snapshots:
       minimist: 1.2.8
       normalize-package-data: 6.0.2
       package-directory: 8.2.0
-      picomatch: 3.0.2
+      picomatch: 4.0.4
+      require-from-string: 2.0.2
+      semver: 7.7.4
+      source-map-support: 0.5.21
+      tmp: 0.2.5
+      upath: 1.2.0
+    optionalDependencies:
+      typescript: 4.9.5
+    transitivePeerDependencies:
+      - supports-color
+
+  '@pulumi/pulumi@3.229.0(typescript@5.9.3)':
+    dependencies:
+      '@grpc/grpc-js': 1.14.3
+      '@logdna/tail-file': 2.2.0
+      '@npmcli/arborist': 9.4.2
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/exporter-trace-otlp-grpc': 0.57.2(@opentelemetry/api@1.9.1)
+      '@opentelemetry/exporter-zipkin': 1.30.1(@opentelemetry/api@1.9.1)
+      '@opentelemetry/instrumentation': 0.57.2(@opentelemetry/api@1.9.1)
+      '@opentelemetry/instrumentation-grpc': 0.57.2(@opentelemetry/api@1.9.1)
+      '@opentelemetry/resources': 1.30.1(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-trace-base': 1.30.1(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-trace-node': 1.30.1(@opentelemetry/api@1.9.1)
+      '@types/google-protobuf': 3.15.12
+      '@types/semver': 7.7.1
+      '@types/tmp': 0.2.6
+      execa: 5.1.1
+      fdir: 6.5.0(picomatch@4.0.4)
+      google-protobuf: 3.21.4
+      got: 11.8.6
+      ini: 2.0.0
+      js-yaml: 3.14.2
+      minimist: 1.2.8
+      normalize-package-data: 6.0.2
+      package-directory: 8.2.0
+      picomatch: 4.0.4
       require-from-string: 2.0.2
       semver: 7.7.4
       source-map-support: 0.5.21
@@ -1411,9 +1608,17 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@pulumi/random@4.19.1(typescript@5.9.3)':
+  '@pulumi/random@4.19.2(typescript@5.9.3)':
     dependencies:
-      '@pulumi/pulumi': 3.228.0(typescript@5.9.3)
+      '@pulumi/pulumi': 3.229.0(typescript@5.9.3)
+    transitivePeerDependencies:
+      - supports-color
+      - ts-node
+      - typescript
+
+  '@pulumiverse/talos@0.7.1(typescript@5.9.3)':
+    dependencies:
+      '@pulumi/pulumi': 3.229.0(typescript@5.9.3)
     transitivePeerDependencies:
       - supports-color
       - ts-node
@@ -1462,7 +1667,7 @@ snapshots:
   '@tufjs/models@4.1.0':
     dependencies:
       '@tufjs/canonical-json': 2.0.0
-      minimatch: 10.2.4
+      minimatch: 10.2.5
 
   '@types/cacheable-request@6.0.3':
     dependencies:
@@ -1513,6 +1718,10 @@ snapshots:
     dependencies:
       sprintf-js: 1.0.3
 
+  async-mutex@0.5.0:
+    dependencies:
+      tslib: 2.8.1
+
   balanced-match@4.0.4: {}
 
   bin-links@6.0.0:
@@ -1534,7 +1743,7 @@ snapshots:
       '@npmcli/fs': 5.0.0
       fs-minipass: 3.0.3
       glob: 13.0.6
-      lru-cache: 11.2.7
+      lru-cache: 11.3.0
       minipass: 7.1.3
       minipass-collect: 2.0.1
       minipass-flush: 1.0.7
@@ -1622,15 +1831,16 @@ snapshots:
 
   exponential-backoff@3.1.3: {}
 
-  fdir@6.5.0(picomatch@3.0.2):
-    optionalDependencies:
-      picomatch: 3.0.2
-
   fdir@6.5.0(picomatch@4.0.4):
     optionalDependencies:
       picomatch: 4.0.4
 
   find-up-simple@1.0.1: {}
+
+  foreground-child@3.3.1:
+    dependencies:
+      cross-spawn: 7.0.6
+      signal-exit: 4.1.0
 
   fs-minipass@3.0.3:
     dependencies:
@@ -1646,9 +1856,18 @@ snapshots:
 
   get-stream@6.0.1: {}
 
+  glob@12.0.0:
+    dependencies:
+      foreground-child: 3.3.1
+      jackspeak: 4.2.3
+      minimatch: 10.2.5
+      minipass: 7.1.3
+      package-json-from-dist: 1.0.1
+      path-scurry: 2.0.2
+
   glob@13.0.6:
     dependencies:
-      minimatch: 10.2.4
+      minimatch: 10.2.5
       minipass: 7.1.3
       path-scurry: 2.0.2
 
@@ -1680,7 +1899,7 @@ snapshots:
 
   hosted-git-info@9.0.2:
     dependencies:
-      lru-cache: 11.2.7
+      lru-cache: 11.3.0
 
   http-cache-semantics@4.2.0: {}
 
@@ -1712,7 +1931,7 @@ snapshots:
 
   ignore-walk@8.0.0:
     dependencies:
-      minimatch: 10.2.4
+      minimatch: 10.2.5
 
   import-in-the-middle@1.15.0:
     dependencies:
@@ -1738,6 +1957,10 @@ snapshots:
   isexe@2.0.0: {}
 
   isexe@4.0.0: {}
+
+  jackspeak@4.2.3:
+    dependencies:
+      '@isaacs/cliui': 9.0.0
 
   js-yaml@3.14.2:
     dependencies:
@@ -1768,7 +1991,7 @@ snapshots:
 
   lru-cache@10.4.3: {}
 
-  lru-cache@11.2.7: {}
+  lru-cache@11.3.0: {}
 
   make-fetch-happen@15.0.5:
     dependencies:
@@ -1795,7 +2018,7 @@ snapshots:
 
   mimic-response@3.1.0: {}
 
-  minimatch@10.2.4:
+  minimatch@10.2.5:
     dependencies:
       brace-expansion: 5.0.5
 
@@ -1930,6 +2153,8 @@ snapshots:
     dependencies:
       find-up-simple: 1.0.1
 
+  package-json-from-dist@1.0.1: {}
+
   pacote@21.5.0:
     dependencies:
       '@gar/promise-retry': 1.0.3
@@ -1964,10 +2189,8 @@ snapshots:
 
   path-scurry@2.0.2:
     dependencies:
-      lru-cache: 11.2.7
+      lru-cache: 11.3.0
       minipass: 7.1.3
-
-  picomatch@3.0.2: {}
 
   picomatch@4.0.4: {}
 
@@ -2042,6 +2265,8 @@ snapshots:
       shebang-regex: 3.0.0
 
   shebang-regex@3.0.0: {}
+
+  shell-quote@1.8.3: {}
 
   shimmer@1.2.1: {}
 
@@ -2138,6 +2363,8 @@ snapshots:
 
   treeverse@3.0.0: {}
 
+  tslib@2.8.1: {}
+
   tuf-js@4.1.0:
     dependencies:
       '@tufjs/models': 4.1.0
@@ -2145,6 +2372,8 @@ snapshots:
       make-fetch-happen: 15.0.5
     transitivePeerDependencies:
       - supports-color
+
+  typescript@4.9.5: {}
 
   typescript@5.9.3: {}
 

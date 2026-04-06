@@ -17,12 +17,7 @@ pulumi STACK *args:
 
 # Install dependencies for all stacks
 install:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    for s in {{ stacks }}; do
-      echo "==> Installing $s"
-      cd stacks/$s && pnpm install && cd ../..
-    done
+    pnpm install
 
 # Initialize all Pulumi stacks (run once)
 init:

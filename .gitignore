@@ -1,5 +1,5 @@
 .pulumi/
 kubeconfig.yaml
 talosconfig.yaml
-stacks/*/node_modules/
+node_modules/
 stacks/*/sdks/

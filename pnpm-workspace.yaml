@@ -1,4 +1,9 @@
+packages:
+  - lib
+  - stacks/*
+
 allowBuilds:
+  '@pulumi/command': true
   '@pulumi/kubernetes': true
   '@pulumi/netbird': true
   protobufjs: true
