@@ -3,7 +3,7 @@ import * as path from "path";
 import * as pulumi from "@pulumi/pulumi";
 import * as talos from "@pulumiverse/talos";
 import * as command from "@pulumi/command";
-import { Node } from "../../lib/types";
+import { Node } from "homelab-lib";
 
 const config = new pulumi.Config();
 const clusterName = config.require("clusterName");

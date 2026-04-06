@@ -1,6 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
-import { makeOpField } from "../../lib/onepassword";
+import { makeOpField } from "homelab-lib";
 
 export interface PlatformCtx {
   k8sProvider: k8s.Provider;

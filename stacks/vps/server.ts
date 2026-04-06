@@ -5,7 +5,7 @@ import * as hcloud from "@pulumi/hcloud";
 import * as random from "@pulumi/random";
 import { getSnapshotId } from "./flatcar";
 import { buildIgnitionConfig } from "./ignition";
-import { makeOpField } from "../../lib/onepassword";
+import { makeOpField } from "homelab-lib";
 
 const relayPort = 33443;
 
