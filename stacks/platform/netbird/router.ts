@@ -89,7 +89,7 @@ export class NetbirdRouter extends pulumi.ComponentResource {
                       add: ["NET_ADMIN", "SYS_RESOURCE", "SYS_ADMIN"],
                     },
                   },
-                  volumeMounts: [{ name: "config", mountPath: "/etc/netbird" }],
+                  volumeMounts: [{ name: "config", mountPath: "/var/lib/netbird" }],
                 },
               ],
               volumes: [
