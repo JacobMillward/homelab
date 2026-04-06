@@ -48,7 +48,7 @@ export function deployMosquitto<const T extends readonly string[]>(
         "password_list.txt": passwordFileContent,
       },
     },
-    { ...childOpts, aliases: [{ name: "mqtt-credentials" }] },
+    { ...childOpts },
   );
 
   const config = new k8s.core.v1.ConfigMap(
@@ -66,7 +66,7 @@ export function deployMosquitto<const T extends readonly string[]>(
         ].join("\n"),
       },
     },
-    { ...childOpts, aliases: [{ name: "mqtt-config" }] },
+    { ...childOpts },
   );
 
   const pvc = new k8s.core.v1.PersistentVolumeClaim(
@@ -81,7 +81,7 @@ export function deployMosquitto<const T extends readonly string[]>(
         storageClassName,
       },
     },
-    { ...childOpts, aliases: [{ name: "mqtt-data" }] },
+    { ...childOpts },
   );
 
   const labels = { app: "mosquitto" };
@@ -150,7 +150,7 @@ export function deployMosquitto<const T extends readonly string[]>(
         },
       },
     },
-    { ...childOpts, aliases: [{ name: "mqtt-server" }] },
+    { ...childOpts },
   );
 
   const service = new k8s.core.v1.Service(
@@ -164,7 +164,7 @@ export function deployMosquitto<const T extends readonly string[]>(
         ports: [{ name: "mqtt", port: 1883, targetPort: 1883 }],
       },
     },
-    { ...childOpts, aliases: [{ name: "mqtt-service" }] },
+    { ...childOpts },
   );
 
   const url = service.metadata.apply(
