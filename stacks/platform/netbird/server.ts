@@ -154,18 +154,6 @@ export class NetbirdServer extends pulumi.ComponentResource {
                     { name: "http", containerPort: 80 },
                     { name: "stun", containerPort: 3478, protocol: "UDP" },
                   ],
-                  // Use tcpSocket on the management port: the relay healthcheck
-                  // server on port 9000 panics when relay is not configured.
-                  livenessProbe: {
-                    tcpSocket: { port: "http" },
-                    initialDelaySeconds: 15,
-                    periodSeconds: 20,
-                  },
-                  readinessProbe: {
-                    tcpSocket: { port: "http" },
-                    initialDelaySeconds: 5,
-                    periodSeconds: 10,
-                  },
                   volumeMounts: [
                     {
                       name: "config",
