@@ -1,0 +1,7 @@
+config:
+  homelab-vps:serverType: cx23
+  homelab-vps:serverLocation: nbg1
+  homelab-vps:flatcarChannel: stable
+  homelab-vps:flatcarVersion: "4459.2.4"
+  onepassword:account: my.1password.com
+encryptionsalt: v1:t7pQQ7Ai16I=:v1:gvLUfxPX/dYm6UOb:M9AY6RUxkHJcyXwuhM2YrliMLr8iQg==

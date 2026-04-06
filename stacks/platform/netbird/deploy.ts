@@ -4,15 +4,21 @@ import * as random from "@pulumi/random";
 
 const domain = "netbird.millward-yuan.net";
 
+interface VpsServerConfig {
+  relayAuthSecret: pulumi.Input<string>;
+  relayAddress: pulumi.Input<string>;
+  stunAddress: pulumi.Input<string>;
+}
+
 interface ServerArgs {
   provider: k8s.Provider;
   storageClassName: string;
+  vps?: VpsServerConfig;
 }
 
 export function deployServer(args: ServerArgs) {
-  const { provider, storageClassName } = args;
+  const { provider, storageClassName, vps } = args;
   const config = new pulumi.Config();
-  const stunIp = config.require("netbirdStunIp");
 
   const ns = new k8s.core.v1.Namespace(
     "netbird",
@@ -39,11 +45,23 @@ export function deployServer(args: ServerArgs) {
     length: 32,
   });
 
-  // config.yaml - matches combined/config.yaml.example from the netbird repo
+  // Use VPS relay secret when available, otherwise the local one
+  const effectiveRelaySecret = vps
+    ? pulumi.output(vps.relayAuthSecret)
+    : relayAuthSecret.result;
+
+  // config.yaml - matches combined/config.yaml.example from the netbird repo.
+  // When VPS is configured, adds relays/stuns sections (disables embedded relay)
+  // and advertises the VPS-hosted relay and STUN to all peers.
   const configYaml = pulumi
-    .all([relayAuthSecret.result, encryptionKey.base64])
-    .apply(
-      ([relaySecret, encKey]) => `server:
+    .all([
+      effectiveRelaySecret,
+      encryptionKey.base64,
+      vps ? pulumi.output(vps.relayAddress) : pulumi.output(""),
+      vps ? pulumi.output(vps.stunAddress) : pulumi.output(""),
+    ])
+    .apply(([relaySecret, encKey, relayAddr, stunAddr]) => {
+      let yaml = `server:
   listenAddress: ":80"
   exposedAddress: "https://${domain}:443"
   stunPorts:
@@ -65,8 +83,22 @@ export function deployServer(args: ServerArgs) {
   store:
     engine: "sqlite"
     encryptionKey: "${encKey}"
-`,
-    );
+`;
+
+      if (relayAddr && stunAddr) {
+        yaml += `  relays:
+    addresses:
+      - "${relayAddr}"
+    secret: "${relaySecret}"
+    credentialsTTL: "24h"
+  stuns:
+    - uri: "${stunAddr}"
+      proto: "udp"
+`;
+      }
+
+      return yaml;
+    });
 
   const configMap = new k8s.core.v1.ConfigMap(
     "netbird-config",
@@ -151,22 +183,26 @@ export function deployServer(args: ServerArgs) {
     { provider },
   );
 
-  // STUN needs direct UDP - bypass Traefik via LoadBalancer
-  new k8s.core.v1.Service(
-    "netbird-stun",
-    {
-      metadata: { name: "netbird-stun", namespace: ns.metadata.name },
-      spec: {
-        type: "LoadBalancer",
-        loadBalancerIP: stunIp,
-        selector: { app: "netbird-server" },
-        ports: [
-          { name: "stun", port: 3478, targetPort: 3478, protocol: "UDP" },
-        ],
+  // STUN needs direct UDP - bypass Traefik via LoadBalancer.
+  // Skipped when VPS provides STUN externally.
+  if (!vps) {
+    const stunIp = config.require("netbirdStunIp");
+    new k8s.core.v1.Service(
+      "netbird-stun",
+      {
+        metadata: { name: "netbird-stun", namespace: ns.metadata.name },
+        spec: {
+          type: "LoadBalancer",
+          loadBalancerIP: stunIp,
+          selector: { app: "netbird-server" },
+          ports: [
+            { name: "stun", port: 3478, targetPort: 3478, protocol: "UDP" },
+          ],
+        },
       },
-    },
-    { provider },
-  );
+      { provider },
+    );
+  }
 
   // Dashboard
   new k8s.apps.v1.Deployment(
@@ -243,6 +279,33 @@ export function deployServer(args: ServerArgs) {
         secretName: "netbird-tls",
         issuerRef: { name: "letsencrypt-prod", kind: "ClusterIssuer" },
         dnsNames: [domain],
+      },
+    },
+    { provider },
+  );
+
+  // Local HTTP route for the Pulumi NetBird provider to reach the API
+  // without depending on public DNS (which points to the VPS).
+  const localApiRoute = new k8s.apiextensions.CustomResource(
+    "netbird-local-api-route",
+    {
+      apiVersion: "traefik.io/v1alpha1",
+      kind: "IngressRoute",
+      metadata: { name: "netbird-local-api", namespace: ns.metadata.name },
+      spec: {
+        entryPoints: ["web"],
+        routes: [
+          {
+            match: "PathPrefix(`/api`)",
+            kind: "Rule",
+            services: [{ name: serverSvc.metadata.name, port: 80 }],
+          },
+          {
+            match: "PathPrefix(`/oauth2`)",
+            kind: "Rule",
+            services: [{ name: serverSvc.metadata.name, port: 80 }],
+          },
+        ],
       },
     },
     { provider },
@@ -345,8 +408,9 @@ export function deployServer(args: ServerArgs) {
   );
 
   return {
-    relayAuthSecret: relayAuthSecret.result,
+    relayAuthSecret: effectiveRelaySecret,
     serverDeployment,
+    localApiRoute,
     namespace: ns,
   };
 }
@@ -422,6 +486,194 @@ export function deployRouter(args: RouterArgs) {
                     add: ["NET_ADMIN", "SYS_RESOURCE", "SYS_ADMIN"],
                   },
                 },
+              },
+            ],
+          },
+        },
+      },
+    },
+    { provider },
+  );
+}
+
+// ---------------------------------------------------------------------------
+// WireGuard tunnel endpoint (only when VPS is configured)
+// ---------------------------------------------------------------------------
+
+interface WgPeerArgs {
+  provider: k8s.Provider;
+  namespace: k8s.core.v1.Namespace;
+  vpsIp: pulumi.Input<string>;
+  vpsWgPublicKey: pulumi.Input<string>;
+  homeWgPrivateKey: pulumi.Input<string>;
+}
+
+export function deployWgPeer(args: WgPeerArgs) {
+  const { provider, namespace, vpsIp, vpsWgPublicKey, homeWgPrivateKey } = args;
+
+  const wgSecret = new k8s.core.v1.Secret(
+    "wg-home-key",
+    {
+      metadata: {
+        name: "wg-home-key",
+        namespace: namespace.metadata.name,
+      },
+      stringData: {
+        privateKey: homeWgPrivateKey,
+      },
+    },
+    { provider },
+  );
+
+  const wgConfig = new k8s.core.v1.ConfigMap(
+    "wg-home-config",
+    {
+      metadata: {
+        name: "wg-home-config",
+        namespace: namespace.metadata.name,
+      },
+      data: {
+        "wg0.conf": pulumi.interpolate`[Interface]
+Address = 10.99.0.2/24
+PrivateKey = __WG_PRIVATE_KEY__
+
+[Peer]
+PublicKey = ${vpsWgPublicKey}
+Endpoint = ${vpsIp}:51820
+AllowedIPs = 10.99.0.1/32
+PersistentKeepalive = 25
+`,
+      },
+    },
+    { provider },
+  );
+
+  const server = "netbird-server.netbird.svc.cluster.local";
+  const dashboard = "netbird-dashboard.netbird.svc.cluster.local";
+
+  const nginxConfig = new k8s.core.v1.ConfigMap(
+    "wg-nginx-config",
+    {
+      metadata: {
+        name: "wg-nginx-config",
+        namespace: namespace.metadata.name,
+      },
+      data: {
+        "default.conf": `server {
+    listen 80;
+    http2 on;
+    # gRPC (h2c) - long-lived streams need extended timeouts
+    grpc_read_timeout 24h;
+    grpc_send_timeout 24h;
+    location /signalexchange.SignalExchange/ {
+        grpc_pass grpc://${server}:80;
+    }
+    location /management.ManagementService/ {
+        grpc_pass grpc://${server}:80;
+    }
+    # API, OAuth, WebSocket
+    location /api { proxy_pass http://${server}; }
+    location /oauth2 { proxy_pass http://${server}; }
+    location /ws-proxy/ {
+        proxy_pass http://${server};
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+    # Dashboard catch-all
+    location / { proxy_pass http://${dashboard}; }
+}
+`,
+      },
+    },
+    { provider },
+  );
+
+  // WireGuard tunnel to VPS with nginx for path-based routing to the
+  // correct backend (server vs dashboard).
+  new k8s.apps.v1.Deployment(
+    "wg-home-peer",
+    {
+      metadata: {
+        name: "wg-home-peer",
+        namespace: namespace.metadata.name,
+      },
+      spec: {
+        replicas: 1,
+        strategy: { type: "Recreate" },
+        selector: { matchLabels: { app: "wg-home-peer" } },
+        template: {
+          metadata: { labels: { app: "wg-home-peer" } },
+          spec: {
+            initContainers: [
+              {
+                name: "setup-wg",
+                image: "alpine:3.21",
+                command: [
+                  "sh",
+                  "-c",
+                  "cp /config/wg0.conf /etc/wireguard/wg0.conf && " +
+                    'sed -i "s|__WG_PRIVATE_KEY__|$(cat /secret/privateKey)|" ' +
+                    "/etc/wireguard/wg0.conf",
+                ],
+                volumeMounts: [
+                  {
+                    name: "wg-config",
+                    mountPath: "/config",
+                    readOnly: true,
+                  },
+                  {
+                    name: "wg-secret",
+                    mountPath: "/secret",
+                    readOnly: true,
+                  },
+                  { name: "wg-run", mountPath: "/etc/wireguard" },
+                ],
+              },
+            ],
+            containers: [
+              {
+                name: "wireguard",
+                image: "alpine:3.21",
+                command: [
+                  "sh",
+                  "-c",
+                  "apk add --no-cache wireguard-tools iproute2 && " +
+                    "wg-quick up wg0 && " +
+                    "trap 'wg-quick down wg0; exit 0' TERM INT && " +
+                    "while :; do sleep 86400 & wait $!; done",
+                ],
+                securityContext: {
+                  capabilities: { add: ["NET_ADMIN"] },
+                },
+                volumeMounts: [{ name: "wg-run", mountPath: "/etc/wireguard" }],
+              },
+              {
+                name: "proxy",
+                image: "nginx:1.27-alpine",
+                ports: [{ containerPort: 80 }],
+                volumeMounts: [
+                  {
+                    name: "nginx-config",
+                    mountPath: "/etc/nginx/conf.d",
+                    readOnly: true,
+                  },
+                ],
+              },
+            ],
+            volumes: [
+              {
+                name: "wg-config",
+                configMap: { name: wgConfig.metadata.name },
+              },
+              {
+                name: "wg-secret",
+                secret: { secretName: wgSecret.metadata.name },
+              },
+              { name: "wg-run", emptyDir: {} },
+              {
+                name: "nginx-config",
+                configMap: { name: nginxConfig.metadata.name },
               },
             ],
           },

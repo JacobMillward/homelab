@@ -1,10 +1,10 @@
 config:
   homelab-platform:talosStackRef: organization/homelab-talos/homelab
   homelab-platform:metallbAddresses: 192.168.100.20-192.168.100.49
-  homelab-platform:cloudflareApiToken:
-    secure: v1:xEHoDTXAAB/g1t7y:sTiAeUTtODJ2BFhI5gTzgdXklaLkxyfUQUfCqc5r7bSJSUUT5GK6qMMYD+lcfyQngFZMEGwXul9XQsSoiu+qhJn7J6tZ
   homelab-platform:traefikIp: 192.168.100.20
   homelab-platform:netbirdStunIp: 192.168.100.21
   homelab-platform:netbirdPat:
     secure: v1:9hz53MRoOdBY84Ju:JQRs6wVrt4BfjnihvslpjfcPx2vfvyzN4nm9qlUtDRQPIY/Wn/+F/tVkJ3n83upDnOYVxIQ/MYE=
+  onepassword:account: my.1password.com
+  homelab-platform:vpsStackRef: organization/homelab-vps/homelab
 encryptionsalt: v1:U+FSf0F20a0=:v1:Ulpuhm9q96ymFN4D:jEp0DLgPxKc+v5nYxRKuDLQ7yIsO7Q==

@@ -1,0 +1,9 @@
+name: homelab-vps
+runtime:
+  name: nodejs
+  options:
+    typescript: true
+    packagemanager: pnpm
+description: >
+  Hetzner VPS running Flatcar Linux with NetBird relay, WireGuard tunnel,
+  and Caddy reverse proxy. Requires local tools: hcloud-upload-image, wg.
