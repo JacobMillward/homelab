@@ -17,31 +17,17 @@ export class VpsTunnel extends pulumi.ComponentResource {
 
     const { namespace, vpsIp, vpsWgPublicKey, homeWgPrivateKey } = args;
 
-    const wgSecret = new k8s.core.v1.Secret(
-      "wg-home-key",
-      {
-        metadata: {
-          name: "wg-home-key",
-          namespace: namespace.metadata.name,
-        },
-        stringData: {
-          privateKey: homeWgPrivateKey,
-        },
-      },
-      { parent: this },
-    );
-
-    const wgConfig = new k8s.core.v1.ConfigMap(
+    const wgConfig = new k8s.core.v1.Secret(
       "wg-home-config",
       {
         metadata: {
           name: "wg-home-config",
           namespace: namespace.metadata.name,
         },
-        data: {
+        stringData: {
           "wg0.conf": pulumi.interpolate`[Interface]
 Address = 10.99.0.2/24
-PrivateKey = __WG_PRIVATE_KEY__
+PrivateKey = ${homeWgPrivateKey}
 
 [Peer]
 PublicKey = ${vpsWgPublicKey}
@@ -111,32 +97,6 @@ PersistentKeepalive = 25
           template: {
             metadata: { labels: { app: "wg-home-peer" } },
             spec: {
-              initContainers: [
-                {
-                  name: "setup-wg",
-                  image: "alpine:3.21",
-                  command: [
-                    "sh",
-                    "-c",
-                    "cp /config/wg0.conf /etc/wireguard/wg0.conf && " +
-                      'sed -i "s|__WG_PRIVATE_KEY__|$(cat /secret/privateKey)|" ' +
-                      "/etc/wireguard/wg0.conf",
-                  ],
-                  volumeMounts: [
-                    {
-                      name: "wg-config",
-                      mountPath: "/config",
-                      readOnly: true,
-                    },
-                    {
-                      name: "wg-secret",
-                      mountPath: "/secret",
-                      readOnly: true,
-                    },
-                    { name: "wg-run", mountPath: "/etc/wireguard" },
-                  ],
-                },
-              ],
               containers: [
                 {
                   name: "wireguard",
@@ -145,6 +105,7 @@ PersistentKeepalive = 25
                     "sh",
                     "-c",
                     "apk add --no-cache wireguard-tools iproute2 && " +
+                      "install -m 0600 /secret/wg0.conf /etc/wireguard/wg0.conf && " +
                       "wg-quick up wg0 && " +
                       "trap 'wg-quick down wg0; exit 0' TERM INT && " +
                       "while :; do sleep 86400 & wait $!; done",
@@ -152,7 +113,7 @@ PersistentKeepalive = 25
                   securityContext: {
                     capabilities: { add: ["NET_ADMIN"] },
                   },
-                  volumeMounts: [{ name: "wg-run", mountPath: "/etc/wireguard" }],
+                  volumeMounts: [{ name: "wg-config", mountPath: "/secret", readOnly: true }],
                 },
                 {
                   name: "proxy",
@@ -170,13 +131,8 @@ PersistentKeepalive = 25
               volumes: [
                 {
                   name: "wg-config",
-                  configMap: { name: wgConfig.metadata.name },
+                  secret: { secretName: wgConfig.metadata.name },
                 },
-                {
-                  name: "wg-secret",
-                  secret: { secretName: wgSecret.metadata.name },
-                },
-                { name: "wg-run", emptyDir: {} },
                 {
                   name: "nginx-config",
                   configMap: { name: nginxConfig.metadata.name },
