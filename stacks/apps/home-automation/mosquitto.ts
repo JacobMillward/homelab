@@ -126,7 +126,17 @@ export function deployMosquitto<const T extends readonly string[]>(
               {
                 name: "mosquitto",
                 image: "eclipse-mosquitto:2.0.22",
-                ports: [{ containerPort: 1883 }],
+                ports: [{ name: "mqtt", containerPort: 1883 }],
+                livenessProbe: {
+                  tcpSocket: { port: "mqtt" },
+                  initialDelaySeconds: 10,
+                  periodSeconds: 20,
+                },
+                readinessProbe: {
+                  tcpSocket: { port: "mqtt" },
+                  initialDelaySeconds: 5,
+                  periodSeconds: 10,
+                },
                 volumeMounts: [
                   { name: "config", mountPath: "/mosquitto/config" },
                   { name: "data", mountPath: "/mosquitto/data" },
