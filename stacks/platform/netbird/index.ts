@@ -61,6 +61,7 @@ export function setupNetbird(args: NetbirdArgs) {
   deployRouter({
     provider: k8sProvider,
     namespace: server.namespace,
+    storageClassName,
     setupKey: nbConfig.setupKey,
   });
 

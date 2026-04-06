@@ -122,8 +122,8 @@ export function deployServer(args: ServerArgs) {
     { provider },
   );
 
-  // Combined NetBird server (management + signal + relay + STUN + embedded Dex)
-  // Image: netbirdio/netbird-server (not netbirdio/netbird which is the client)
+  // Combined NetBird server (management + signal + STUN + embedded Dex)
+  // Relay is disabled when VPS provides an external relay.
   const serverDeployment = new k8s.apps.v1.Deployment(
     "netbird-server",
     {
@@ -418,13 +418,28 @@ export function deployServer(args: ServerArgs) {
 interface RouterArgs {
   provider: k8s.Provider;
   namespace: k8s.core.v1.Namespace;
+  storageClassName: string;
   setupKey: pulumi.Output<string>;
 }
 
 export function deployRouter(args: RouterArgs) {
-  const { provider, namespace, setupKey } = args;
-  const config = new pulumi.Config();
-  const traefikIp = config.require("traefikIp");
+  const { provider, namespace, storageClassName, setupKey } = args;
+
+  const routerPvc = new k8s.core.v1.PersistentVolumeClaim(
+    "netbird-router-config",
+    {
+      metadata: {
+        name: "netbird-router-config",
+        namespace: namespace.metadata.name,
+      },
+      spec: {
+        accessModes: ["ReadWriteOnce"],
+        storageClassName,
+        resources: { requests: { storage: "64Mi" } },
+      },
+    },
+    { provider },
+  );
 
   const setupKeySecret = new k8s.core.v1.Secret(
     "netbird-router-key",
@@ -451,9 +466,6 @@ export function deployRouter(args: RouterArgs) {
         template: {
           metadata: { labels: { app: "netbird-router" } },
           spec: {
-            // The management server's exposedAddress uses the public domain,
-            // which CoreDNS can't resolve (local DNS override in Unifi).
-            hostAliases: [{ ip: traefikIp, hostnames: [domain] }],
             containers: [
               {
                 name: "netbird",
@@ -486,6 +498,13 @@ export function deployRouter(args: RouterArgs) {
                     add: ["NET_ADMIN", "SYS_RESOURCE", "SYS_ADMIN"],
                   },
                 },
+                volumeMounts: [{ name: "config", mountPath: "/etc/netbird" }],
+              },
+            ],
+            volumes: [
+              {
+                name: "config",
+                persistentVolumeClaim: { claimName: routerPvc.metadata.name },
               },
             ],
           },
