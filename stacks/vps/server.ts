@@ -2,10 +2,10 @@ import * as pulumi from "@pulumi/pulumi";
 import * as cloudflare from "@pulumi/cloudflare";
 import * as command from "@pulumi/command";
 import * as hcloud from "@pulumi/hcloud";
-import * as onepassword from "@1password/pulumi-onepassword";
 import * as random from "@pulumi/random";
 import { getSnapshotId } from "./flatcar";
 import { buildIgnitionConfig } from "./ignition";
+import { makeOpField } from "../../lib/onepassword";
 
 const relayPort = 33443;
 
@@ -28,19 +28,7 @@ export class VpsServer extends pulumi.ComponentResource {
     const config = new pulumi.Config();
     const domain = config.require("domain");
 
-    const opItem = onepassword.getItemOutput({
-      vault: "Private",
-      title: "Homelab",
-    }, { parent: this });
-
-    const opField = (label: string): pulumi.Output<string> =>
-      opItem.apply((item) => {
-        const field = (item.sections ?? [])
-          .flatMap((s) => s.fields ?? [])
-          .find((f) => f.label === label);
-        if (!field) throw new Error(`1Password field "${label}" not found`);
-        return field.value;
-      });
+    const opField = makeOpField({ parent: this });
 
     const hcloudToken = opField("Hetzner API Token");
     const cloudflareApiToken = opField("Cloudflare Api Token (DnsEdit)");
