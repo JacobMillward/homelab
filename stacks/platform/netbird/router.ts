@@ -60,7 +60,7 @@ export class NetbirdRouter extends pulumi.ComponentResource {
               containers: [
                 {
                   name: "netbird",
-                  image: "netbirdio/netbird:0.66.4",
+                  image: "netbirdio/netbird:0.67.3",
                   env: [
                     {
                       name: "NB_SETUP_KEY",
