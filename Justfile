@@ -3,7 +3,7 @@ export PULUMI_BACKEND_URL := "file://" + justfile_directory() / ".pulumi"
 # List of stacks to manage
 # Order matters, stacks are initialized and deployed in order
 
-stacks := "talos platform apps"
+stacks := "talos vps platform apps"
 
 [private]
 default:
@@ -11,7 +11,9 @@ default:
 
 # Run a pulumi command for a given stack
 pulumi STACK *args:
-    cd stacks/{{ STACK }} && op run --env-file={{ justfile_directory() }}/.env -- pulumi {{ args }}
+    #!/usr/bin/env bash
+    export PULUMI_CONFIG_PASSPHRASE=$(op read "op://Private/Homelab/Pulumi Passphrase")
+    cd stacks/{{ STACK }} && pulumi {{ args }}
 
 # Install dependencies for all stacks
 install:
@@ -47,7 +49,7 @@ destroy STACK="":
     #!/usr/bin/env bash
     set -euo pipefail
     if [ -n "{{ STACK }}" ]; then just pulumi "{{ STACK }}" destroy
-    else for s in apps platform talos; do just pulumi "$s" destroy; done; fi
+    else for s in apps platform vps talos; do just pulumi "$s" destroy; done; fi
 
 # Export kubeconfig to ~/.kube/config
 kubeconfig:
@@ -56,3 +58,8 @@ kubeconfig:
 # Export talosconfig to ~/.talos/config
 talosconfig:
     just pulumi talos stack output talosconfigRaw --show-secrets > ~/.talos/config
+
+# Show latest Flatcar versions by channel
+flatcar-versions:
+    @echo "stable:"; curl -s https://stable.release.flatcar-linux.net/amd64-usr/current/version.txt | grep FLATCAR_VERSION
+    @echo "beta:";   curl -s https://beta.release.flatcar-linux.net/amd64-usr/current/version.txt | grep FLATCAR_VERSION

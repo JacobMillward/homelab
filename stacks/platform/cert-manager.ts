@@ -1,10 +1,10 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 
-export function deployCertManager(provider: k8s.Provider) {
-  const config = new pulumi.Config();
-  const cloudflareApiToken = config.requireSecret("cloudflareApiToken");
-
+export function deployCertManager(
+  provider: k8s.Provider,
+  cloudflareApiToken: pulumi.Output<string>,
+) {
   const ns = new k8s.core.v1.Namespace(
     "cert-manager",
     {

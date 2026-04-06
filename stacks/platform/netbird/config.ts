@@ -7,8 +7,10 @@ export function configureNetbird(
 ) {
   const opts = { provider, dependsOn };
 
-  // Look up the built-in "All" group
-  const allGroup = netbird.getGroupOutput({ name: "All" }, { provider });
+  // Look up the built-in "All" group.
+  // dependsOn ensures this waits for the server and its IngressRoute to
+  // be deployed before making API calls.
+  const allGroup = netbird.getGroupOutput({ name: "All" }, opts);
 
   // Group for the k8s routing peer
   const routerGroup = new netbird.Group(
