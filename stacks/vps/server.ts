@@ -140,7 +140,9 @@ export class VpsServer extends pulumi.ComponentResource {
             protocol: "udp",
             port: "51820",
             sourceIps: ["0.0.0.0/0", "::/0"],
-            description: "WireGuard",
+            // WireGuard peers roam across networks, so source IP restriction
+            // is not practical. Authentication is handled by keypairs.
+            description: "WireGuard (peers authenticate by keypair)",
           },
         ],
       },
