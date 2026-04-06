@@ -123,16 +123,9 @@ If the VPS is recreated (e.g. via `just up vps`) and gets a new IP:
    just up platform
    ```
 
-2. **Restart the WireGuard tunnel pod** (picks up new VPS endpoint):
+2. **Restart the tunnel and routing pods:**
    ```
-   kubectl rollout restart deployment/wg-home-peer -n netbird
-   kubectl rollout status deployment/wg-home-peer -n netbird
-   ```
-
-3. **Restart the routing peer** (re-registers with management once tunnel is up):
-   ```
-   kubectl rollout restart deployment/netbird-router -n netbird
-   kubectl rollout status deployment/netbird-router -n netbird
+   just --justfile runbook.justfile netbird-bounce-vps
    ```
 
 `netbird-server` does not need restarting — its PVC data lives in the cluster
