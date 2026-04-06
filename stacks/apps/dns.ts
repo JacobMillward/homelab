@@ -2,9 +2,8 @@ import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as netbird from "@pulumi/netbird";
 
-const ZONE_DOMAIN = "millward-yuan.net";
-
 interface DnsRegistrarArgs {
+  domain: string;
   managementUrl: pulumi.Output<string>;
   pat: pulumi.Output<string>;
   dnsZoneId: pulumi.Output<string>;
@@ -13,6 +12,7 @@ interface DnsRegistrarArgs {
 
 export class DnsRegistrar {
   private netbirdProvider: netbird.Provider;
+  private domain: string;
   private zoneId: pulumi.Output<string>;
   private traefikInternalIp: pulumi.Output<string>;
 
@@ -21,6 +21,7 @@ export class DnsRegistrar {
       managementUrl: args.managementUrl,
       token: args.pat,
     });
+    this.domain = args.domain;
     this.zoneId = args.dnsZoneId;
     this.traefikInternalIp = args.traefikInternalIp;
   }
@@ -29,7 +30,7 @@ export class DnsRegistrar {
     return new netbird.DnsRecord(
       `${name}-dns`,
       {
-        name: `${name}.${ZONE_DOMAIN}`,
+        name: `${name}.${this.domain}`,
         zoneId: this.zoneId,
         type: "A",
         content: ip,

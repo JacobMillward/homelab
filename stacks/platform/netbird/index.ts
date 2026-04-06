@@ -27,6 +27,7 @@ interface NetbirdArgs {
 export function setupNetbird(args: NetbirdArgs) {
   const { ctx, storageClassName, traefikIp, vps } = args;
   const config = new pulumi.Config();
+  const domain = config.require("domain");
 
   // 1. Deploy server, dashboard, and ingress
   const server = new NetbirdServer(ctx, {
@@ -77,7 +78,7 @@ export function setupNetbird(args: NetbirdArgs) {
   return {
     relayAuthSecret: vps ? vps.relayAuthSecret : server.relayAuthSecret,
     dnsZoneId: nbConfig.dnsZoneId,
-    managementUrl: "https://netbird.millward-yuan.net",
+    managementUrl: `https://netbird.${domain}`,
     pat,
   };
 }

@@ -13,7 +13,8 @@ export class Joplin extends pulumi.ComponentResource {
       },
     );
 
-    const host = "joplin.millward-yuan.net";
+    const config = new pulumi.Config();
+    const host = `joplin.${config.require("domain")}`;
     const childOpts = { parent: this };
 
     const ns = new k8s.core.v1.Namespace(

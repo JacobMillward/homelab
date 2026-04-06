@@ -5,6 +5,8 @@ export function configureNetbird(
   provider: netbird.Provider,
   dependsOn: pulumi.Resource[],
 ) {
+  const config = new pulumi.Config();
+  const domain = config.require("domain");
   const opts = { provider, dependsOn };
 
   // Look up the built-in "All" group.
@@ -69,12 +71,12 @@ export function configureNetbird(
     opts,
   );
 
-  // DNS zone for app subdomains (*.millward-yuan.net)
+  // DNS zone for app subdomains (*.${domain})
   const zone = new netbird.DnsZone(
     "millward-yuan",
     {
-      name: "millward-yuan.net",
-      domain: "millward-yuan.net",
+      name: domain,
+      domain,
       enabled: true,
       enableSearchDomain: false,
       distributionGroups: [allGroup.apply((g) => g.id)],
@@ -82,13 +84,13 @@ export function configureNetbird(
     opts,
   );
 
-  // Tell peers to resolve millward-yuan.net via CoreDNS (reachable through
+  // Tell peers to resolve the domain via CoreDNS (reachable through
   // the k8s-router peer that advertises 10.96.0.0/12)
   new netbird.NameserverGroup(
     "k8s-dns",
     {
       name: "k8s-dns",
-      domains: ["millward-yuan.net"],
+      domains: [domain],
       primary: false,
       nameservers: [{ ip: "10.96.0.10", nsType: "udp", port: 53 }],
       groups: [allGroup.apply((g) => g.id)],

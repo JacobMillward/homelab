@@ -7,7 +7,6 @@ import * as random from "@pulumi/random";
 import { getSnapshotId } from "./flatcar";
 import { buildIgnitionConfig } from "./ignition";
 
-const domain = "netbird.millward-yuan.net";
 const relayPort = 33443;
 
 // wg genkey applies Curve25519 clamping; wg pubkey derives the public half.
@@ -27,10 +26,7 @@ export class VpsServer extends pulumi.ComponentResource {
     super("vps:VpsServer", "vps");
 
     const config = new pulumi.Config();
-
-    // ---------------------------------------------------------------------------
-    // 1Password secrets
-    // ---------------------------------------------------------------------------
+    const domain = config.require("domain");
 
     const opItem = onepassword.getItemOutput({
       vault: "Private",
@@ -88,7 +84,7 @@ export class VpsServer extends pulumi.ComponentResource {
       vpsPrivateKey: vpsKeys.stdout.apply((s) => s.split("|")[0]),
       homePubKey: homeKeys.stdout.apply((s) => s.split("|")[1]),
       relayAuthSecret: relaySecret.result,
-      domain,
+      domain: `netbird.${domain}`,
       relayPort,
     });
 
@@ -175,7 +171,7 @@ export class VpsServer extends pulumi.ComponentResource {
     );
 
     const cloudflareZone = cloudflare.getZoneOutput(
-      { filter: { name: "millward-yuan.net" } },
+      { filter: { name: domain } },
       { provider: cloudflareProvider, parent: this },
     );
 
@@ -206,7 +202,7 @@ export class VpsServer extends pulumi.ComponentResource {
     );
     this.homeWgPublicKey = homeKeys.stdout.apply((s) => s.split("|")[1]);
     this.relayAuthSecret = pulumi.secret(relaySecret.result);
-    this.relayAddress = pulumi.interpolate`rels://${domain}:${relayPort}`;
-    this.stunAddress = pulumi.interpolate`stun:${domain}:3478`;
+    this.relayAddress = pulumi.interpolate`rels://netbird.${domain}:${relayPort}`;
+    this.stunAddress = pulumi.interpolate`stun:netbird.${domain}:3478`;
   }
 }
