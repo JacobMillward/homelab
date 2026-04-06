@@ -154,6 +154,19 @@ export class NetbirdServer extends pulumi.ComponentResource {
                     { name: "http", containerPort: 80 },
                     { name: "stun", containerPort: 3478, protocol: "UDP" },
                   ],
+                  // /oauth2 returns 200 without auth. The relay healthcheck at
+                  // :9000/health panics with a nil pointer when relay is not
+                  // configured, so we probe the management HTTP port instead.
+                  livenessProbe: {
+                    httpGet: { path: "/oauth2", port: "http" },
+                    initialDelaySeconds: 15,
+                    periodSeconds: 20,
+                  },
+                  readinessProbe: {
+                    httpGet: { path: "/oauth2", port: "http" },
+                    initialDelaySeconds: 5,
+                    periodSeconds: 10,
+                  },
                   volumeMounts: [
                     {
                       name: "config",
