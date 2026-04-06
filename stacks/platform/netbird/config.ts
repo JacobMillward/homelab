@@ -82,5 +82,21 @@ export function configureNetbird(
     opts,
   );
 
+  // Tell peers to resolve millward-yuan.net via CoreDNS (reachable through
+  // the k8s-router peer that advertises 10.96.0.0/12)
+  new netbird.NameserverGroup(
+    "k8s-dns",
+    {
+      name: "k8s-dns",
+      domains: ["millward-yuan.net"],
+      primary: false,
+      nameservers: [{ ip: "10.96.0.10", nsType: "udp", port: 53 }],
+      groups: [allGroup.apply((g) => g.id)],
+      enabled: true,
+      searchDomainsEnabled: false,
+    },
+    opts,
+  );
+
   return { setupKey: setupKey.key, dnsZoneId: zone.id };
 }

@@ -40,7 +40,7 @@ graph TB
     end
 
     subgraph NetBird API Config ["Pulumi NetBird Provider"]
-        api_config["Groups, Networks,<br/>Setup Keys, DNS Zone"]
+        api_config["Groups, Networks,<br/>Setup Keys, DNS Zone,<br/>Nameserver Group"]
     end
 
     %% Peer connections
@@ -74,6 +74,7 @@ graph TB
 
     %% Router
     router -- "NB_MANAGEMENT_URL<br/>(cluster-internal)" --> server
+    router -. "relay + signal<br/>(via VPS)" .-> dns
     router -. "routes 10.96.0.0/12<br/>(K8s service CIDR)" .-> K8s
 
     %% API config
@@ -100,7 +101,8 @@ UDP :3478 directly on the VPS.
 **K8s service routing** is provided by the `netbird-router` pod, which joins
 the NetBird network as a peer and advertises the cluster service CIDR
 (10.96.0.0/12) with masquerading, allowing remote NetBird peers to reach
-in-cluster services.
+in-cluster services. A `NameserverGroup` directs peers to resolve
+`millward-yuan.net` via CoreDNS (10.96.0.10), routed through the same path.
 
 ### Deployment order
 
