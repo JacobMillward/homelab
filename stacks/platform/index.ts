@@ -1,11 +1,11 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
-import * as onepassword from "@1password/pulumi-onepassword";
-import { deployLonghorn, storageClassName } from "./longhorn";
-import { deployMetallb } from "./metallb";
-import { deployCertManager } from "./cert-manager";
-import { deployTraefik } from "./traefik";
-import { deployPostgresql } from "./postgresql";
+import { makePlatformCtx } from "./context";
+import { Longhorn } from "./longhorn";
+import { MetalLB } from "./metallb";
+import { CertManager } from "./cert-manager";
+import { Traefik } from "./traefik";
+import { PostgreSQL } from "./postgresql";
 import { setupNetbird } from "./netbird";
 
 const config = new pulumi.Config();
@@ -15,29 +15,13 @@ const kubeconfig = talosStack
   .apply((v) => v as string);
 
 const k8sProvider = new k8s.Provider("k8s-provider", { kubeconfig });
+const ctx = makePlatformCtx(k8sProvider);
 
-// 1Password secrets
-const opItem = onepassword.getItemOutput({
-  vault: "Private",
-  title: "Homelab",
-});
-
-function opField(label: string): pulumi.Output<string> {
-  return opItem.apply((item) => {
-    const field = (item.sections ?? [])
-      .flatMap((s) => s.fields ?? [])
-      .find((f) => f.label === label);
-    if (!field) throw new Error(`1Password field "${label}" not found`);
-    return field.value;
-  });
-}
-
-deployLonghorn(k8sProvider);
-deployMetallb(k8sProvider);
-deployCertManager(k8sProvider, opField("Cloudflare Api Token (DnsEdit)"));
-const traefik = deployTraefik(k8sProvider);
-
-deployPostgresql(k8sProvider);
+const longhorn = new Longhorn(ctx);
+new MetalLB(ctx);
+new CertManager(ctx);
+const traefik = new Traefik(ctx);
+new PostgreSQL(ctx);
 
 // Optional VPS integration. When vpsStackRef is set, the platform deploys a
 // WireGuard peer and switches to the VPS-hosted relay/STUN. Without it,
@@ -72,16 +56,17 @@ const vpsConfig = vps
   : undefined;
 
 const netbird = setupNetbird({
-  k8sProvider,
-  storageClassName,
+  ctx,
+  storageClassName: longhorn.storageClassName,
   traefikIp: traefik.loadBalancerIp,
   vps: vpsConfig,
 });
 
-export { storageClassName };
+export { storageClassName } from "./longhorn";
 export const relayAuthSecret = netbird.relayAuthSecret;
 export const netbirdDnsZoneId = netbird.dnsZoneId;
 export const netbirdManagementUrl = netbird.managementUrl;
 export const netbirdPat = netbird.pat;
 export const traefikIp = traefik.loadBalancerIp;
 export const traefikInternalIp = traefik.internalIp;
+

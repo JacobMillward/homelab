@@ -1,33 +1,45 @@
 import * as k8s from "@pulumi/kubernetes";
+import * as pulumi from "@pulumi/pulumi";
+import { PlatformCtx } from "./context";
 
-export const storageClassName = "longhorn";
+export class Longhorn extends pulumi.ComponentResource {
+  readonly storageClassName = "longhorn";
 
-export function deployLonghorn(provider: k8s.Provider) {
-  const ns = new k8s.core.v1.Namespace(
-    "longhorn-system",
-    {
-      metadata: {
-        name: "longhorn-system",
-        labels: {
-          "pod-security.kubernetes.io/enforce": "privileged",
-          "pod-security.kubernetes.io/audit": "privileged",
-          "pod-security.kubernetes.io/warn": "privileged",
+  constructor(ctx: PlatformCtx) {
+    super("platform:Longhorn", "longhorn", {}, {
+      providers: { kubernetes: ctx.k8sProvider },
+    });
+
+    const ns = new k8s.core.v1.Namespace(
+      "longhorn-system",
+      {
+        metadata: {
+          name: "longhorn-system",
+          labels: {
+            "pod-security.kubernetes.io/enforce": "privileged",
+            "pod-security.kubernetes.io/audit": "privileged",
+            "pod-security.kubernetes.io/warn": "privileged",
+          },
         },
       },
-    },
-    { provider },
-  );
+      { parent: this },
+    );
 
-  new k8s.helm.v3.Release(
-    "longhorn",
-    {
-      chart: "longhorn",
-      version: "1.11.1",
-      namespace: ns.metadata.name,
-      repositoryOpts: {
-        repo: "https://charts.longhorn.io",
+    new k8s.helm.v3.Release(
+      "longhorn",
+      {
+        chart: "longhorn",
+        version: "1.11.1",
+        namespace: ns.metadata.name,
+        repositoryOpts: {
+          repo: "https://charts.longhorn.io",
+        },
       },
-    },
-    { provider },
-  );
+      { parent: this },
+    );
+  }
 }
+
+/** @deprecated Use `new Longhorn(ctx).storageClassName` */
+export const storageClassName = "longhorn";
+

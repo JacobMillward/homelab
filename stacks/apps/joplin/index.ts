@@ -5,7 +5,7 @@ import { AppCtx } from "../app";
 export class Joplin extends pulumi.ComponentResource {
   constructor(ctx: AppCtx) {
     super(
-      "homelab:app:Joplin",
+      "apps:Joplin",
       "joplin",
       {},
       {
@@ -19,7 +19,7 @@ export class Joplin extends pulumi.ComponentResource {
     const ns = new k8s.core.v1.Namespace(
       "joplin",
       {},
-      { ...childOpts, aliases: [{ name: "namespace" }] },
+      { ...childOpts },
     );
 
     const cluster = new k8s.apiextensions.CustomResource(
@@ -46,7 +46,7 @@ export class Joplin extends pulumi.ComponentResource {
           },
         },
       },
-      { ...childOpts, aliases: [{ name: "postgres" }] },
+      { ...childOpts },
     );
 
     const dbSecretName = cluster.metadata.name.apply((n) => `${n}-app`);
@@ -109,7 +109,7 @@ export class Joplin extends pulumi.ComponentResource {
           },
         },
       },
-      { ...childOpts, aliases: [{ name: "server" }] },
+      { ...childOpts },
     );
 
     const svc = new k8s.core.v1.Service(
@@ -123,7 +123,7 @@ export class Joplin extends pulumi.ComponentResource {
           ports: [{ name: "http", port: 22300, targetPort: 22300 }],
         },
       },
-      { ...childOpts, aliases: [{ name: "service" }] },
+      { ...childOpts },
     );
 
     ctx.dns.expose("joplin", {

@@ -1,24 +1,33 @@
+import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import { PlatformCtx } from "./context";
 
-export function deployPostgresql(provider: k8s.Provider) {
-  const ns = new k8s.core.v1.Namespace(
-    "cnpg-system",
-    {
-      metadata: { name: "cnpg-system" },
-    },
-    { provider },
-  );
+export class PostgreSQL extends pulumi.ComponentResource {
+  constructor(ctx: PlatformCtx) {
+    super("platform:PostgreSQL", "postgresql", {}, {
+      providers: { kubernetes: ctx.k8sProvider },
+    });
 
-  new k8s.helm.v3.Release(
-    "cnpg",
-    {
-      chart: "cloudnative-pg",
-      version: "0.27.1",
-      namespace: ns.metadata.name,
-      repositoryOpts: {
-        repo: "https://cloudnative-pg.github.io/charts",
+    const ns = new k8s.core.v1.Namespace(
+      "cnpg-system",
+      {
+        metadata: { name: "cnpg-system" },
       },
-    },
-    { provider },
-  );
+      { parent: this },
+    );
+
+    new k8s.helm.v3.Release(
+      "cnpg",
+      {
+        chart: "cloudnative-pg",
+        version: "0.27.1",
+        namespace: ns.metadata.name,
+        repositoryOpts: {
+          repo: "https://cloudnative-pg.github.io/charts",
+        },
+      },
+      { parent: this },
+    );
+  }
 }
+

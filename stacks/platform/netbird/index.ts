@@ -1,35 +1,35 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as netbird from "@pulumi/netbird";
-import { deployServer, deployRouter, deployWgPeer } from "./deploy";
+import { PlatformCtx } from "../context";
+import { NetbirdServer } from "./server";
+import { NetbirdRouter } from "./router";
+import { VpsTunnel } from "./wg-peer";
 import { configureNetbird } from "./config";
 
-export interface VpsConfig {
-  ip: pulumi.Output<string>;
-  wgPublicKey: pulumi.Output<string>;
-  homeWgPrivateKey: pulumi.Output<string>;
-  relayAuthSecret: pulumi.Output<string>;
-  relayAddress: pulumi.Output<string>;
-  stunAddress: pulumi.Output<string>;
-}
-
 interface NetbirdArgs {
-  k8sProvider: k8s.Provider;
+  ctx: PlatformCtx;
   storageClassName: string;
   traefikIp: string;
-  vps?: VpsConfig;
+  vps?: {
+    ip: pulumi.Output<string>;
+    wgPublicKey: pulumi.Output<string>;
+    homeWgPrivateKey: pulumi.Output<string>;
+    relayAuthSecret: pulumi.Output<string>;
+    relayAddress: pulumi.Output<string>;
+    stunAddress: pulumi.Output<string>;
+  };
 }
 
 // Orchestrates: server deploy → API config → router deploy.
 // On a fresh deploy the server must be running before the NetBird
 // API provider can create setup keys and network routes.
 export function setupNetbird(args: NetbirdArgs) {
-  const { k8sProvider, storageClassName, traefikIp, vps } = args;
+  const { ctx, storageClassName, traefikIp, vps } = args;
   const config = new pulumi.Config();
 
   // 1. Deploy server, dashboard, and ingress
-  const server = deployServer({
-    provider: k8sProvider,
+  const server = new NetbirdServer(ctx, {
     storageClassName,
     vps: vps
       ? {
@@ -58,8 +58,7 @@ export function setupNetbird(args: NetbirdArgs) {
   ]);
 
   // 3. Deploy the routing peer using the Pulumi-managed setup key
-  deployRouter({
-    provider: k8sProvider,
+  new NetbirdRouter(ctx, {
     namespace: server.namespace,
     storageClassName,
     setupKey: nbConfig.setupKey,
@@ -67,8 +66,7 @@ export function setupNetbird(args: NetbirdArgs) {
 
   // 4. If VPS is configured, deploy the WireGuard tunnel endpoint
   if (vps) {
-    deployWgPeer({
-      provider: k8sProvider,
+    new VpsTunnel(ctx, {
       namespace: server.namespace,
       vpsIp: vps.ip,
       vpsWgPublicKey: vps.wgPublicKey,
@@ -83,3 +81,4 @@ export function setupNetbird(args: NetbirdArgs) {
     pat,
   };
 }
+

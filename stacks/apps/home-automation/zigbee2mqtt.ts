@@ -71,13 +71,13 @@ export function deployZigbee2mqtt(args: Zigbee2mqttArgs) {
         },
       },
     },
-    { ...childOpts, aliases: [{ name: "release" }] },
+    { ...childOpts },
   );
 
   const svc = k8s.core.v1.Service.get(
     "zigbee2mqtt-svc",
     pulumi.interpolate`${release.status.namespace}/${release.status.name}`,
-    { ...childOpts, aliases: [{ name: "service" }] },
+    { ...childOpts },
   );
 
   dns.expose("z2m", {

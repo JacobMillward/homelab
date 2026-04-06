@@ -7,7 +7,7 @@ import { deployZigbee2mqtt } from "./zigbee2mqtt";
 export class HomeAutomation extends pulumi.ComponentResource {
   constructor(ctx: AppCtx) {
     super(
-      "homelab:app:HomeAutomation",
+      "apps:HomeAutomation",
       "home-automation",
       {},
       {
@@ -26,7 +26,7 @@ export class HomeAutomation extends pulumi.ComponentResource {
           },
         },
       },
-      { parent: this, aliases: [{ name: "namespace" }] },
+      { parent: this },
     );
 
     const mqtt = deployMosquitto({
