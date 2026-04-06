@@ -73,7 +73,17 @@ export class Joplin extends pulumi.ComponentResource {
                 {
                   name: "joplin-server",
                   image: "joplin/server:3.5.2",
-                  ports: [{ containerPort: 22300 }],
+                  ports: [{ name: "http", containerPort: 22300 }],
+                  livenessProbe: {
+                    httpGet: { path: "/api/ping", port: "http" },
+                    initialDelaySeconds: 30,
+                    periodSeconds: 20,
+                  },
+                  readinessProbe: {
+                    httpGet: { path: "/api/ping", port: "http" },
+                    initialDelaySeconds: 10,
+                    periodSeconds: 10,
+                  },
                   env: [
                     { name: "APP_PORT", value: "22300" },
                     {

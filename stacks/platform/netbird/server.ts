@@ -154,7 +154,18 @@ export class NetbirdServer extends pulumi.ComponentResource {
                   ports: [
                     { name: "http", containerPort: 80 },
                     { name: "stun", containerPort: 3478, protocol: "UDP" },
+                    { name: "health", containerPort: 9000 },
                   ],
+                  livenessProbe: {
+                    httpGet: { path: "/health", port: "health" },
+                    initialDelaySeconds: 15,
+                    periodSeconds: 20,
+                  },
+                  readinessProbe: {
+                    httpGet: { path: "/health", port: "health" },
+                    initialDelaySeconds: 5,
+                    periodSeconds: 10,
+                  },
                   volumeMounts: [
                     {
                       name: "config",
@@ -231,6 +242,16 @@ export class NetbirdServer extends pulumi.ComponentResource {
                   name: "dashboard",
                   image: "netbirdio/dashboard:v2.34.2",
                   ports: [{ name: "http", containerPort: 80 }],
+                  livenessProbe: {
+                    httpGet: { path: "/", port: "http" },
+                    initialDelaySeconds: 10,
+                    periodSeconds: 20,
+                  },
+                  readinessProbe: {
+                    httpGet: { path: "/", port: "http" },
+                    initialDelaySeconds: 5,
+                    periodSeconds: 10,
+                  },
                   env: [
                     {
                       name: "NETBIRD_MGMT_API_ENDPOINT",
