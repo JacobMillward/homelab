@@ -1,4 +1,4 @@
-export PULUMI_BACKEND_URL := "file://" + justfile_directory() / ".pulumi"
+export PULUMI_BACKEND_URL := "s3://pulumi-state?endpoint=192.168.0.40:3900&disableSSL=true&s3ForcePathStyle=true&region=garage"
 
 # List of stacks to manage
 # Order matters, stacks are initialized and deployed in order
@@ -13,6 +13,8 @@ default:
 pulumi STACK *args:
     #!/usr/bin/env bash
     export PULUMI_CONFIG_PASSPHRASE=$(op read "op://Private/Homelab/Pulumi Passphrase")
+    export AWS_ACCESS_KEY_ID=$(op read "op://Private/Homelab/API Tokens/Garage Access Key ID")
+    export AWS_SECRET_ACCESS_KEY=$(op read "op://Private/Homelab/API Tokens/Garage Secret Access Key")
     cd stacks/{{ STACK }} && pulumi {{ args }}
 
 # Install dependencies for all stacks
