@@ -25,7 +25,7 @@ export class Longhorn extends pulumi.ComponentResource {
       { parent: this },
     );
 
-    new k8s.helm.v3.Release(
+    const release = new k8s.helm.v3.Release(
       "longhorn",
       {
         chart: "longhorn",
@@ -36,12 +36,37 @@ export class Longhorn extends pulumi.ComponentResource {
         },
         values: {
           defaultSettings: {
-            backupTarget: "nfs://192.168.0.40:/volume1/Backups/longhorn",
+            backupTarget: "nfs://192.168.0.40:/volume1/Backup/longhorn",
           },
         },
       },
       { parent: this },
     );
+
+    const recurringJobs: [string, string, number][] = [
+      ["backup-daily", "0 2 * * *", 7],
+      ["backup-weekly", "0 3 * * 0", 4],
+      ["backup-monthly", "0 4 1 * *", 12],
+    ];
+
+    for (const [name, cron, retain] of recurringJobs) {
+      new k8s.apiextensions.CustomResource(
+        name,
+        {
+          apiVersion: "longhorn.io/v1beta2",
+          kind: "RecurringJob",
+          metadata: { name, namespace: ns.metadata.name },
+          spec: {
+            task: "backup",
+            cron,
+            retain,
+            concurrency: 1,
+            groups: ["default"],
+          },
+        },
+        { parent: this, dependsOn: [release] },
+      );
+    }
   }
 }
 
