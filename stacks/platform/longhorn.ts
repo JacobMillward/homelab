@@ -37,6 +37,7 @@ export class Longhorn extends pulumi.ComponentResource {
         values: {
           defaultSettings: {
             backupTarget: "nfs://192.168.0.40:/volume1/Backup/longhorn",
+            nodeDrainPolicy: "always-allow",
           },
         },
       },
