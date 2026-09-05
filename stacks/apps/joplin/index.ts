@@ -35,6 +35,10 @@ export class Joplin extends pulumi.ComponentResource {
         spec: {
           instances: 1,
           imageName: "ghcr.io/cloudnative-pg/postgresql:16.9",
+          nodeMaintenanceWindow: {
+            inProgress: true,
+            reusePVC: true,
+          },
           storage: {
             size: "5Gi",
             storageClass: ctx.storageClassName,
@@ -75,12 +79,20 @@ export class Joplin extends pulumi.ComponentResource {
                   image: "joplin/server:3.5.2",
                   ports: [{ name: "http", containerPort: 22300 }],
                   livenessProbe: {
-                    httpGet: { path: "/api/ping", port: "http" },
+                    httpGet: {
+                      path: "/api/ping",
+                      port: "http",
+                      httpHeaders: [{ name: "Host", value: host }],
+                    },
                     initialDelaySeconds: 30,
                     periodSeconds: 20,
                   },
                   readinessProbe: {
-                    httpGet: { path: "/api/ping", port: "http" },
+                    httpGet: {
+                      path: "/api/ping",
+                      port: "http",
+                      httpHeaders: [{ name: "Host", value: host }],
+                    },
                     initialDelaySeconds: 10,
                     periodSeconds: 10,
                   },
