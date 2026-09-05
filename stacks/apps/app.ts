@@ -6,4 +6,6 @@ export interface AppCtx {
   provider: k8s.Provider;
   storageClassName: pulumi.Output<string>;
   dns: DnsRegistrar;
+  /** Map of Synology share name to PV name, e.g. { films: "synology-films" } */
+  synologyPvNames: pulumi.Output<Record<string, string>>;
 }

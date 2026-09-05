@@ -7,6 +7,7 @@ import { CertManager } from "./cert-manager";
 import { Traefik } from "./traefik";
 import { PostgreSQL } from "./postgresql";
 import { setupNetbird } from "./netbird";
+import { Synology } from "./synology";
 
 const config = new pulumi.Config();
 const talosStack = new pulumi.StackReference(config.require("talosStackRef"));
@@ -22,6 +23,7 @@ new MetalLB(ctx);
 new CertManager(ctx);
 const traefik = new Traefik(ctx);
 new PostgreSQL(ctx);
+const synology = new Synology(ctx);
 
 // Optional VPS integration. When vpsStackRef is set, the platform deploys a
 // WireGuard peer and switches to the VPS-hosted relay/STUN. Without it,
@@ -69,4 +71,5 @@ export const netbirdManagementUrl = netbird.managementUrl;
 export const netbirdPat = netbird.pat;
 export const traefikIp = traefik.loadBalancerIp;
 export const traefikInternalIp = traefik.internalIp;
+export const synologyPvNames = synology.pvNames;
 
