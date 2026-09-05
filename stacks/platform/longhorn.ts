@@ -34,6 +34,11 @@ export class Longhorn extends pulumi.ComponentResource {
         repositoryOpts: {
           repo: "https://charts.longhorn.io",
         },
+        values: {
+          defaultSettings: {
+            backupTarget: "nfs://192.168.0.40:/volume1/Backups/longhorn",
+          },
+        },
       },
       { parent: this },
     );

@@ -19,6 +19,10 @@ const storageClassName = platformStack
   .requireOutput("storageClassName")
   .apply((v) => v as string);
 
+const synologyPvNames = platformStack
+  .requireOutput("synologyPvNames")
+  .apply((v) => v as Record<string, string>);
+
 const k8sProvider = new k8s.Provider("k8s-provider", { kubeconfig });
 
 const traefikInternalIp = platformStack
@@ -41,6 +45,7 @@ const ctx: AppCtx = {
   provider: k8sProvider,
   storageClassName,
   dns,
+  synologyPvNames,
 };
 
 new HomeAutomation(ctx);
