@@ -1,16 +1,35 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import { POD_CIDR } from "homelab-lib";
 import { PlatformCtx } from "./context";
 
 export interface TraefikArgs {
   crowdsecBouncerApiKey: pulumi.Input<string>;
 }
 
+export interface ForwardAuthSpec {
+  address: string;
+  trustForwardHeader: boolean;
+  maxResponseBodySize: number;
+  authResponseHeaders: string[];
+}
+
+export interface CrowdsecPluginSpec {
+  enabled: boolean;
+  crowdsecMode: string;
+  streamStartupBlock: boolean;
+  updateMaxFailure: number;
+  crowdsecLapiKey: pulumi.Input<string>;
+  crowdsecLapiHost: string;
+  crowdsecLapiScheme: string;
+}
+
 export class Traefik extends pulumi.ComponentResource {
   readonly loadBalancerIp: string;
+  readonly clusterIp: pulumi.Output<string>;
   readonly internalIp: pulumi.Output<string>;
-  readonly forwardAuthMiddlewareRef: { name: string; namespace: string };
-  readonly crowdsecMiddlewareRef: { name: string; namespace: string };
+  readonly forwardAuthSpec: ForwardAuthSpec;
+  readonly crowdsecPluginSpec: CrowdsecPluginSpec;
 
   constructor(ctx: PlatformCtx, args: TraefikArgs) {
     super("platform:Traefik", "traefik", {}, {
@@ -33,6 +52,7 @@ export class Traefik extends pulumi.ComponentResource {
     const release = new k8s.helm.v3.Release(
       "traefik",
       {
+        name: "traefik",
         chart: "traefik",
         version: "39.0.6",
         namespace: ns.metadata.name,
@@ -45,9 +65,16 @@ export class Traefik extends pulumi.ComponentResource {
               loadBalancerIP: this.loadBalancerIp,
             },
           },
-          providers: {
-            kubernetesCRD: {
-              allowCrossNamespace: true,
+          logs: {
+            access: {
+              enabled: true,
+            },
+          },
+          ports: {
+            websecure: {
+              proxyProtocol: {
+                trustedIPs: [POD_CIDR],
+              },
             },
           },
           experimental: {
@@ -98,28 +125,12 @@ export class Traefik extends pulumi.ComponentResource {
       },
     );
 
-    new k8s.apiextensions.CustomResource(
-      "authelia-forwardauth",
-      {
-        apiVersion: "traefik.io/v1alpha1",
-        kind: "Middleware",
-        metadata: { name: "authelia", namespace: "authelia" },
-        spec: {
-          forwardAuth: {
-            address: "http://idp-authelia.authelia.svc.cluster.local/api/authz/forward-auth",
-            trustForwardHeader: true,
-            maxResponseBodySize: 8192,
-            authResponseHeaders: [
-              "Remote-User",
-              "Remote-Groups",
-              "Remote-Name",
-              "Remote-Email",
-            ],
-          },
-        },
-      },
-      { parent: this },
-    );
+    this.forwardAuthSpec = {
+      address: "http://idp-authelia.authelia.svc.cluster.local/api/authz/forward-auth",
+      trustForwardHeader: true,
+      maxResponseBodySize: 8192,
+      authResponseHeaders: ["Remote-User", "Remote-Groups", "Remote-Name", "Remote-Email"],
+    };
 
     new k8s.apiextensions.CustomResource(
       "authelia-ingress",
@@ -142,31 +153,15 @@ export class Traefik extends pulumi.ComponentResource {
       { parent: this },
     );
 
-    this.forwardAuthMiddlewareRef = { name: "authelia", namespace: "authelia" };
-
-    new k8s.apiextensions.CustomResource(
-      "crowdsec-bouncer-middleware",
-      {
-        apiVersion: "traefik.io/v1alpha1",
-        kind: "Middleware",
-        metadata: { name: "crowdsec-bouncer", namespace: "crowdsec" },
-        spec: {
-          plugin: {
-            "crowdsec-bouncer": {
-              enabled: true,
-              crowdsecMode: "stream",
-              streamStartupBlock: false,
-              updateMaxFailure: -1,
-              crowdsecLapiKey: args.crowdsecBouncerApiKey,
-              crowdsecLapiHost: "crowdsec-service.crowdsec.svc.cluster.local:8080",
-              crowdsecLapiScheme: "http",
-            },
-          },
-        },
-      },
-      { parent: this },
-    );
-    this.crowdsecMiddlewareRef = { name: "crowdsec-bouncer", namespace: "crowdsec" };
+    this.crowdsecPluginSpec = {
+      enabled: true,
+      crowdsecMode: "stream",
+      streamStartupBlock: false,
+      updateMaxFailure: -1,
+      crowdsecLapiKey: args.crowdsecBouncerApiKey,
+      crowdsecLapiHost: "crowdsec-service.crowdsec.svc.cluster.local:8080",
+      crowdsecLapiScheme: "http",
+    };
 
     // Look up the Helm-created service to reuse its selector
     const helmSvc = k8s.core.v1.Service.get(
@@ -174,6 +169,7 @@ export class Traefik extends pulumi.ComponentResource {
       pulumi.interpolate`${release.status.namespace}/${release.status.name}`,
       { parent: this },
     );
+    this.clusterIp = helmSvc.spec.clusterIP;
 
     // ClusterIP service for internal apps (NetBird-only, not LAN-reachable)
     const internalSvc = new k8s.core.v1.Service(

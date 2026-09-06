@@ -11,6 +11,7 @@ interface NetbirdArgs {
   ctx: PlatformCtx;
   storageClassName: string;
   traefikIp: string;
+  traefikClusterIp: pulumi.Input<string>;
   traefikInternalIp: pulumi.Input<string>;
   netbirdOidcClientId: pulumi.Input<string>;
   netbirdOidcClientSecret: pulumi.Input<string>;
@@ -28,7 +29,7 @@ interface NetbirdArgs {
 // On a fresh deploy the server must be running before the NetBird
 // API provider can create setup keys and network routes.
 export function setupNetbird(args: NetbirdArgs) {
-  const { ctx, storageClassName, traefikIp, traefikInternalIp, vps, netbirdOidcClientId, netbirdOidcClientSecret } = args;
+  const { ctx, storageClassName, traefikIp, traefikClusterIp, traefikInternalIp, vps, netbirdOidcClientId, netbirdOidcClientSecret } = args;
   const config = new pulumi.Config();
   const domain = config.require("domain");
 
@@ -77,6 +78,7 @@ export function setupNetbird(args: NetbirdArgs) {
       vpsIp: vps.ip,
       vpsWgPublicKey: vps.wgPublicKey,
       homeWgPrivateKey: vps.homeWgPrivateKey,
+      traefikIp: traefikClusterIp,
     });
   }
 
