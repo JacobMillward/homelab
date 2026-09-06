@@ -8,6 +8,7 @@ import { Traefik } from "./traefik";
 import { PostgreSQL } from "./postgresql";
 import { setupNetbird } from "./netbird";
 import { Synology } from "./synology";
+import { Authelia } from "./authelia";
 
 const config = new pulumi.Config();
 const talosStack = new pulumi.StackReference(config.require("talosStackRef"));
@@ -24,6 +25,10 @@ new CertManager(ctx);
 const traefik = new Traefik(ctx);
 new PostgreSQL(ctx);
 const synology = new Synology(ctx);
+const authelia = new Authelia(ctx, {
+  domain: config.require("domain"),
+  storageClassName: longhorn.storageClassName,
+});
 
 // Optional VPS integration. When vpsStackRef is set, the platform deploys a
 // WireGuard peer and switches to the VPS-hosted relay/STUN. Without it,
@@ -72,4 +77,8 @@ export const netbirdPat = netbird.pat;
 export const traefikIp = traefik.loadBalancerIp;
 export const traefikInternalIp = traefik.internalIp;
 export const synologyPvNames = synology.pvNames;
+export const autheliaServiceName = authelia.serviceName;
+export const autheliaNamespace = authelia.namespace.metadata.name;
+export const netbirdOidcClientId = authelia.netbirdOidcClientId;
+export const netbirdOidcClientSecret = authelia.netbirdOidcClientSecret;
 
