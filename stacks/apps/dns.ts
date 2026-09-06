@@ -88,7 +88,7 @@ export class DnsRegistrar {
       parent: pulumi.Resource;
     },
   ) {
-    new k8s.apiextensions.CustomResource(
+    const autheliaMiddleware = new k8s.apiextensions.CustomResource(
       `${name}-authelia-middleware`,
       {
         apiVersion: "traefik.io/v1alpha1",
@@ -118,7 +118,7 @@ export class DnsRegistrar {
           tls: {},
         },
       },
-      { parent: opts.parent },
+      { parent: opts.parent, dependsOn: [autheliaMiddleware] },
     );
   }
 
