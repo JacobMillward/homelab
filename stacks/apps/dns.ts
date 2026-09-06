@@ -3,6 +3,13 @@ import * as k8s from "@pulumi/kubernetes";
 import * as cloudflare from "@pulumi/cloudflare";
 import * as netbird from "@pulumi/netbird";
 
+interface ForwardAuthSpec {
+  address: string;
+  trustForwardHeader: boolean;
+  maxResponseBodySize: number;
+  authResponseHeaders: string[];
+}
+
 interface DnsRegistrarArgs {
   domain: string;
   managementUrl: pulumi.Output<string>;
@@ -11,7 +18,7 @@ interface DnsRegistrarArgs {
   traefikInternalIp: pulumi.Output<string>;
   cloudflareApiToken: pulumi.Output<string>;
   vpsIp: pulumi.Output<string>;
-  forwardAuthMiddlewareRef: pulumi.Input<{ name: string; namespace: string }>;
+  forwardAuthSpec: pulumi.Input<ForwardAuthSpec>;
 }
 
 export class DnsRegistrar {
@@ -22,7 +29,7 @@ export class DnsRegistrar {
   private zoneId: pulumi.Output<string>;
   private traefikInternalIp: pulumi.Output<string>;
   private vpsIp: pulumi.Output<string>;
-  private forwardAuthMiddlewareRef: pulumi.Input<{ name: string; namespace: string }>;
+  private forwardAuthSpec: pulumi.Input<ForwardAuthSpec>;
 
   constructor(args: DnsRegistrarArgs) {
     this.netbirdProvider = new netbird.Provider("netbird", {
@@ -39,7 +46,7 @@ export class DnsRegistrar {
     this.zoneId = args.dnsZoneId;
     this.traefikInternalIp = args.traefikInternalIp;
     this.vpsIp = args.vpsIp;
-    this.forwardAuthMiddlewareRef = args.forwardAuthMiddlewareRef;
+    this.forwardAuthSpec = args.forwardAuthSpec;
   }
 
   private registerInternal(name: string, ip: pulumi.Input<string>) {
@@ -82,6 +89,17 @@ export class DnsRegistrar {
     },
   ) {
     new k8s.apiextensions.CustomResource(
+      `${name}-authelia-middleware`,
+      {
+        apiVersion: "traefik.io/v1alpha1",
+        kind: "Middleware",
+        metadata: { name: "authelia", namespace: opts.namespace },
+        spec: { forwardAuth: this.forwardAuthSpec },
+      },
+      { parent: opts.parent },
+    );
+
+    new k8s.apiextensions.CustomResource(
       `${name}-ingress`,
       {
         apiVersion: "traefik.io/v1alpha1",
@@ -94,7 +112,7 @@ export class DnsRegistrar {
               match: `Host(\`${opts.host}\`)`,
               kind: "Rule",
               services: [{ name: opts.serviceName, port: opts.servicePort }],
-              middlewares: [this.forwardAuthMiddlewareRef],
+              middlewares: [{ name: "authelia" }],
             },
           ],
           tls: {},
