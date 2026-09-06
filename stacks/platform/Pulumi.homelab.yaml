@@ -10,4 +10,6 @@ config:
   homelab-platform:vpsStackRef: organization/homelab-vps/homelab
   homelab-platform:crowdsecEnrollKey:
     secure: v1:VOka8s6hNo3n+6hB:Tv3mX9fd1H4XUZxHt7u92SLnKli/KWgZhWsFK3DDZqBxRrKjkzN4iho=
+  homelab-platform:cloudflareApiToken:
+    secure: v1:STSh55WCMpWhHQ+m:tGXV1OJq1rVn0bdfAkUPoG4MgpYHwudVaiXdHsrYvVKj9esVzK5jm6vS1WOeM6HUEWKelHJ9Yd8EbsPLzsB5HcPImXuq
 encryptionsalt: v1:U+FSf0F20a0=:v1:Ulpuhm9q96ymFN4D:jEp0DLgPxKc+v5nYxRKuDLQ7yIsO7Q==

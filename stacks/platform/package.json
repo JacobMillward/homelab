@@ -9,6 +9,7 @@
   "dependencies": {
     "homelab-lib": "workspace:*",
     "@1password/pulumi-onepassword": "^1.1.3",
+    "@pulumi/cloudflare": "^6.13.0",
     "@pulumi/kubernetes": "^4.25.0",
     "@pulumi/netbird": "file:sdks/netbird",
     "@pulumi/pulumi": "^3.226.0",
