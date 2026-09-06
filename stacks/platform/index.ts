@@ -81,4 +81,5 @@ export const autheliaServiceName = authelia.serviceName;
 export const autheliaNamespace = authelia.namespace.metadata.name;
 export const netbirdOidcClientId = authelia.netbirdOidcClientId;
 export const netbirdOidcClientSecret = authelia.netbirdOidcClientSecret;
+export const forwardAuthMiddlewareRef = traefik.forwardAuthMiddlewareRef;
 

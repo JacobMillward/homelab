@@ -5,6 +5,7 @@ import { PlatformCtx } from "./context";
 export class Traefik extends pulumi.ComponentResource {
   readonly loadBalancerIp: string;
   readonly internalIp: pulumi.Output<string>;
+  readonly forwardAuthMiddlewareRef: { name: string; namespace: string };
 
   constructor(ctx: PlatformCtx) {
     super("platform:Traefik", "traefik", {}, {
@@ -78,6 +79,51 @@ export class Traefik extends pulumi.ComponentResource {
         dependsOn: [release],
       },
     );
+
+    new k8s.apiextensions.CustomResource(
+      "authelia-forwardauth",
+      {
+        apiVersion: "traefik.io/v1alpha1",
+        kind: "Middleware",
+        metadata: { name: "authelia", namespace: "authelia" },
+        spec: {
+          forwardAuth: {
+            address: "http://idp-authelia.authelia.svc.cluster.local/api/verify?rd=https://auth." + domain,
+            trustForwardHeader: true,
+            authResponseHeaders: [
+              "Remote-User",
+              "Remote-Groups",
+              "Remote-Name",
+              "Remote-Email",
+            ],
+          },
+        },
+      },
+      { parent: this },
+    );
+
+    new k8s.apiextensions.CustomResource(
+      "authelia-ingress",
+      {
+        apiVersion: "traefik.io/v1alpha1",
+        kind: "IngressRoute",
+        metadata: { name: "authelia", namespace: "authelia" },
+        spec: {
+          entryPoints: ["websecure"],
+          routes: [
+            {
+              match: `Host(\`auth.${domain}\`)`,
+              kind: "Rule",
+              services: [{ name: "idp-authelia", namespace: "authelia", port: 80 }],
+            },
+          ],
+          tls: {},
+        },
+      },
+      { parent: this },
+    );
+
+    this.forwardAuthMiddlewareRef = { name: "authelia", namespace: "authelia" };
 
     // Look up the Helm-created service to reuse its selector
     const helmSvc = k8s.core.v1.Service.get(
