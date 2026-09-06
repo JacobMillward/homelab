@@ -3,6 +3,7 @@ import { VpsServer } from "./server";
 const vps = new VpsServer();
 
 export const vpsIp = vps.ipv4Address;
+export const vpsIpv6 = vps.ipv6Address;
 export const vpsWgPublicKey = vps.vpsWgPublicKey;
 export const homeWgPrivateKey = vps.homeWgPrivateKey;
 export const homeWgPublicKey = vps.homeWgPublicKey;
