@@ -4,10 +4,23 @@ import * as netbird from "@pulumi/netbird";
 export function configureNetbird(
   provider: netbird.Provider,
   dependsOn: pulumi.Resource[],
+  oidc: { clientId: pulumi.Input<string>; clientSecret: pulumi.Input<string> },
 ) {
   const config = new pulumi.Config();
   const domain = config.require("domain");
   const opts = { provider, dependsOn };
+
+  new netbird.IdentityProvider(
+    "authelia",
+    {
+      name: "Authelia",
+      type: "oidc",
+      issuer: `https://auth.${domain}`,
+      clientId: oidc.clientId,
+      clientSecret: oidc.clientSecret,
+    },
+    opts,
+  );
 
   // Look up the built-in "All" group.
   // dependsOn ensures this waits for the server and its IngressRoute to

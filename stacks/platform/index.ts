@@ -66,7 +66,10 @@ const netbird = setupNetbird({
   ctx,
   storageClassName: longhorn.storageClassName,
   traefikIp: traefik.loadBalancerIp,
+  traefikInternalIp: traefik.internalIp,
   vps: vpsConfig,
+  netbirdOidcClientId: authelia.netbirdOidcClientId,
+  netbirdOidcClientSecret: authelia.netbirdOidcClientSecret,
 });
 
 export { storageClassName } from "./longhorn";

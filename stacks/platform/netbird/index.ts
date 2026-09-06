@@ -11,6 +11,9 @@ interface NetbirdArgs {
   ctx: PlatformCtx;
   storageClassName: string;
   traefikIp: string;
+  traefikInternalIp: pulumi.Input<string>;
+  netbirdOidcClientId: pulumi.Input<string>;
+  netbirdOidcClientSecret: pulumi.Input<string>;
   vps?: {
     ip: pulumi.Output<string>;
     wgPublicKey: pulumi.Output<string>;
@@ -25,13 +28,14 @@ interface NetbirdArgs {
 // On a fresh deploy the server must be running before the NetBird
 // API provider can create setup keys and network routes.
 export function setupNetbird(args: NetbirdArgs) {
-  const { ctx, storageClassName, traefikIp, vps } = args;
+  const { ctx, storageClassName, traefikIp, traefikInternalIp, vps, netbirdOidcClientId, netbirdOidcClientSecret } = args;
   const config = new pulumi.Config();
   const domain = config.require("domain");
 
   // 1. Deploy server, dashboard, and ingress
   const server = new NetbirdServer(ctx, {
     storageClassName,
+    traefikInternalIp,
     vps: vps
       ? {
           relayAuthSecret: vps.relayAuthSecret,
@@ -53,10 +57,11 @@ export function setupNetbird(args: NetbirdArgs) {
     token: pat,
   });
 
-  const nbConfig = configureNetbird(nbProvider, [
-    server.serverDeployment,
-    server.localApiRoute,
-  ]);
+  const nbConfig = configureNetbird(
+    nbProvider,
+    [server.serverDeployment, server.localApiRoute],
+    { clientId: netbirdOidcClientId, clientSecret: netbirdOidcClientSecret },
+  );
 
   // 3. Deploy the routing peer using the Pulumi-managed setup key
   new NetbirdRouter(ctx, {
