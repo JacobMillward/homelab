@@ -1,0 +1,5 @@
+export const TUNNEL_CIDR_PREFIX = 24;
+export const VPS_TUNNEL_IP = "10.99.0.1";
+export const HOME_TUNNEL_IP = "10.99.0.2";
+export const VPS_TUNNEL_ADDRESS = `${VPS_TUNNEL_IP}/${TUNNEL_CIDR_PREFIX}`;
+export const HOME_TUNNEL_ADDRESS = `${HOME_TUNNEL_IP}/${TUNNEL_CIDR_PREFIX}`;
