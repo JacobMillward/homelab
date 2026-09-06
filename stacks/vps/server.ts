@@ -89,7 +89,7 @@ export class VpsServer extends pulumi.ComponentResource {
     const providerOpts = { provider: hcloudProvider, parent: this };
 
     const firewall = new hcloud.Firewall(
-      "netbird-vps-fw",
+      "edge-vps-fw",
       {
         rules: [
           {
@@ -127,18 +127,34 @@ export class VpsServer extends pulumi.ComponentResource {
       { ...providerOpts },
     );
 
+    // A Primary IP is a standalone resource, so it survives server replacement
+    // (Ignition changes always force one — see replaceOnChanges below) instead
+    // of forcing a DNS record update on every redeploy.
+    const primaryIp = new hcloud.PrimaryIp(
+      "edge-vps-ip",
+      {
+        type: "ipv4",
+        assigneeType: "server",
+        autoDelete: false,
+        location: config.require("serverLocation"),
+      },
+      { ...providerOpts },
+    );
+
     const server = new hcloud.Server(
-      "netbird-vps",
+      "edge-vps",
       {
         serverType: config.require("serverType"),
         image: getSnapshotId(hcloudToken),
         location: config.require("serverLocation"),
         userData: ignitionConfig,
         firewallIds: [firewall.id.apply((id) => Number(id))],
+        publicNets: [{ ipv4: primaryIp.id.apply((id) => Number(id)) }],
       },
       {
         ...providerOpts,
         replaceOnChanges: ["userData"],
+        deleteBeforeReplace: true,
       },
     );
 
@@ -163,7 +179,7 @@ export class VpsServer extends pulumi.ComponentResource {
         zoneId: cloudflareZone.id,
         name: "netbird",
         type: "A",
-        content: server.ipv4Address,
+        content: primaryIp.ipAddress,
         proxied: false,
         ttl: 60,
       },
