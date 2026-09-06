@@ -2,7 +2,7 @@ import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
 import * as tls from "@pulumi/tls";
-import { hash } from "@node-rs/argon2";
+import * as command from "@pulumi/command";
 import { PlatformCtx } from "../context";
 import { buildAutheliaConfig } from "./config";
 
@@ -68,17 +68,20 @@ export class Authelia extends pulumi.ComponentResource {
     this.netbirdOidcClientId = netbirdOidcClientId.result;
     this.netbirdOidcClientSecret = netbirdOidcClientSecret.result;
 
-    // Single-owner homelab: one argon2id-hashed user, generated once and
-    // stored as a Pulumi secret. Rotate by changing this and re-running
-    // `pulumi up` — Authelia re-reads the file on pod restart.
     const adminPasswordHash = new random.RandomPassword(
       "authelia-admin-password",
       { length: 24, special: true },
       childOpts,
     );
-    const passwordHash = pulumi.secret(
-      adminPasswordHash.result.apply((pwd) => hash(pwd)),
+    const hashCmd = new command.local.Command(
+      "authelia-hash-password",
+      {
+        create: `node -e "require('@node-rs/argon2').hash(process.env.AUTHELIA_ADMIN_PASSWORD).then(h => process.stdout.write(h))"`,
+        environment: { AUTHELIA_ADMIN_PASSWORD: adminPasswordHash.result },
+      },
+      { ...childOpts, additionalSecretOutputs: ["stdout"] },
     );
+    const passwordHash = hashCmd.stdout;
 
     const usersDb = pulumi.interpolate`
 users:
