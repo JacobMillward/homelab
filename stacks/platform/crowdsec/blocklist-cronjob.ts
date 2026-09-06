@@ -1,3 +1,5 @@
+import * as fs from "fs";
+import * as path from "path";
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 
@@ -5,20 +7,34 @@ export interface BlocklistCronJobArgs {
   namespace: string;
 }
 
-const fetchListsScript = `set -e
-curl -sf -o /tmp/firehol.raw "https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/firehol_level1.netset"
-grep -v '^#' /tmp/firehol.raw | grep -v '^$' > /shared/firehol-level1.txt
-curl -sf -o /tmp/ipsum.raw "https://raw.githubusercontent.com/stamparm/ipsum/master/levels/3.txt"
-grep -v '^#' /tmp/ipsum.raw | awk '{print $1}' > /shared/ipsum-level3.txt
-`;
-
-function importScript(namespace: string): string {
-  return `set -e
-POD=$(kubectl get pods -n ${namespace} -l type=lapi -o jsonpath='{.items[0].metadata.name}')
-kubectl exec -i -n ${namespace} "$POD" -- cscli decisions import -i - --format values --scope range --duration 26h --reason blocklist/firehol-level1 < /shared/firehol-level1.txt
-kubectl exec -i -n ${namespace} "$POD" -- cscli decisions import -i - --format values --scope ip --duration 26h --reason blocklist/ipsum-level3 < /shared/ipsum-level3.txt
-`;
+interface BlocklistSource {
+  name: string;
+  url: string;
+  scope: "ip" | "range";
+  column?: number;
 }
+
+const sources: BlocklistSource[] = [
+  {
+    name: "firehol-level1",
+    url: "https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/firehol_level1.netset",
+    scope: "range",
+  },
+  {
+    name: "ipsum-level3",
+    url: "https://raw.githubusercontent.com/stamparm/ipsum/master/levels/3.txt",
+    scope: "ip",
+    column: 1,
+  },
+];
+
+const decisionDuration = "26h";
+
+const sourcesTsv = sources.map((s) => [s.name, s.url, s.scope, s.column ?? ""].join("\t")).join("\n") + "\n";
+
+const scriptsDir = path.join(__dirname, "scripts");
+const fetchListsScript = fs.readFileSync(path.join(scriptsDir, "fetch-lists.sh"), "utf8");
+const importListsScript = fs.readFileSync(path.join(scriptsDir, "import-lists.sh"), "utf8");
 
 export class BlocklistCronJob extends pulumi.ComponentResource {
   constructor(name: string, args: BlocklistCronJobArgs, opts?: pulumi.ComponentResourceOptions) {
@@ -53,6 +69,19 @@ export class BlocklistCronJob extends pulumi.ComponentResource {
       childOpts,
     );
 
+    const scripts = new k8s.core.v1.ConfigMap(
+      "crowdsec-blocklist-scripts",
+      {
+        metadata: { namespace: args.namespace },
+        data: {
+          "fetch-lists.sh": fetchListsScript,
+          "import-lists.sh": importListsScript,
+          "sources.tsv": sourcesTsv,
+        },
+      },
+      childOpts,
+    );
+
     new k8s.batch.v1.CronJob(
       "crowdsec-blocklist-import",
       {
@@ -69,19 +98,32 @@ export class BlocklistCronJob extends pulumi.ComponentResource {
                     {
                       name: "fetch-lists",
                       image: "curlimages/curl:8.22.0",
-                      command: ["/bin/sh", "-c", fetchListsScript],
-                      volumeMounts: [{ name: "shared", mountPath: "/shared" }],
+                      command: ["/bin/sh", "/config/fetch-lists.sh"],
+                      volumeMounts: [
+                        { name: "config", mountPath: "/config" },
+                        { name: "shared", mountPath: "/shared" },
+                      ],
                     },
                   ],
                   containers: [
                     {
                       name: "import",
                       image: "alpine/kubectl:1.37.0",
-                      command: ["/bin/sh", "-c", importScript(args.namespace)],
-                      volumeMounts: [{ name: "shared", mountPath: "/shared" }],
+                      command: ["/bin/sh", "/config/import-lists.sh"],
+                      env: [
+                        { name: "NAMESPACE", value: args.namespace },
+                        { name: "DECISION_DURATION", value: decisionDuration },
+                      ],
+                      volumeMounts: [
+                        { name: "config", mountPath: "/config" },
+                        { name: "shared", mountPath: "/shared" },
+                      ],
                     },
                   ],
-                  volumes: [{ name: "shared", emptyDir: {} }],
+                  volumes: [
+                    { name: "config", configMap: { name: scripts.metadata.name } },
+                    { name: "shared", emptyDir: {} },
+                  ],
                 },
               },
             },
