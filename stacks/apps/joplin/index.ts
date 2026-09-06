@@ -149,7 +149,7 @@ export class Joplin extends pulumi.ComponentResource {
       { ...childOpts },
     );
 
-    ctx.dns.expose("joplin", {
+    ctx.dns.publish("joplin", {
       host,
       namespace: ns.metadata.name,
       serviceName: svc.metadata.name,
