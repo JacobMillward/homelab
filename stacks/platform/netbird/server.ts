@@ -11,6 +11,7 @@ export interface VpsServerConfig {
 
 export interface NetbirdServerArgs {
   storageClassName: string;
+  traefikInternalIp: pulumi.Input<string>;
   vps?: VpsServerConfig;
 }
 
@@ -25,9 +26,10 @@ export class NetbirdServer extends pulumi.ComponentResource {
       providers: { kubernetes: ctx.k8sProvider },
     });
 
-    const { storageClassName, vps } = args;
+    const { storageClassName, vps, traefikInternalIp } = args;
     const config = new pulumi.Config();
-    const domain = `netbird.${config.require("domain")}`;
+    const rawDomain = config.require("domain");
+    const domain = `netbird.${rawDomain}`;
 
     this.namespace = new k8s.core.v1.Namespace(
       "netbird",
@@ -145,6 +147,12 @@ export class NetbirdServer extends pulumi.ComponentResource {
           template: {
             metadata: { labels: { app: "netbird-server" } },
             spec: {
+              hostAliases: [
+                {
+                  ip: traefikInternalIp,
+                  hostnames: [`auth.${rawDomain}`],
+                },
+              ],
               containers: [
                 {
                   name: "netbird-server",
