@@ -9,6 +9,7 @@ import { PostgreSQL } from "./postgresql";
 import { setupNetbird } from "./netbird";
 import { Synology } from "./synology";
 import { Authelia } from "./authelia";
+import { CrowdSec } from "./crowdsec";
 
 const config = new pulumi.Config();
 const talosStack = new pulumi.StackReference(config.require("talosStackRef"));
@@ -22,7 +23,8 @@ const ctx = makePlatformCtx(k8sProvider);
 const longhorn = new Longhorn(ctx);
 new MetalLB(ctx);
 new CertManager(ctx);
-const traefik = new Traefik(ctx);
+const crowdsec = new CrowdSec(ctx, { storageClassName: longhorn.storageClassName });
+const traefik = new Traefik(ctx, { crowdsecBouncerApiKey: crowdsec.bouncerApiKey });
 new PostgreSQL(ctx);
 const synology = new Synology(ctx);
 const authelia = new Authelia(ctx, {
