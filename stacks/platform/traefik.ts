@@ -45,6 +45,11 @@ export class Traefik extends pulumi.ComponentResource {
               loadBalancerIP: this.loadBalancerIp,
             },
           },
+          providers: {
+            kubernetesCRD: {
+              allowCrossNamespace: true,
+            },
+          },
           experimental: {
             plugins: {
               "crowdsec-bouncer": {
@@ -101,8 +106,9 @@ export class Traefik extends pulumi.ComponentResource {
         metadata: { name: "authelia", namespace: "authelia" },
         spec: {
           forwardAuth: {
-            address: "http://idp-authelia.authelia.svc.cluster.local/api/verify?rd=https://auth." + domain,
+            address: "http://idp-authelia.authelia.svc.cluster.local/api/authz/forward-auth",
             trustForwardHeader: true,
+            maxResponseBodySize: 8192,
             authResponseHeaders: [
               "Remote-User",
               "Remote-Groups",
