@@ -29,6 +29,12 @@ const traefikInternalIp = platformStack
   .requireOutput("traefikInternalIp")
   .apply((v) => v as string);
 
+const cloudflareApiToken = config.requireSecret("cloudflareApiToken");
+const vpsIp = platformStack.requireOutput("vpsIp").apply((v) => v as string);
+const forwardAuthMiddlewareRef = platformStack
+  .requireOutput("forwardAuthMiddlewareRef")
+  .apply((v) => v as { name: string; namespace: string });
+
 const dns = new DnsRegistrar({
   domain,
   managementUrl: platformStack
@@ -39,6 +45,9 @@ const dns = new DnsRegistrar({
     .requireOutput("netbirdDnsZoneId")
     .apply((v) => v as string),
   traefikInternalIp,
+  cloudflareApiToken,
+  vpsIp,
+  forwardAuthMiddlewareRef,
 });
 
 const ctx: AppCtx = {

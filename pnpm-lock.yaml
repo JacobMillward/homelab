@@ -19,6 +19,9 @@ importers:
 
   stacks/apps:
     dependencies:
+      '@pulumi/cloudflare':
+        specifier: ^6.13.0
+        version: 6.14.0(typescript@5.9.3)
       '@pulumi/kubernetes':
         specifier: ^4.25.0
         version: 4.28.0(typescript@5.9.3)
@@ -31,6 +34,9 @@ importers:
       '@pulumi/random':
         specifier: ^4.19.1
         version: 4.19.2(typescript@5.9.3)
+      homelab-lib:
+        specifier: workspace:*
+        version: link:../../lib
     devDependencies:
       '@types/node':
         specifier: ^18
