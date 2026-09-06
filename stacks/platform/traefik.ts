@@ -2,12 +2,17 @@ import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import { PlatformCtx } from "./context";
 
+export interface TraefikArgs {
+  crowdsecBouncerApiKey: pulumi.Input<string>;
+}
+
 export class Traefik extends pulumi.ComponentResource {
   readonly loadBalancerIp: string;
   readonly internalIp: pulumi.Output<string>;
   readonly forwardAuthMiddlewareRef: { name: string; namespace: string };
+  readonly crowdsecMiddlewareRef: { name: string; namespace: string };
 
-  constructor(ctx: PlatformCtx) {
+  constructor(ctx: PlatformCtx, args: TraefikArgs) {
     super("platform:Traefik", "traefik", {}, {
       providers: { kubernetes: ctx.k8sProvider },
     });
@@ -38,6 +43,14 @@ export class Traefik extends pulumi.ComponentResource {
           service: {
             spec: {
               loadBalancerIP: this.loadBalancerIp,
+            },
+          },
+          experimental: {
+            plugins: {
+              "crowdsec-bouncer": {
+                moduleName: "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin",
+                version: "v1.7.1",
+              },
             },
           },
         },
@@ -124,6 +137,30 @@ export class Traefik extends pulumi.ComponentResource {
     );
 
     this.forwardAuthMiddlewareRef = { name: "authelia", namespace: "authelia" };
+
+    new k8s.apiextensions.CustomResource(
+      "crowdsec-bouncer-middleware",
+      {
+        apiVersion: "traefik.io/v1alpha1",
+        kind: "Middleware",
+        metadata: { name: "crowdsec-bouncer", namespace: "crowdsec" },
+        spec: {
+          plugin: {
+            "crowdsec-bouncer": {
+              enabled: true,
+              crowdsecMode: "stream",
+              streamStartupBlock: false,
+              updateMaxFailure: -1,
+              crowdsecLapiKey: args.crowdsecBouncerApiKey,
+              crowdsecLapiHost: "crowdsec-service.crowdsec.svc.cluster.local:8080",
+              crowdsecLapiScheme: "http",
+            },
+          },
+        },
+      },
+      { parent: this },
+    );
+    this.crowdsecMiddlewareRef = { name: "crowdsec-bouncer", namespace: "crowdsec" };
 
     // Look up the Helm-created service to reuse its selector
     const helmSvc = k8s.core.v1.Service.get(
