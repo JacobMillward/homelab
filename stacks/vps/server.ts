@@ -74,6 +74,7 @@ export class VpsServer extends pulumi.ComponentResource {
       relayAuthSecret: relaySecret.result,
       domain: `netbird.${domain}`,
       relayPort,
+      cloudflareApiToken,
     });
 
     // ---------------------------------------------------------------------------
@@ -94,23 +95,9 @@ export class VpsServer extends pulumi.ComponentResource {
           {
             direction: "in",
             protocol: "tcp",
-            port: "80",
-            sourceIps: ["0.0.0.0/0", "::/0"],
-            description: "ACME HTTP-01",
-          },
-          {
-            direction: "in",
-            protocol: "tcp",
-            port: "443",
-            sourceIps: ["0.0.0.0/0", "::/0"],
-            description: "Caddy HTTPS (management + dashboard)",
-          },
-          {
-            direction: "in",
-            protocol: "tcp",
             port: String(relayPort),
             sourceIps: ["0.0.0.0/0", "::/0"],
-            description: "NetBird relay (TLS via Caddy)",
+            description: "NetBird relay (native TLS)",
           },
           {
             direction: "in",
@@ -121,12 +108,19 @@ export class VpsServer extends pulumi.ComponentResource {
           },
           {
             direction: "in",
+            protocol: "tcp",
+            port: "443",
+            sourceIps: ["0.0.0.0/0", "::/0"],
+            description: "App-publish tunnel forward to home Traefik (not relay's own 443)",
+          },
+          {
+            direction: "in",
             protocol: "udp",
             port: "51820",
-            sourceIps: ["0.0.0.0/0", "::/0"],
             // WireGuard peers roam across networks, so source IP restriction
             // is not practical. Authentication is handled by keypairs.
-            description: "WireGuard (peers authenticate by keypair)",
+            sourceIps: ["0.0.0.0/0", "::/0"],
+            description: "WireGuard app-publish tunnel (peer authenticates by keypair)",
           },
         ],
       },
