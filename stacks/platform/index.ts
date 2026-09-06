@@ -58,6 +58,7 @@ const netbird = setupNetbird({
   ctx,
   storageClassName: longhorn.storageClassName,
   traefikIp: traefik.loadBalancerIp,
+  traefikClusterIp: traefik.clusterIp,
   traefikInternalIp: traefik.internalIp,
   vps: vpsConfig,
   netbirdOidcClientId: authelia.netbirdOidcClientId,
@@ -76,6 +77,7 @@ export const autheliaServiceName = authelia.serviceName;
 export const autheliaNamespace = authelia.namespace.metadata.name;
 export const netbirdOidcClientId = authelia.netbirdOidcClientId;
 export const netbirdOidcClientSecret = authelia.netbirdOidcClientSecret;
-export const forwardAuthMiddlewareRef = traefik.forwardAuthMiddlewareRef;
+export const forwardAuthSpec = traefik.forwardAuthSpec;
+export const crowdsecPluginSpec = traefik.crowdsecPluginSpec;
 export const vpsIp = vpsConfig.ip;
 
