@@ -48,6 +48,9 @@ export class CrowdSec extends pulumi.ComponentResource {
       childOpts,
     );
 
+    const config = new pulumi.Config();
+    const enrollKey = config.requireSecret("crowdsecEnrollKey");
+
     const release = new k8s.helm.v3.Release(
       "crowdsec",
       {
@@ -80,6 +83,9 @@ export class CrowdSec extends pulumi.ComponentResource {
                 name: "BOUNCER_KEY_traefik",
                 valueFrom: { secretKeyRef: { name: bouncerSecret.metadata.name, key: "key" } },
               },
+              { name: "ENROLL_KEY", value: enrollKey },
+              { name: "ENROLL_INSTANCE_NAME", value: "homelab" },
+              { name: "ENROLL_TAGS", value: "k8s talos homelab" },
             ],
             persistentVolume: {
               data: {

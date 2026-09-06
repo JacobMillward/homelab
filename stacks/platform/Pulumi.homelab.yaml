@@ -8,4 +8,6 @@ config:
     secure: v1:9hz53MRoOdBY84Ju:JQRs6wVrt4BfjnihvslpjfcPx2vfvyzN4nm9qlUtDRQPIY/Wn/+F/tVkJ3n83upDnOYVxIQ/MYE=
   onepassword:account: my.1password.com
   homelab-platform:vpsStackRef: organization/homelab-vps/homelab
+  homelab-platform:crowdsecEnrollKey:
+    secure: v1:VOka8s6hNo3n+6hB:Tv3mX9fd1H4XUZxHt7u92SLnKli/KWgZhWsFK3DDZqBxRrKjkzN4iho=
 encryptionsalt: v1:U+FSf0F20a0=:v1:Ulpuhm9q96ymFN4D:jEp0DLgPxKc+v5nYxRKuDLQ7yIsO7Q==
