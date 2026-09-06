@@ -32,11 +32,7 @@ const authelia = new Authelia(ctx, {
   storageClassName: longhorn.storageClassName,
 });
 
-// Optional VPS integration. When vpsStackRef is set, the platform deploys a
-// WireGuard peer and switches to the VPS-hosted relay/STUN. Without it,
-// everything runs locally with the embedded relay (existing behavior).
-const vpsRef = config.get("vpsStackRef");
-const vps = vpsRef ? new pulumi.StackReference(vpsRef) : undefined;
+const vps = new pulumi.StackReference(config.require("vpsStackRef"));
 
 function requireVpsOutput(
   ref: pulumi.StackReference,
@@ -44,25 +40,19 @@ function requireVpsOutput(
 ): pulumi.Output<string> {
   return ref.getOutput(key).apply((v) => {
     if (!v)
-      throw new Error(
-        `vpsStackRef is set but "${key}" is missing. ` +
-          `Deploy VPS first (just up vps) or remove the ref ` +
-          `(just pulumi platform config rm vpsStackRef).`,
-      );
+      throw new Error(`vpsStackRef is set but "${key}" is missing. Deploy VPS first (just up vps).`);
     return v as string;
   });
 }
 
-const vpsConfig = vps
-  ? {
-      ip: requireVpsOutput(vps, "vpsIp"),
-      wgPublicKey: requireVpsOutput(vps, "vpsWgPublicKey"),
-      homeWgPrivateKey: requireVpsOutput(vps, "homeWgPrivateKey"),
-      relayAuthSecret: requireVpsOutput(vps, "relayAuthSecret"),
-      relayAddress: requireVpsOutput(vps, "relayAddress"),
-      stunAddress: requireVpsOutput(vps, "stunAddress"),
-    }
-  : undefined;
+const vpsConfig = {
+  ip: requireVpsOutput(vps, "vpsIp"),
+  wgPublicKey: requireVpsOutput(vps, "vpsWgPublicKey"),
+  homeWgPrivateKey: requireVpsOutput(vps, "homeWgPrivateKey"),
+  relayAuthSecret: requireVpsOutput(vps, "relayAuthSecret"),
+  relayAddress: requireVpsOutput(vps, "relayAddress"),
+  stunAddress: requireVpsOutput(vps, "stunAddress"),
+};
 
 const netbird = setupNetbird({
   ctx,
@@ -87,4 +77,5 @@ export const autheliaNamespace = authelia.namespace.metadata.name;
 export const netbirdOidcClientId = authelia.netbirdOidcClientId;
 export const netbirdOidcClientSecret = authelia.netbirdOidcClientSecret;
 export const forwardAuthMiddlewareRef = traefik.forwardAuthMiddlewareRef;
+export const vpsIp = vpsConfig.ip;
 
