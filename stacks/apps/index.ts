@@ -31,9 +31,17 @@ const traefikInternalIp = platformStack
 
 const cloudflareApiToken = config.requireSecret("cloudflareApiToken");
 const vpsIp = platformStack.requireOutput("vpsIp").apply((v) => v as string);
-const forwardAuthMiddlewareRef = platformStack
-  .requireOutput("forwardAuthMiddlewareRef")
-  .apply((v) => v as { name: string; namespace: string });
+const forwardAuthSpec = platformStack
+  .requireOutput("forwardAuthSpec")
+  .apply(
+    (v) =>
+      v as {
+        address: string;
+        trustForwardHeader: boolean;
+        maxResponseBodySize: number;
+        authResponseHeaders: string[];
+      },
+  );
 
 const dns = new DnsRegistrar({
   domain,
@@ -47,7 +55,7 @@ const dns = new DnsRegistrar({
   traefikInternalIp,
   cloudflareApiToken,
   vpsIp,
-  forwardAuthMiddlewareRef,
+  forwardAuthSpec,
 });
 
 const ctx: AppCtx = {
