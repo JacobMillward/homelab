@@ -12,6 +12,8 @@ import { Authelia } from "./authelia";
 import { CrowdSec } from "./crowdsec";
 
 const config = new pulumi.Config();
+const domain = config.require("domain");
+const cloudflareApiToken = config.requireSecret("cloudflareApiToken");
 const talosStack = new pulumi.StackReference(config.require("talosStackRef"));
 const kubeconfig = talosStack
   .requireOutput("kubeconfigRaw")
@@ -19,18 +21,6 @@ const kubeconfig = talosStack
 
 const k8sProvider = new k8s.Provider("k8s-provider", { kubeconfig });
 const ctx = makePlatformCtx(k8sProvider);
-
-const longhorn = new Longhorn(ctx);
-new MetalLB(ctx);
-new CertManager(ctx);
-const crowdsec = new CrowdSec(ctx, { storageClassName: longhorn.storageClassName });
-const traefik = new Traefik(ctx, { crowdsecBouncerApiKey: crowdsec.bouncerApiKey });
-new PostgreSQL(ctx);
-const synology = new Synology(ctx);
-const authelia = new Authelia(ctx, {
-  domain: config.require("domain"),
-  storageClassName: longhorn.storageClassName,
-});
 
 const vps = new pulumi.StackReference(config.require("vpsStackRef"));
 
@@ -47,12 +37,30 @@ function requireVpsOutput(
 
 const vpsConfig = {
   ip: requireVpsOutput(vps, "vpsIp"),
+  ipv6: requireVpsOutput(vps, "vpsIpv6"),
   wgPublicKey: requireVpsOutput(vps, "vpsWgPublicKey"),
   homeWgPrivateKey: requireVpsOutput(vps, "homeWgPrivateKey"),
   relayAuthSecret: requireVpsOutput(vps, "relayAuthSecret"),
   relayAddress: requireVpsOutput(vps, "relayAddress"),
   stunAddress: requireVpsOutput(vps, "stunAddress"),
 };
+
+const longhorn = new Longhorn(ctx);
+new MetalLB(ctx);
+new CertManager(ctx);
+const crowdsec = new CrowdSec(ctx, { storageClassName: longhorn.storageClassName });
+const traefik = new Traefik(ctx, {
+  crowdsecBouncerApiKey: crowdsec.bouncerApiKey,
+  cloudflareApiToken,
+  vpsIp: vpsConfig.ip,
+  vpsIpv6: vpsConfig.ipv6,
+});
+new PostgreSQL(ctx);
+const synology = new Synology(ctx);
+const authelia = new Authelia(ctx, {
+  domain,
+  storageClassName: longhorn.storageClassName,
+});
 
 const netbird = setupNetbird({
   ctx,

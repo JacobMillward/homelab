@@ -1,10 +1,14 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import * as cloudflare from "@pulumi/cloudflare";
 import { POD_CIDR } from "homelab-lib";
 import { PlatformCtx } from "./context";
 
 export interface TraefikArgs {
   crowdsecBouncerApiKey: pulumi.Input<string>;
+  cloudflareApiToken: pulumi.Input<string>;
+  vpsIp: pulumi.Input<string>;
+  vpsIpv6: pulumi.Input<string>;
 }
 
 export interface ForwardAuthSpec {
@@ -132,6 +136,27 @@ export class Traefik extends pulumi.ComponentResource {
       authResponseHeaders: ["Remote-User", "Remote-Groups", "Remote-Name", "Remote-Email"],
     };
 
+    this.crowdsecPluginSpec = {
+      enabled: true,
+      crowdsecMode: "stream",
+      streamStartupBlock: false,
+      updateMaxFailure: -1,
+      crowdsecLapiKey: args.crowdsecBouncerApiKey,
+      crowdsecLapiHost: "crowdsec-service.crowdsec.svc.cluster.local:8080",
+      crowdsecLapiScheme: "http",
+    };
+
+    const autheliaCrowdsecMiddleware = new k8s.apiextensions.CustomResource(
+      "authelia-crowdsec-middleware",
+      {
+        apiVersion: "traefik.io/v1alpha1",
+        kind: "Middleware",
+        metadata: { name: "crowdsec-bouncer", namespace: "authelia" },
+        spec: { plugin: { "crowdsec-bouncer": this.crowdsecPluginSpec } },
+      },
+      { parent: this },
+    );
+
     new k8s.apiextensions.CustomResource(
       "authelia-ingress",
       {
@@ -145,23 +170,51 @@ export class Traefik extends pulumi.ComponentResource {
               match: `Host(\`auth.${domain}\`)`,
               kind: "Rule",
               services: [{ name: "idp-authelia", namespace: "authelia", port: 80 }],
+              middlewares: [{ name: "crowdsec-bouncer" }],
             },
           ],
           tls: {},
         },
       },
+      { parent: this, dependsOn: [autheliaCrowdsecMiddleware] },
+    );
+
+    const cloudflareProvider = new cloudflare.Provider(
+      "cloudflare",
+      { apiToken: args.cloudflareApiToken },
       { parent: this },
     );
 
-    this.crowdsecPluginSpec = {
-      enabled: true,
-      crowdsecMode: "stream",
-      streamStartupBlock: false,
-      updateMaxFailure: -1,
-      crowdsecLapiKey: args.crowdsecBouncerApiKey,
-      crowdsecLapiHost: "crowdsec-service.crowdsec.svc.cluster.local:8080",
-      crowdsecLapiScheme: "http",
-    };
+    const cloudflareZone = cloudflare.getZoneOutput(
+      { filter: { name: domain } },
+      { provider: cloudflareProvider, parent: this },
+    );
+
+    new cloudflare.DnsRecord(
+      "auth-dns",
+      {
+        zoneId: cloudflareZone.id,
+        name: "auth",
+        type: "A",
+        content: args.vpsIp,
+        proxied: false,
+        ttl: 60,
+      },
+      { provider: cloudflareProvider, parent: this },
+    );
+
+    new cloudflare.DnsRecord(
+      "auth-dns-v6",
+      {
+        zoneId: cloudflareZone.id,
+        name: "auth",
+        type: "AAAA",
+        content: args.vpsIpv6,
+        proxied: false,
+        ttl: 60,
+      },
+      { provider: cloudflareProvider, parent: this },
+    );
 
     // Look up the Helm-created service to reuse its selector
     const helmSvc = k8s.core.v1.Service.get(
