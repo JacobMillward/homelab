@@ -35,7 +35,7 @@ export function setupNetbird(args: NetbirdArgs) {
   // 1. Deploy server, dashboard, and ingress
   const server = new NetbirdServer(ctx, {
     storageClassName,
-    traefikInternalIp,
+    traefikIp,
     vps: vps
       ? {
           relayAuthSecret: vps.relayAuthSecret,
