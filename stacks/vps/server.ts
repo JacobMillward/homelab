@@ -15,6 +15,7 @@ const wgKeygenScript = `priv=$(wg genkey); pub=$(echo "$priv" | wg pubkey); echo
 
 export class VpsServer extends pulumi.ComponentResource {
   readonly ipv4Address: pulumi.Output<string>;
+  readonly ipv6Address: pulumi.Output<string>;
   readonly vpsWgPublicKey: pulumi.Output<string>;
   readonly homeWgPrivateKey: pulumi.Output<string>;
   readonly homeWgPublicKey: pulumi.Output<string>;
@@ -189,11 +190,28 @@ export class VpsServer extends pulumi.ComponentResource {
       },
     );
 
+    new cloudflare.DnsRecord(
+      "netbird-dns-v6",
+      {
+        zoneId: cloudflareZone.id,
+        name: "netbird",
+        type: "AAAA",
+        content: server.ipv6Address,
+        proxied: false,
+        ttl: 60,
+      },
+      {
+        provider: cloudflareProvider,
+        parent: this,
+      },
+    );
+
     // ---------------------------------------------------------------------------
     // Outputs
     // ---------------------------------------------------------------------------
 
     this.ipv4Address = server.ipv4Address;
+    this.ipv6Address = server.ipv6Address;
     this.vpsWgPublicKey = vpsKeys.stdout.apply((s) => s.split("|")[1]);
     this.homeWgPrivateKey = pulumi.secret(
       homeKeys.stdout.apply((s) => s.split("|")[0]),
