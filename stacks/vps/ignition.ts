@@ -1,4 +1,5 @@
 import * as pulumi from "@pulumi/pulumi";
+import { VPS_TUNNEL_ADDRESS, HOME_TUNNEL_IP } from "homelab-lib";
 
 export interface IgnitionArgs {
   vpsPrivateKey: pulumi.Output<string>;
@@ -18,8 +19,14 @@ function dataUrl(content: string): string {
 // Ignition mode fields are decimal representations of octal permissions
 // (e.g. 0o755 = 493, 0o600 = 384). Ignition interprets them correctly.
 export function buildIgnitionConfig(args: IgnitionArgs): pulumi.Output<string> {
-  const { vpsPrivateKey, homePubKey, relayAuthSecret, domain, relayPort, cloudflareApiToken } =
-    args;
+  const {
+    vpsPrivateKey,
+    homePubKey,
+    relayAuthSecret,
+    domain,
+    relayPort,
+    cloudflareApiToken,
+  } = args;
 
   return pulumi
     .all([vpsPrivateKey, homePubKey, relayAuthSecret, cloudflareApiToken])
@@ -38,15 +45,35 @@ export function buildIgnitionConfig(args: IgnitionArgs): pulumi.Output<string> {
               mode: 0o600,
               contents: {
                 source: dataUrl(`[Interface]
-Address = 10.99.0.1/24
+Address = ${VPS_TUNNEL_ADDRESS}
 ListenPort = 51820
 PrivateKey = ${vpsPriv}
-PostUp = iptables -t nat -A PREROUTING -p tcp --dport 443 -j DNAT --to-destination 10.99.0.2:443; iptables -A FORWARD -p tcp -d 10.99.0.2 --dport 443 -j ACCEPT
-PostDown = iptables -t nat -D PREROUTING -p tcp --dport 443 -j DNAT --to-destination 10.99.0.2:443; iptables -D FORWARD -p tcp -d 10.99.0.2 --dport 443 -j ACCEPT
 
 [Peer]
 PublicKey = ${homePub}
-AllowedIPs = 10.99.0.2/32
+AllowedIPs = ${HOME_TUNNEL_IP}/32
+`),
+              },
+            },
+            {
+              path: "/etc/haproxy.cfg",
+              mode: 0o644,
+              contents: {
+                source: dataUrl(`global
+    maxconn 4096
+
+defaults
+    mode tcp
+    timeout connect 5s
+    timeout client 1h
+    timeout server 1h
+
+frontend app_publish
+    bind *:443
+    default_backend home_traefik
+
+backend home_traefik
+    server home ${HOME_TUNNEL_IP}:443 send-proxy
 `),
               },
             },
@@ -78,6 +105,29 @@ NB_TLS_KEY_FILE=/certs/privkey.pem
         systemd: {
           units: [
             { name: "wg-quick@wg0.service", enabled: true },
+            {
+              name: "haproxy.service",
+              enabled: true,
+              contents: `[Unit]
+Description=HAProxy (app-publish tunnel, PROXY protocol to home Traefik)
+After=docker.service wg-quick@wg0.service
+Requires=docker.service
+
+[Service]
+Restart=always
+RestartSec=5
+ExecStartPre=-/usr/bin/docker rm -f haproxy
+ExecStartPre=/usr/bin/sysctl -w net.ipv4.ip_unprivileged_port_start=0
+ExecStart=/usr/bin/docker run --rm --name haproxy \\
+  --network host \\
+  -v /etc/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro \\
+  haproxy:3.4.4-alpine
+ExecStop=/usr/bin/docker stop haproxy
+
+[Install]
+WantedBy=multi-user.target
+`,
+            },
             {
               name: "relay.service",
               enabled: true,
