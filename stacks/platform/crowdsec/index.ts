@@ -2,6 +2,7 @@ import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
 import { PlatformCtx } from "../context";
+import { BlocklistCronJob } from "./blocklist-cronjob";
 
 export interface CrowdSecArgs {
   storageClassName: pulumi.Input<string>;
@@ -17,11 +18,13 @@ export class CrowdSec extends pulumi.ComponentResource {
     });
     const childOpts = { parent: this };
 
+    const namespaceName = "crowdsec";
+
     const ns = new k8s.core.v1.Namespace(
       "crowdsec",
       {
         metadata: {
-          name: "crowdsec",
+          name: namespaceName,
           labels: {
             "pod-security.kubernetes.io/enforce": "privileged",
             "pod-security.kubernetes.io/audit": "privileged",
@@ -101,5 +104,11 @@ export class CrowdSec extends pulumi.ComponentResource {
     );
 
     this.lapiServiceName = pulumi.interpolate`${release.status.name}-service`;
+
+    new BlocklistCronJob(
+      "crowdsec-blocklist-cronjob",
+      { namespace: namespaceName },
+      { ...childOpts, dependsOn: [release] },
+    );
   }
 }
