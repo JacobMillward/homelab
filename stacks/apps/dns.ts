@@ -53,7 +53,7 @@ export class DnsRegistrar {
     return new netbird.DnsRecord(
       `${name}-dns`,
       {
-        name: `${name}.${this.domain}`,
+        name: `${name}.internal.${this.domain}`,
         zoneId: this.zoneId,
         type: "A",
         content: ip,

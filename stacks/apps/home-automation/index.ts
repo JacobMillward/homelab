@@ -46,7 +46,7 @@ export class HomeAutomation extends pulumi.ComponentResource {
       parent: this,
       storageClassName: ctx.storageClassName,
       dns: ctx.dns,
-      host: `z2m.${domain}`,
+      host: `z2m.internal.${domain}`,
     });
   }
 }
