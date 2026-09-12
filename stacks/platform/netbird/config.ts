@@ -86,7 +86,7 @@ export function configureNetbird(
 
   // DNS zone for internal-only app subdomains (*.internal.${domain})
   const zone = new netbird.DnsZone(
-    "millward-yuan-internal",
+    "internal-zone",
     {
       name: `internal.${domain}`,
       domain: `internal.${domain}`,
