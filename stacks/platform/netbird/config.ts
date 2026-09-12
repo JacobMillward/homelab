@@ -84,12 +84,12 @@ export function configureNetbird(
     opts,
   );
 
-  // DNS zone for app subdomains (*.${domain})
+  // DNS zone for internal-only app subdomains (*.internal.${domain})
   const zone = new netbird.DnsZone(
-    "millward-yuan",
+    "millward-yuan-internal",
     {
-      name: domain,
-      domain,
+      name: `internal.${domain}`,
+      domain: `internal.${domain}`,
       enabled: true,
       enableSearchDomain: false,
       distributionGroups: [allGroup.apply((g) => g.id)],
@@ -97,13 +97,13 @@ export function configureNetbird(
     opts,
   );
 
-  // Tell peers to resolve the domain via CoreDNS (reachable through
-  // the k8s-router peer that advertises 10.96.0.0/12)
+  // Tell peers to resolve internal.${domain} via CoreDNS (reachable
+  // through the k8s-router peer that advertises 10.96.0.0/12)
   new netbird.NameserverGroup(
     "k8s-dns",
     {
       name: "k8s-dns",
-      domains: [domain],
+      domains: [`internal.${domain}`],
       primary: false,
       nameservers: [{ ip: "10.96.0.10", nsType: "udp", port: 53 }],
       groups: [allGroup.apply((g) => g.id)],
