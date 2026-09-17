@@ -92,6 +92,8 @@ export class NetbirdServer extends pulumi.ComponentResource {
     dashboardRedirectURIs:
       - "https://${domain}/nb-auth"
       - "https://${domain}/nb-silent-auth"
+      - "https://dashboard.internal.${rawDomain}/nb-auth"
+      - "https://dashboard.internal.${rawDomain}/nb-silent-auth"
     cliRedirectURIs:
       - "http://localhost:53000/"
   store:
