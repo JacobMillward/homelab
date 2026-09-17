@@ -85,10 +85,10 @@ export class Authelia extends pulumi.ComponentResource {
 
     const usersDb = pulumi.interpolate`
 users:
-  admin:
-    displayname: "Admin"
+  jacob:
+    displayname: "Jacob"
     password: "${passwordHash}"
-    email: "admin@${args.domain}"
+    email: "jacob@${args.domain}"
     groups:
       - "admins"
 `;
