@@ -104,7 +104,10 @@ export class Traefik extends pulumi.ComponentResource {
         spec: {
           secretName: "wildcard-tls",
           issuerRef: { name: "letsencrypt-prod", kind: "ClusterIssuer" },
-          dnsNames: [`*.${domain}`],
+          // *.${domain} doesn't cover two-level names like
+          // z2m.internal.${domain} or dashboard.internal.${domain} —
+          // wildcards only match one label.
+          dnsNames: [`*.${domain}`, `*.internal.${domain}`],
         },
       },
       { parent: this },
