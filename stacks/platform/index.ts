@@ -68,6 +68,7 @@ const netbird = setupNetbird({
   traefikIp: traefik.loadBalancerIp,
   traefikClusterIp: traefik.clusterIp,
   traefikInternalIp: traefik.internalIp,
+  forwardAuthSpec: traefik.forwardAuthSpec,
   vps: vpsConfig,
   netbirdOidcClientId: authelia.netbirdOidcClientId,
   netbirdOidcClientSecret: authelia.netbirdOidcClientSecret,

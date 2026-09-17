@@ -6,6 +6,7 @@ import { NetbirdServer } from "./server";
 import { NetbirdRouter } from "./router";
 import { VpsTunnel } from "./wg-peer";
 import { configureNetbird } from "./config";
+import { ForwardAuthSpec } from "../traefik";
 
 interface NetbirdArgs {
   ctx: PlatformCtx;
@@ -13,6 +14,7 @@ interface NetbirdArgs {
   traefikIp: string;
   traefikClusterIp: pulumi.Input<string>;
   traefikInternalIp: pulumi.Input<string>;
+  forwardAuthSpec: ForwardAuthSpec;
   netbirdOidcClientId: pulumi.Input<string>;
   netbirdOidcClientSecret: pulumi.Input<string>;
   vps?: {
@@ -29,7 +31,7 @@ interface NetbirdArgs {
 // On a fresh deploy the server must be running before the NetBird
 // API provider can create setup keys and network routes.
 export function setupNetbird(args: NetbirdArgs) {
-  const { ctx, storageClassName, traefikIp, traefikClusterIp, traefikInternalIp, vps, netbirdOidcClientId, netbirdOidcClientSecret } = args;
+  const { ctx, storageClassName, traefikIp, traefikClusterIp, traefikInternalIp, forwardAuthSpec, vps, netbirdOidcClientId, netbirdOidcClientSecret } = args;
   const config = new pulumi.Config();
   const domain = config.require("domain");
 
@@ -37,6 +39,7 @@ export function setupNetbird(args: NetbirdArgs) {
   const server = new NetbirdServer(ctx, {
     storageClassName,
     traefikIp,
+    forwardAuthSpec,
     vps: vps
       ? {
           relayAuthSecret: vps.relayAuthSecret,
@@ -62,6 +65,20 @@ export function setupNetbird(args: NetbirdArgs) {
     nbProvider,
     [server.serverDeployment, server.localApiRoute],
     { clientId: netbirdOidcClientId, clientSecret: netbirdOidcClientSecret },
+  );
+
+  // Dashboard is mesh-only (traefik-internal) — give mesh peers a NetBird
+  // DNS record for it, same as any other internal app.
+  new netbird.DnsRecord(
+    "netbird-dashboard-dns",
+    {
+      name: `dashboard.internal.${domain}`,
+      zoneId: nbConfig.dnsZoneId,
+      type: "A",
+      content: traefikInternalIp,
+      ttl: 300,
+    },
+    { provider: nbProvider },
   );
 
   // 3. Deploy the routing peer using the Pulumi-managed setup key

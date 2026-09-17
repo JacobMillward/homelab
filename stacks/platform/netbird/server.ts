@@ -2,6 +2,7 @@ import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
 import { PlatformCtx } from "../context";
+import { ForwardAuthSpec } from "../traefik";
 
 export interface VpsServerConfig {
   relayAuthSecret: pulumi.Input<string>;
@@ -12,6 +13,7 @@ export interface VpsServerConfig {
 export interface NetbirdServerArgs {
   storageClassName: string;
   traefikIp: string;
+  forwardAuthSpec: ForwardAuthSpec;
   vps?: VpsServerConfig;
 }
 
@@ -26,7 +28,7 @@ export class NetbirdServer extends pulumi.ComponentResource {
       providers: { kubernetes: ctx.k8sProvider },
     });
 
-    const { storageClassName, vps, traefikIp } = args;
+    const { storageClassName, vps, traefikIp, forwardAuthSpec } = args;
     const config = new pulumi.Config();
     const rawDomain = config.require("domain");
     const domain = `netbird.${rawDomain}`;
@@ -425,7 +427,21 @@ export class NetbirdServer extends pulumi.ComponentResource {
       { parent: this },
     );
 
-    // Traefik IngressRoute - dashboard (catch-all, lowest priority)
+    // Dashboard moves to traefik-internal (mesh-only, no LAN path — same
+    // pattern zigbee2mqtt uses) and gets Authelia's forwardAuth on top,
+    // same as every other app. A same-namespace Middleware, not a
+    // cross-namespace ref — see commit 576ed8f.
+    const dashboardAutheliaMiddleware = new k8s.apiextensions.CustomResource(
+      "netbird-dashboard-authelia-middleware",
+      {
+        apiVersion: "traefik.io/v1alpha1",
+        kind: "Middleware",
+        metadata: { name: "authelia", namespace: this.namespace.metadata.name },
+        spec: { forwardAuth: forwardAuthSpec },
+      },
+      { parent: this },
+    );
+
     new k8s.apiextensions.CustomResource(
       "netbird-dashboard-route",
       {
@@ -436,16 +452,16 @@ export class NetbirdServer extends pulumi.ComponentResource {
           entryPoints: ["websecure"],
           routes: [
             {
-              match: `Host(\`${domain}\`)`,
+              match: `Host(\`dashboard.internal.${rawDomain}\`)`,
               kind: "Rule",
-              priority: 1,
               services: [{ name: dashboardSvc.metadata.name, port: 80 }],
+              middlewares: [{ name: "authelia" }],
             },
           ],
-          tls: { secretName: "netbird-tls" },
+          tls: {},
         },
       },
-      { parent: this },
+      { parent: this, dependsOn: [dashboardAutheliaMiddleware] },
     );
   }
 }
