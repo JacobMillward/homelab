@@ -6,4 +6,6 @@ allowBuilds:
   '@pulumi/command': true
   '@pulumi/kubernetes': true
   '@pulumi/netbird': true
+  '@pulumi/netbird@file:stacks/apps/sdks/netbird': true
+  '@pulumi/netbird@file:stacks/platform/sdks/netbird': true
   protobufjs: true
