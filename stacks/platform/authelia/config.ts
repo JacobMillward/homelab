@@ -90,8 +90,7 @@ ${oidcIssuerPrivateKey
         public: false
         authorization_policy: "one_factor"
         redirect_uris:
-          - "https://netbird.${args.domain}/dashboard"
-          - "https://netbird.${args.domain}/silent-callback"
+          - "https://netbird.${args.domain}/oauth2/callback"
         scopes:
           - "openid"
           - "profile"
