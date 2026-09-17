@@ -88,6 +88,7 @@ export class NetbirdServer extends pulumi.ComponentResource {
   dataDir: "/var/lib/netbird"
   auth:
     issuer: "https://${domain}/oauth2"
+    localAuthDisabled: true
     signKeyRefreshEnabled: true
     dashboardRedirectURIs:
       - "https://${domain}/nb-auth"
