@@ -42,55 +42,31 @@
   ],
   "customManagers": [
     {
-      "customType": "regex",
-      "managerFilePatterns": ["/^stacks/platform/cert-manager\\.ts$/"],
+      "customType": "jsonata",
+      "fileFormat": "json",
+      "managerFilePatterns": ["/^lib/version-pins\\.json$/"],
       "matchStrings": [
-        "chart:\\s*\"(?<depName>[^\"]+)\",\\s*\\n\\s*version:\\s*\"(?<currentValue>[^\"]+)\"[\\s\\S]*?repo:\\s*\"(?<registryUrl>[^\"]+)\""
+        "$each(helm, function($v, $k) { {\"depName\": $v.chart, \"currentValue\": $v.version, \"registryUrl\": $v.registryUrl} })"
       ],
       "datasourceTemplate": "helm"
     },
     {
-      "customType": "regex",
-      "managerFilePatterns": ["/^stacks/platform/netbird/router\\.ts$/"],
-      "matchStrings": ["image:\\s*\"(?<depName>[^\":]+):(?<currentValue>[^\"]+)\""],
+      "customType": "jsonata",
+      "fileFormat": "json",
+      "managerFilePatterns": ["/^lib/version-pins\\.json$/"],
+      "matchStrings": [
+        "$each(docker, function($v, $k) { {\"depName\": $v.image, \"currentValue\": $v.tag} })"
+      ],
       "datasourceTemplate": "docker"
     },
     {
-      "customType": "regex",
-      "managerFilePatterns": ["/^stacks/platform/traefik\\.ts$/"],
+      "customType": "jsonata",
+      "fileFormat": "json",
+      "managerFilePatterns": ["/^lib/version-pins\\.json$/"],
       "matchStrings": [
-        "moduleName:\\s*\"(?<depName>[^\"]+)\",\\s*\\n\\s*version:\\s*\"(?<currentValue>[^\"]+)\""
+        "$each(go, function($v, $k) { {\"depName\": $v.moduleName, \"currentValue\": $v.version} })"
       ],
       "datasourceTemplate": "go"
-    },
-    {
-      "customType": "regex",
-      "managerFilePatterns": [
-        "/^stacks/platform/longhorn\\.ts$/",
-        "/^stacks/platform/metallb\\.ts$/",
-        "/^stacks/platform/postgresql\\.ts$/",
-        "/^stacks/platform/traefik\\.ts$/",
-        "/^stacks/platform/crowdsec/index\\.ts$/",
-        "/^stacks/apps/home-automation/zigbee2mqtt\\.ts$/"
-      ],
-      "matchStrings": [
-        "chart:\\s*\"(?<depName>[^\"]+)\",\\s*\\n\\s*version:\\s*\"(?<currentValue>[^\"]+)\"[\\s\\S]*?repo:\\s*\"(?<registryUrl>[^\"]+)\""
-      ],
-      "datasourceTemplate": "helm"
-    },
-    {
-      "customType": "regex",
-      "managerFilePatterns": [
-        "/^stacks/platform/netbird/wg-peer\\.ts$/",
-        "/^stacks/platform/netbird/server\\.ts$/",
-        "/^stacks/platform/crowdsec/blocklist-cronjob\\.ts$/",
-        "/^stacks/apps/home-automation/mosquitto\\.ts$/",
-        "/^stacks/apps/joplin/index\\.ts$/",
-        "/^stacks/platform/authelia/index\\.ts$/",
-        "/^stacks/platform/renovate\\.ts$/"
-      ],
-      "matchStrings": ["image:\\s*\"(?<depName>[^\":]+):(?<currentValue>[^\"]+)\""],
-      "datasourceTemplate": "docker"
     }
   ]
 }

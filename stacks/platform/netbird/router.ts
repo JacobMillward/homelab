@@ -1,5 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import { dockerImage } from "homelab-lib";
 import { PlatformCtx } from "../context";
 
 export interface NetbirdRouterArgs {
@@ -60,7 +61,7 @@ export class NetbirdRouter extends pulumi.ComponentResource {
               containers: [
                 {
                   name: "netbird",
-                  image: "netbirdio/netbird:0.67.4",
+                  image: dockerImage("netbirdRouter"),
                   env: [
                     {
                       name: "NB_SETUP_KEY",

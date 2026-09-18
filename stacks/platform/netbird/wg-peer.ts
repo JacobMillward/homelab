@@ -1,6 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
-import { HOME_TUNNEL_ADDRESS, VPS_TUNNEL_IP } from "homelab-lib";
+import { HOME_TUNNEL_ADDRESS, VPS_TUNNEL_IP, dockerImage } from "homelab-lib";
 import { PlatformCtx } from "../context";
 
 export interface VpsTunnelArgs {
@@ -55,7 +55,7 @@ PersistentKeepalive = 25
               containers: [
                 {
                   name: "wireguard",
-                  image: "alpine:3.21",
+                  image: dockerImage("netbirdWgPeer"),
                   command: [
                     "sh",
                     "-c",

@@ -11,7 +11,8 @@
     "@pulumi/kubernetes": "^4.25.0",
     "@pulumi/netbird": "file:sdks/netbird",
     "@pulumi/pulumi": "^3.226.0",
-    "@pulumi/random": "^4.19.1"
+    "@pulumi/random": "^4.19.1",
+    "homelab-lib": "workspace:*"
   },
   "trustedDependencies": [
     "@pulumi/kubernetes",

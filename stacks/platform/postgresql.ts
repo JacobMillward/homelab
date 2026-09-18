@@ -1,6 +1,9 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import { helmChart } from "homelab-lib";
 import { PlatformCtx } from "./context";
+
+const chart = helmChart("postgresql");
 
 export class PostgreSQL extends pulumi.ComponentResource {
   constructor(ctx: PlatformCtx) {
@@ -19,11 +22,11 @@ export class PostgreSQL extends pulumi.ComponentResource {
     new k8s.helm.v3.Release(
       "cnpg",
       {
-        chart: "cloudnative-pg",
-        version: "0.27.1",
+        chart: chart.chart,
+        version: chart.version,
         namespace: ns.metadata.name,
         repositoryOpts: {
-          repo: "https://cloudnative-pg.github.io/charts",
+          repo: chart.registryUrl,
         },
       },
       { parent: this },

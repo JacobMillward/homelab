@@ -1,88 +1,85 @@
 // renovate-managers.test.mjs
+//
+// Spot-checks that the JSONata queries in renovate.json's customManagers
+// correctly extract dependencies from lib/version-pins.json — catching a wrong
+// field name or a query that iterates the wrong object, which
+// renovate-config-validator's schema check doesn't catch. Expected values
+// are hardcoded (not re-derived from versions.json) so a query bug can't
+// hide behind a matching self-referential assumption.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { execSync } from "node:child_process";
+import jsonata from "jsonata";
 
-// Mirrors the three distinct patterns this repo uses for embedding a
-// dependency version in TypeScript: Helm chart+version+repo, a raw
-// container image "name:tag" string, and a Go-module plugin
-// moduleName+version pair. Each customManager entry in renovate.json has a
-// matching case here, keyed by the same regex used in that entry.
+const renovateConfig = JSON.parse(readFileSync("renovate.json", "utf8"));
+const versions = JSON.parse(readFileSync("lib/version-pins.json", "utf8"));
 
-function extract(regex, content) {
-  const match = regex.exec(content);
-  assert.ok(match, `regex did not match:\n${regex}`);
-  return match.groups;
+async function extract(datasourceTemplate) {
+  const manager = renovateConfig.customManagers.find(
+    (m) => m.datasourceTemplate === datasourceTemplate,
+  );
+  assert.ok(manager, `no customManager found for datasource "${datasourceTemplate}"`);
+  assert.equal(manager.customType, "jsonata");
+  const result = await jsonata(manager.matchStrings[0]).evaluate(versions);
+  return Array.isArray(result) ? result : [result];
 }
 
-test("Helm chart pattern matches stacks/platform/cert-manager.ts", () => {
-  const content = readFileSync("stacks/platform/cert-manager.ts", "utf8");
-  const regex =
-    /chart:\s*"(?<depName>[^"]+)",\s*\n\s*version:\s*"(?<currentValue>[^"]+)"[\s\S]*?repo:\s*"(?<registryUrl>[^"]+)"/;
-  const groups = extract(regex, content);
-  assert.equal(groups.depName, "cert-manager");
-  assert.equal(groups.currentValue, "v1.20.0");
-  assert.equal(groups.registryUrl, "https://charts.jetstack.io");
-});
+// jsonata's evaluate() returns null-prototype objects, which fail strict
+// deepEqual against plain object literals purely on prototype identity
+// even when every field matches — normalize before comparing.
+const plain = (obj) => JSON.parse(JSON.stringify(obj));
 
-test("Container image pattern matches stacks/platform/netbird/router.ts", () => {
-  const content = readFileSync("stacks/platform/netbird/router.ts", "utf8");
-  const regex = /image:\s*"(?<depName>[^":]+):(?<currentValue>[^"]+)"/;
-  const groups = extract(regex, content);
-  assert.equal(groups.depName, "netbirdio/netbird");
-  assert.equal(groups.currentValue, "0.67.4");
-});
-
-test("Go-module plugin pattern matches stacks/platform/traefik.ts", () => {
-  const content = readFileSync("stacks/platform/traefik.ts", "utf8");
-  const regex =
-    /moduleName:\s*"(?<depName>[^"]+)",\s*\n\s*version:\s*"(?<currentValue>[^"]+)"/;
-  const groups = extract(regex, content);
-  assert.equal(groups.depName, "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin");
-  assert.equal(groups.currentValue, "v1.7.1");
-});
-
-const helmChartRegex =
-  /chart:\s*"(?<depName>[^"]+)",\s*\n\s*version:\s*"(?<currentValue>[^"]+)"[\s\S]*?repo:\s*"(?<registryUrl>[^"]+)"/;
-
-for (const [file, depName, currentValue, registryUrl] of [
-  ["stacks/platform/longhorn.ts", "longhorn", "1.11.1", "https://charts.longhorn.io"],
-  ["stacks/platform/metallb.ts", "metallb", "0.15.3", "https://metallb.github.io/metallb"],
-  ["stacks/platform/postgresql.ts", "cloudnative-pg", "0.27.1", "https://cloudnative-pg.github.io/charts"],
-  ["stacks/platform/traefik.ts", "traefik", "39.0.6", "https://traefik.github.io/charts"],
-  ["stacks/platform/crowdsec/index.ts", "crowdsec", "0.24.2", "https://crowdsecurity.github.io/helm-charts"],
-  ["stacks/apps/home-automation/zigbee2mqtt.ts", "zigbee2mqtt", "2.9.1", "https://charts.zigbee2mqtt.io"],
-]) {
-  test(`Helm chart pattern matches ${file}`, () => {
-    const content = readFileSync(file, "utf8");
-    const groups = extract(helmChartRegex, content);
-    assert.equal(groups.depName, depName);
-    assert.equal(groups.currentValue, currentValue);
-    assert.equal(groups.registryUrl, registryUrl);
+test("helm customManager extracts a known chart correctly", async () => {
+  const matches = await extract("helm");
+  const certManager = matches.find((m) => m.depName === "cert-manager");
+  assert.deepEqual(plain(certManager), {
+    depName: "cert-manager",
+    currentValue: "v1.20.0",
+    registryUrl: "https://charts.jetstack.io",
   });
-}
+});
 
-const imageRegex = /image:\s*"(?<depName>[^":]+):(?<currentValue>[^"]+)"/;
+test("docker customManager extracts a known image correctly", async () => {
+  const matches = await extract("docker");
+  const authelia = matches.find((m) => m.depName === "authelia/authelia");
+  assert.deepEqual(plain(authelia), { depName: "authelia/authelia", currentValue: "4.38" });
+});
 
-for (const [file, depName, currentValue] of [
-  ["stacks/platform/netbird/wg-peer.ts", "alpine", "3.21"],
-  ["stacks/platform/crowdsec/blocklist-cronjob.ts", "curlimages/curl", "8.22.0"],
-  ["stacks/apps/home-automation/mosquitto.ts", "eclipse-mosquitto", "2.0.22"],
-  ["stacks/apps/joplin/index.ts", "joplin/server", "3.5.2"],
-  ["stacks/platform/authelia/index.ts", "authelia/authelia", "4.38"],
-  ["stacks/platform/renovate.ts", "alpine", "3.21"],
-]) {
-  test(`Container image pattern matches ${file}`, () => {
-    const content = readFileSync(file, "utf8");
-    const groups = extract(imageRegex, content);
-    assert.equal(groups.depName, depName);
-    assert.equal(groups.currentValue, currentValue);
-  });
-}
+test("go customManager extracts the known module correctly", async () => {
+  const matches = await extract("go");
+  assert.deepEqual(plain(matches), [
+    {
+      depName: "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin",
+      currentValue: "v1.7.1",
+    },
+  ]);
+});
 
-test("Container image pattern matches both images in stacks/platform/netbird/server.ts", () => {
-  const content = readFileSync("stacks/platform/netbird/server.ts", "utf8");
-  const global = new RegExp(imageRegex.source, "g");
-  const matches = [...content.matchAll(global)].map((m) => `${m.groups.depName}:${m.groups.currentValue}`);
-  assert.deepEqual(matches, ["netbirdio/netbird-server:0.67.4", "netbirdio/dashboard:v2.36.0"]);
+test("every helm/docker/go entry in lib/version-pins.json is actually referenced by some .ts file", () => {
+  // Independent of the JSONata queries above: catches a versions.json entry
+  // nobody's code actually consumes (dead config) or a helmChart()/
+  // dockerImage()/goModule() call site with a typo'd key that doesn't
+  // match anything (those functions already throw at Pulumi runtime for a
+  // missing key — this is the complementary "extra, unused key" check
+  // runtime can't catch).
+  const grepPattern = '(helmChart|dockerImage|goModule)\\("[a-zA-Z0-9]+"\\)';
+  const output = execSync(
+    `grep -rhoE '${grepPattern}' stacks/platform stacks/apps --include="*.ts" | grep -v node_modules | grep -v /sdks/`,
+    { encoding: "utf8" },
+  );
+  const referencedKeys = new Set(
+    [...output.matchAll(/"([a-zA-Z0-9]+)"/g)].map((m) => m[1]),
+  );
+  const definedKeys = [
+    ...Object.keys(versions.helm),
+    ...Object.keys(versions.docker),
+    ...Object.keys(versions.go),
+  ];
+  for (const key of definedKeys) {
+    assert.ok(
+      referencedKeys.has(key),
+      `lib/version-pins.json defines "${key}" but no .ts file references it`,
+    );
+  }
 });
