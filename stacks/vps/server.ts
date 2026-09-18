@@ -212,11 +212,15 @@ export class VpsServer extends pulumi.ComponentResource {
 
     this.ipv4Address = server.ipv4Address;
     this.ipv6Address = server.ipv6Address;
-    this.vpsWgPublicKey = vpsKeys.stdout.apply((s) => s.split("|")[1]);
+    this.vpsWgPublicKey = pulumi.unsecret(
+      vpsKeys.stdout.apply((s) => s.split("|")[1]),
+    );
     this.homeWgPrivateKey = pulumi.secret(
       homeKeys.stdout.apply((s) => s.split("|")[0]),
     );
-    this.homeWgPublicKey = homeKeys.stdout.apply((s) => s.split("|")[1]);
+    this.homeWgPublicKey = pulumi.unsecret(
+      homeKeys.stdout.apply((s) => s.split("|")[1]),
+    );
     this.relayAuthSecret = pulumi.secret(relaySecret.result);
     this.relayAddress = pulumi.interpolate`rels://netbird.${domain}:${relayPort}`;
     this.stunAddress = pulumi.interpolate`stun:netbird.${domain}:3478`;

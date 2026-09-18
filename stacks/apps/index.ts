@@ -7,14 +7,10 @@ import { AppCtx } from "./app";
 
 const config = new pulumi.Config();
 const domain = config.require("domain");
-const talosStack = new pulumi.StackReference(config.require("talosStackRef"));
 const platformStack = new pulumi.StackReference(
   config.require("platformStackRef"),
 );
 
-const kubeconfig = talosStack
-  .requireOutput("kubeconfigRaw")
-  .apply((v) => v as string);
 const storageClassName = platformStack
   .requireOutput("storageClassName")
   .apply((v) => v as string);
@@ -23,7 +19,8 @@ const synologyPvNames = platformStack
   .requireOutput("synologyPvNames")
   .apply((v) => v as Record<string, string>);
 
-const k8sProvider = new k8s.Provider("k8s-provider", { kubeconfig });
+// No explicit kubeconfig — see stacks/platform/index.ts for why.
+const k8sProvider = new k8s.Provider("k8s-provider", {});
 
 const traefikInternalIp = platformStack
   .requireOutput("traefikInternalIp")

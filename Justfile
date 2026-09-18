@@ -12,7 +12,19 @@ default:
 # Run a pulumi command for a given stack
 pulumi STACK *args:
     #!/usr/bin/env bash
-    export PULUMI_CONFIG_PASSPHRASE=$(op read "op://Private/Homelab/Pulumi Passphrase")
+    set -euo pipefail
+    case "{{ STACK }}" in
+      platform|apps)
+        export PULUMI_CONFIG_PASSPHRASE=$(op read "op://Private/Homelab/Pulumi Passphrase - platform and apps")
+        ;;
+      talos|vps)
+        export PULUMI_CONFIG_PASSPHRASE=$(op read "op://Private/Homelab/Pulumi Passphrase")
+        ;;
+      *)
+        echo "Unknown stack: {{ STACK }}" >&2
+        exit 1
+        ;;
+    esac
     export AWS_ACCESS_KEY_ID=$(op read "op://Private/Homelab/API Tokens/Garage Access Key ID")
     export AWS_SECRET_ACCESS_KEY=$(op read "op://Private/Homelab/API Tokens/Garage Secret Access Key")
     cd stacks/{{ STACK }} && pulumi {{ args }}

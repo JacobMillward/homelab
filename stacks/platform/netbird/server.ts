@@ -6,7 +6,6 @@ import { PlatformCtx } from "../context";
 import { ForwardAuthSpec } from "../traefik";
 
 export interface VpsServerConfig {
-  relayAuthSecret: pulumi.Input<string>;
   relayAddress: pulumi.Input<string>;
   stunAddress: pulumi.Input<string>;
 }
@@ -16,11 +15,11 @@ export interface NetbirdServerArgs {
   traefikIp: string;
   forwardAuthSpec: ForwardAuthSpec;
   vps?: VpsServerConfig;
+  secretStoreName?: pulumi.Input<string>;
 }
 
 export class NetbirdServer extends pulumi.ComponentResource {
   readonly namespace: k8s.core.v1.Namespace;
-  readonly relayAuthSecret: pulumi.Output<string>;
   readonly serverDeployment: k8s.apps.v1.Deployment;
   readonly localApiRoute: k8s.apiextensions.CustomResource;
 
@@ -29,7 +28,7 @@ export class NetbirdServer extends pulumi.ComponentResource {
       providers: { kubernetes: ctx.k8sProvider },
     });
 
-    const { storageClassName, vps, traefikIp, forwardAuthSpec } = args;
+    const { storageClassName, vps, traefikIp, forwardAuthSpec, secretStoreName } = args;
     const config = new pulumi.Config();
     const rawDomain = config.require("domain");
     const domain = `netbird.${rawDomain}`;
@@ -49,26 +48,39 @@ export class NetbirdServer extends pulumi.ComponentResource {
       { parent: this },
     );
 
+    let vpsSecretsExternalSecret: k8s.apiextensions.CustomResource | undefined;
+    if (vps && secretStoreName) {
+      vpsSecretsExternalSecret = new k8s.apiextensions.CustomResource(
+        "vps-secrets",
+        {
+          apiVersion: "external-secrets.io/v1",
+          kind: "ExternalSecret",
+          metadata: { name: "vps-secrets", namespace: this.namespace.metadata.name },
+          spec: {
+            secretStoreRef: { name: secretStoreName, kind: "ClusterSecretStore" },
+            target: { name: "vps-secrets" },
+            data: [
+              { secretKey: "relay-auth-secret", remoteRef: { key: "VPS Secrets", property: "Relay Auth Secret" } },
+              { secretKey: "home-wg-private-key", remoteRef: { key: "VPS Secrets", property: "Home Wg Private Key" } },
+            ],
+          },
+        },
+        { parent: this },
+      );
+    }
+
     const relayAuthSecret = new random.RandomPassword("netbird-relay-secret", {
       length: 32,
       special: false,
     }, { parent: this });
 
-    // NetBird base64-decodes the encryption key, so we need 44 chars (32 bytes encoded)
+    const relaySecretPlaceholder = "__RELAY_AUTH_SECRET__";
+    const effectiveRelaySecret = vps ? relaySecretPlaceholder : relayAuthSecret.result;
+
     const encryptionKey = new random.RandomBytes("netbird-encryption-key", {
       length: 32,
     }, { parent: this });
 
-    // Use VPS relay secret when available, otherwise the local one
-    const effectiveRelaySecret = vps
-      ? pulumi.output(vps.relayAuthSecret)
-      : relayAuthSecret.result;
-
-    this.relayAuthSecret = effectiveRelaySecret;
-
-    // config.yaml - matches combined/config.yaml.example from the netbird repo.
-    // When VPS is configured, adds relays/stuns sections (disables embedded relay)
-    // and advertises the VPS-hosted relay and STUN to all peers.
     const configYaml = pulumi
       .all([
         effectiveRelaySecret,
@@ -163,7 +175,14 @@ export class NetbirdServer extends pulumi.ComponentResource {
                 {
                   name: "netbird-server",
                   image: dockerImage("netbirdServer"),
-                  args: ["--config", "/etc/netbird/config.yaml"],
+                  command: vps
+                    ? [
+                        "sh",
+                        "-c",
+                        `sed "s|${relaySecretPlaceholder}|$(cat /secrets/relay-auth-secret)|" /etc/netbird-template/config.yaml > /etc/netbird/config.yaml && exec /go/bin/netbird-server --config /etc/netbird/config.yaml`,
+                      ]
+                    : undefined,
+                  args: vps ? undefined : ["--config", "/etc/netbird/config.yaml"],
                   ports: [
                     { name: "http", containerPort: 80 },
                     { name: "stun", containerPort: 3478, protocol: "UDP" },
@@ -181,31 +200,38 @@ export class NetbirdServer extends pulumi.ComponentResource {
                     initialDelaySeconds: 5,
                     periodSeconds: 10,
                   },
-                  volumeMounts: [
-                    {
-                      name: "config",
-                      mountPath: "/etc/netbird",
-                      readOnly: true,
-                    },
-                    { name: "data", mountPath: "/var/lib/netbird" },
+                  volumeMounts: vps
+                    ? [
+                        { name: "config-template", mountPath: "/etc/netbird-template", readOnly: true },
+                        { name: "netbird-config-rendered", mountPath: "/etc/netbird" },
+                        { name: "relay-secret", mountPath: "/secrets", readOnly: true },
+                        { name: "data", mountPath: "/var/lib/netbird" },
+                      ]
+                    : [
+                        { name: "config-template", mountPath: "/etc/netbird", readOnly: true },
+                        { name: "data", mountPath: "/var/lib/netbird" },
+                      ],
+                },
+              ],
+              volumes: vps
+                ? [
+                    { name: "config-template", configMap: { name: configMap.metadata.name } },
+                    { name: "netbird-config-rendered", emptyDir: {} },
+                    { name: "relay-secret", secret: { secretName: "vps-secrets" } },
+                    { name: "data", persistentVolumeClaim: { claimName: pvc.metadata.name } },
+                  ]
+                : [
+                    { name: "config-template", configMap: { name: configMap.metadata.name } },
+                    { name: "data", persistentVolumeClaim: { claimName: pvc.metadata.name } },
                   ],
-                },
-              ],
-              volumes: [
-                {
-                  name: "config",
-                  configMap: { name: configMap.metadata.name },
-                },
-                {
-                  name: "data",
-                  persistentVolumeClaim: { claimName: pvc.metadata.name },
-                },
-              ],
             },
           },
         },
       },
-      { parent: this },
+      {
+        parent: this,
+        dependsOn: vpsSecretsExternalSecret ? [vpsSecretsExternalSecret] : [],
+      },
     );
 
     const serverSvc = new k8s.core.v1.Service(

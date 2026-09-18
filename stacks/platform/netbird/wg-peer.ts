@@ -7,7 +7,6 @@ export interface VpsTunnelArgs {
   namespace: k8s.core.v1.Namespace;
   vpsIp: pulumi.Input<string>;
   vpsWgPublicKey: pulumi.Input<string>;
-  homeWgPrivateKey: pulumi.Input<string>;
   traefikIp: pulumi.Input<string>;
 }
 
@@ -17,16 +16,18 @@ export class VpsTunnel extends pulumi.ComponentResource {
       providers: { kubernetes: ctx.k8sProvider },
     });
 
-    const { namespace, vpsIp, vpsWgPublicKey, homeWgPrivateKey, traefikIp } = args;
+    const { namespace, vpsIp, vpsWgPublicKey, traefikIp } = args;
 
-    const wgConfig = new k8s.core.v1.Secret(
-      "wg-home-config",
+    const privateKeyPlaceholder = "__HOME_WG_PRIVATE_KEY__";
+
+    const wgConfigTemplate = new k8s.core.v1.ConfigMap(
+      "wg-home-config-template",
       {
-        metadata: { name: "wg-home-config", namespace: namespace.metadata.name },
-        stringData: {
+        metadata: { name: "wg-home-config-template", namespace: namespace.metadata.name },
+        data: {
           "wg0.conf": pulumi.interpolate`[Interface]
 Address = ${HOME_TUNNEL_ADDRESS}
-PrivateKey = ${homeWgPrivateKey}
+PrivateKey = ${privateKeyPlaceholder}
 PostUp = sysctl -w net.ipv4.ip_forward=1; iptables -t nat -A PREROUTING -p tcp --dport 443 -j DNAT --to-destination ${traefikIp}:443; iptables -A FORWARD -p tcp -d ${traefikIp} --dport 443 -j ACCEPT; iptables -t nat -A POSTROUTING -p tcp -d ${traefikIp} --dport 443 -j MASQUERADE
 PostDown = iptables -t nat -D PREROUTING -p tcp --dport 443 -j DNAT --to-destination ${traefikIp}:443; iptables -D FORWARD -p tcp -d ${traefikIp} --dport 443 -j ACCEPT; iptables -t nat -D POSTROUTING -p tcp -d ${traefikIp} --dport 443 -j MASQUERADE
 
@@ -60,16 +61,25 @@ PersistentKeepalive = 25
                     "sh",
                     "-c",
                     "apk add --no-cache wireguard-tools iproute2 iptables && " +
-                      "install -m 0600 /secret/wg0.conf /etc/wireguard/wg0.conf && " +
+                      `sed "s|${privateKeyPlaceholder}|$(cat /secrets/home-wg-private-key)|" /etc/wireguard-template/wg0.conf > /etc/wireguard/wg0.conf && ` +
+                      "chmod 0600 /etc/wireguard/wg0.conf && " +
                       "wg-quick up wg0 && " +
                       "trap 'wg-quick down wg0; exit 0' TERM INT && " +
                       "while :; do sleep 86400 & wait $!; done",
                   ],
                   securityContext: { privileged: true },
-                  volumeMounts: [{ name: "wg-config", mountPath: "/secret", readOnly: true }],
+                  volumeMounts: [
+                    { name: "wg-config-template", mountPath: "/etc/wireguard-template", readOnly: true },
+                    { name: "wg-config-rendered", mountPath: "/etc/wireguard" },
+                    { name: "home-wg-key", mountPath: "/secrets", readOnly: true },
+                  ],
                 },
               ],
-              volumes: [{ name: "wg-config", secret: { secretName: wgConfig.metadata.name } }],
+              volumes: [
+                { name: "wg-config-template", configMap: { name: wgConfigTemplate.metadata.name } },
+                { name: "wg-config-rendered", emptyDir: {} },
+                { name: "home-wg-key", secret: { secretName: "vps-secrets" } },
+              ],
             },
           },
         },
