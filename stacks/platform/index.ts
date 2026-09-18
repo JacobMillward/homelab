@@ -11,6 +11,7 @@ import { Synology } from "./synology";
 import { Authelia } from "./authelia";
 import { CrowdSec } from "./crowdsec";
 import { Renovate } from "./renovate";
+import { ExternalSecrets } from "./eso";
 
 const config = new pulumi.Config();
 const domain = config.require("domain");
@@ -22,12 +23,10 @@ const renovateGithubAppInstallationId = config.requireSecret(
 const renovateGithubAppPrivateKey = config.requireSecret(
   "renovateGithubAppPrivateKey",
 );
-const talosStack = new pulumi.StackReference(config.require("talosStackRef"));
-const kubeconfig = talosStack
-  .requireOutput("kubeconfigRaw")
-  .apply((v) => v as string);
 
-const k8sProvider = new k8s.Provider("k8s-provider", { kubeconfig });
+// No explicit kubeconfig — resolves in-cluster or via ~/.kube/config,
+// since talos's kubeconfig is encrypted under a different passphrase.
+const k8sProvider = new k8s.Provider("k8s-provider", {});
 const ctx = makePlatformCtx(k8sProvider);
 
 const vps = new pulumi.StackReference(config.require("vpsStackRef"));
@@ -47,11 +46,15 @@ const vpsConfig = {
   ip: requireVpsOutput(vps, "vpsIp"),
   ipv6: requireVpsOutput(vps, "vpsIpv6"),
   wgPublicKey: requireVpsOutput(vps, "vpsWgPublicKey"),
-  homeWgPrivateKey: requireVpsOutput(vps, "homeWgPrivateKey"),
-  relayAuthSecret: requireVpsOutput(vps, "relayAuthSecret"),
   relayAddress: requireVpsOutput(vps, "relayAddress"),
   stunAddress: requireVpsOutput(vps, "stunAddress"),
 };
+
+const eso = new ExternalSecrets(ctx, {
+  onePasswordConnectCredentials: config.requireSecret("onePasswordConnectCredentials"),
+  onePasswordConnectToken: config.requireSecret("onePasswordConnectToken"),
+  homelabVaultId: config.require("homelabVaultId"),
+});
 
 const longhorn = new Longhorn(ctx);
 new MetalLB(ctx);
@@ -85,12 +88,12 @@ const netbird = setupNetbird({
   traefikInternalIp: traefik.internalIp,
   forwardAuthSpec: traefik.forwardAuthSpec,
   vps: vpsConfig,
+  secretStoreName: eso.secretStoreName,
   netbirdOidcClientId: authelia.netbirdOidcClientId,
   netbirdOidcClientSecret: authelia.netbirdOidcClientSecret,
 });
 
 export { storageClassName } from "./longhorn";
-export const relayAuthSecret = netbird.relayAuthSecret;
 export const netbirdDnsZoneId = netbird.dnsZoneId;
 export const netbirdManagementUrl = netbird.managementUrl;
 export const netbirdPat = netbird.pat;

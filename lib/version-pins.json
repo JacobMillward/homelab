@@ -34,6 +34,11 @@
       "chart": "zigbee2mqtt",
       "version": "2.9.1",
       "registryUrl": "https://charts.zigbee2mqtt.io"
+    },
+    "externalSecrets": {
+      "chart": "external-secrets",
+      "version": "2.10.0",
+      "registryUrl": "https://charts.external-secrets.io"
     }
   },
   "docker": {
@@ -47,7 +52,9 @@
     "joplin": { "image": "joplin/server", "tag": "3.5.2" },
     "authelia": { "image": "authelia/authelia", "tag": "4.38" },
     "renovateInit": { "image": "alpine", "tag": "3.21" },
-    "renovate": { "image": "renovate/renovate", "tag": "44.101.2" }
+    "renovate": { "image": "renovate/renovate", "tag": "44.101.2" },
+    "onePasswordConnectApi": { "image": "1password/connect-api", "tag": "1.8.2" },
+    "onePasswordConnectSync": { "image": "1password/connect-sync", "tag": "1.8.2" }
   },
   "go": {
     "traefikCrowdsecPlugin": {
