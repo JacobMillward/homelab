@@ -1,8 +1,11 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
+import { helmChart } from "homelab-lib";
 import { PlatformCtx } from "../context";
 import { BlocklistCronJob } from "./blocklist-cronjob";
+
+const chart = helmChart("crowdsec");
 
 export interface CrowdSecArgs {
   storageClassName: pulumi.Input<string>;
@@ -58,11 +61,11 @@ export class CrowdSec extends pulumi.ComponentResource {
       "crowdsec",
       {
         name: "crowdsec",
-        chart: "crowdsec",
-        version: "0.24.2",
+        chart: chart.chart,
+        version: chart.version,
         namespace: ns.metadata.name,
         repositoryOpts: {
-          repo: "https://crowdsecurity.github.io/helm-charts",
+          repo: chart.registryUrl,
         },
         values: {
           container_runtime: "containerd",

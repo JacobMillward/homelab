@@ -1,5 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import { dockerImage } from "homelab-lib";
 import { AppCtx } from "../app";
 
 export class Joplin extends pulumi.ComponentResource {
@@ -76,7 +77,7 @@ export class Joplin extends pulumi.ComponentResource {
               containers: [
                 {
                   name: "joplin-server",
-                  image: "joplin/server:3.5.2",
+                  image: dockerImage("joplin"),
                   ports: [{ name: "http", containerPort: 22300 }],
                   livenessProbe: {
                     httpGet: {

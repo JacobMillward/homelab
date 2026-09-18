@@ -1,6 +1,9 @@
 import * as k8s from "@pulumi/kubernetes";
 import * as pulumi from "@pulumi/pulumi";
+import { helmChart } from "homelab-lib";
 import { PlatformCtx } from "./context";
+
+const chart = helmChart("longhorn");
 
 export class Longhorn extends pulumi.ComponentResource {
   readonly storageClassName = "longhorn";
@@ -28,11 +31,11 @@ export class Longhorn extends pulumi.ComponentResource {
     const release = new k8s.helm.v3.Release(
       "longhorn",
       {
-        chart: "longhorn",
-        version: "1.11.1",
+        chart: chart.chart,
+        version: chart.version,
         namespace: ns.metadata.name,
         repositoryOpts: {
-          repo: "https://charts.longhorn.io",
+          repo: chart.registryUrl,
         },
         values: {
           defaultSettings: {

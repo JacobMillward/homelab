@@ -1,6 +1,9 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
+import { dockerImage } from "homelab-lib";
+
+const mosquittoImage = dockerImage("mosquitto");
 
 export interface MqttCredentials {
   username: string;
@@ -101,7 +104,7 @@ export function deployMosquitto<const T extends readonly string[]>(
             initContainers: [
               {
                 name: "generate-passwords",
-                image: "eclipse-mosquitto:2.0.22",
+                image: mosquittoImage,
                 command: [
                   "sh",
                   "-c",
@@ -125,7 +128,7 @@ export function deployMosquitto<const T extends readonly string[]>(
             containers: [
               {
                 name: "mosquitto",
-                image: "eclipse-mosquitto:2.0.22",
+                image: mosquittoImage,
                 ports: [{ name: "mqtt", containerPort: 1883 }],
                 livenessProbe: {
                   tcpSocket: { port: "mqtt" },

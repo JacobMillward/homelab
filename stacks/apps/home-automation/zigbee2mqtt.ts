@@ -1,7 +1,10 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import { helmChart } from "homelab-lib";
 import { DnsRegistrar } from "../dns";
 import { MqttCredentials } from "./mosquitto";
+
+const chart = helmChart("zigbee2mqtt");
 
 interface Zigbee2mqttArgs {
   namespace: k8s.core.v1.Namespace;
@@ -29,11 +32,11 @@ export function deployZigbee2mqtt(args: Zigbee2mqttArgs) {
   const release = new k8s.helm.v3.Release(
     "zigbee2mqtt",
     {
-      chart: "zigbee2mqtt",
-      version: "2.9.1",
+      chart: chart.chart,
+      version: chart.version,
       namespace: ns.metadata.name,
       repositoryOpts: {
-        repo: "https://charts.zigbee2mqtt.io",
+        repo: chart.registryUrl,
       },
       values: {
         service: {

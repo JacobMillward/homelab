@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import { dockerImage } from "homelab-lib";
 
 export interface BlocklistCronJobArgs {
   namespace: string;
@@ -97,7 +98,7 @@ export class BlocklistCronJob extends pulumi.ComponentResource {
                   initContainers: [
                     {
                       name: "fetch-lists",
-                      image: "curlimages/curl:8.22.0",
+                      image: dockerImage("crowdsecCurl"),
                       command: ["/bin/sh", "/config/fetch-lists.sh"],
                       volumeMounts: [
                         { name: "config", mountPath: "/config" },
@@ -108,7 +109,7 @@ export class BlocklistCronJob extends pulumi.ComponentResource {
                   containers: [
                     {
                       name: "import",
-                      image: "alpine/kubectl:1.37.0",
+                      image: dockerImage("crowdsecKubectl"),
                       command: ["/bin/sh", "/config/import-lists.sh"],
                       env: [
                         { name: "NAMESPACE", value: args.namespace },

@@ -1,6 +1,7 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
+import { dockerImage } from "homelab-lib";
 import { PlatformCtx } from "../context";
 import { ForwardAuthSpec } from "../traefik";
 
@@ -161,7 +162,7 @@ export class NetbirdServer extends pulumi.ComponentResource {
               containers: [
                 {
                   name: "netbird-server",
-                  image: "netbirdio/netbird-server:0.67.4",
+                  image: dockerImage("netbirdServer"),
                   args: ["--config", "/etc/netbird/config.yaml"],
                   ports: [
                     { name: "http", containerPort: 80 },
@@ -254,7 +255,7 @@ export class NetbirdServer extends pulumi.ComponentResource {
               containers: [
                 {
                   name: "dashboard",
-                  image: "netbirdio/dashboard:v2.36.0",
+                  image: dockerImage("netbirdDashboard"),
                   ports: [{ name: "http", containerPort: 80 }],
                   livenessProbe: {
                     httpGet: { path: "/", port: "http" },

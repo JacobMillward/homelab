@@ -1,6 +1,9 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import { helmChart } from "homelab-lib";
 import { PlatformCtx } from "./context";
+
+const chart = helmChart("certManager");
 
 export class CertManager extends pulumi.ComponentResource {
   constructor(ctx: PlatformCtx) {
@@ -21,11 +24,11 @@ export class CertManager extends pulumi.ComponentResource {
     const release = new k8s.helm.v3.Release(
       "cert-manager",
       {
-        chart: "cert-manager",
-        version: "v1.20.0",
+        chart: chart.chart,
+        version: chart.version,
         namespace: ns.metadata.name,
         repositoryOpts: {
-          repo: "https://charts.jetstack.io",
+          repo: chart.registryUrl,
         },
         values: {
           crds: { enabled: true },

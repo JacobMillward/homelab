@@ -1,5 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import { dockerImage } from "homelab-lib";
 import { PlatformCtx } from "./context";
 
 const GITHUB_APP_TOKEN_SCRIPT = `
@@ -87,7 +88,7 @@ export class Renovate extends pulumi.ComponentResource {
                   initContainers: [
                     {
                       name: "github-app-token",
-                      image: "alpine:3.21",
+                      image: dockerImage("renovateInit"),
                       command: ["/bin/sh", "-c", GITHUB_APP_TOKEN_SCRIPT],
                       volumeMounts: [
                         { name: "app-creds", mountPath: "/secrets", readOnly: true },
@@ -98,7 +99,7 @@ export class Renovate extends pulumi.ComponentResource {
                   containers: [
                     {
                       name: "renovate",
-                      image: "renovate/renovate:44.101.2",
+                      image: dockerImage("renovate"),
                       command: [
                         "/bin/sh",
                         "-c",

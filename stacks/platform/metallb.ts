@@ -1,6 +1,9 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import { helmChart } from "homelab-lib";
 import { PlatformCtx } from "./context";
+
+const chart = helmChart("metallb");
 
 export class MetalLB extends pulumi.ComponentResource {
   constructor(ctx: PlatformCtx) {
@@ -29,11 +32,11 @@ export class MetalLB extends pulumi.ComponentResource {
     const release = new k8s.helm.v3.Release(
       "metallb",
       {
-        chart: "metallb",
-        version: "0.15.3",
+        chart: chart.chart,
+        version: chart.version,
         namespace: ns.metadata.name,
         repositoryOpts: {
-          repo: "https://metallb.github.io/metallb",
+          repo: chart.registryUrl,
         },
         values: {
           speaker: {

@@ -3,6 +3,7 @@ import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
 import * as tls from "@pulumi/tls";
 import * as command from "@pulumi/command";
+import { dockerImage } from "homelab-lib";
 import { PlatformCtx } from "../context";
 import { buildAutheliaConfig } from "./config";
 
@@ -144,7 +145,7 @@ users:
               containers: [
                 {
                   name: "authelia",
-                  image: "authelia/authelia:4.38",
+                  image: dockerImage("authelia"),
                   ports: [{ name: "http", containerPort: 9091 }],
                   volumeMounts: [
                     {

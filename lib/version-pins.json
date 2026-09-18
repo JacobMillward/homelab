@@ -1,0 +1,58 @@
+{
+  "helm": {
+    "certManager": {
+      "chart": "cert-manager",
+      "version": "v1.20.0",
+      "registryUrl": "https://charts.jetstack.io"
+    },
+    "longhorn": {
+      "chart": "longhorn",
+      "version": "1.11.1",
+      "registryUrl": "https://charts.longhorn.io"
+    },
+    "metallb": {
+      "chart": "metallb",
+      "version": "0.15.3",
+      "registryUrl": "https://metallb.github.io/metallb"
+    },
+    "postgresql": {
+      "chart": "cloudnative-pg",
+      "version": "0.27.1",
+      "registryUrl": "https://cloudnative-pg.github.io/charts"
+    },
+    "traefik": {
+      "chart": "traefik",
+      "version": "39.0.6",
+      "registryUrl": "https://traefik.github.io/charts"
+    },
+    "crowdsec": {
+      "chart": "crowdsec",
+      "version": "0.24.2",
+      "registryUrl": "https://crowdsecurity.github.io/helm-charts"
+    },
+    "zigbee2mqtt": {
+      "chart": "zigbee2mqtt",
+      "version": "2.9.1",
+      "registryUrl": "https://charts.zigbee2mqtt.io"
+    }
+  },
+  "docker": {
+    "netbirdRouter": { "image": "netbirdio/netbird", "tag": "0.67.4" },
+    "netbirdWgPeer": { "image": "alpine", "tag": "3.21" },
+    "netbirdServer": { "image": "netbirdio/netbird-server", "tag": "0.67.4" },
+    "netbirdDashboard": { "image": "netbirdio/dashboard", "tag": "v2.36.0" },
+    "crowdsecCurl": { "image": "curlimages/curl", "tag": "8.22.0" },
+    "crowdsecKubectl": { "image": "alpine/kubectl", "tag": "1.37.0" },
+    "mosquitto": { "image": "eclipse-mosquitto", "tag": "2.0.22" },
+    "joplin": { "image": "joplin/server", "tag": "3.5.2" },
+    "authelia": { "image": "authelia/authelia", "tag": "4.38" },
+    "renovateInit": { "image": "alpine", "tag": "3.21" },
+    "renovate": { "image": "renovate/renovate", "tag": "44.101.2" }
+  },
+  "go": {
+    "traefikCrowdsecPlugin": {
+      "moduleName": "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin",
+      "version": "v1.7.1"
+    }
+  }
+}

@@ -1,8 +1,11 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as cloudflare from "@pulumi/cloudflare";
-import { POD_CIDR } from "homelab-lib";
+import { POD_CIDR, helmChart, goModule } from "homelab-lib";
 import { PlatformCtx } from "./context";
+
+const chart = helmChart("traefik");
+const crowdsecPlugin = goModule("traefikCrowdsecPlugin");
 
 export interface TraefikArgs {
   crowdsecBouncerApiKey: pulumi.Input<string>;
@@ -57,11 +60,11 @@ export class Traefik extends pulumi.ComponentResource {
       "traefik",
       {
         name: "traefik",
-        chart: "traefik",
-        version: "39.0.6",
+        chart: chart.chart,
+        version: chart.version,
         namespace: ns.metadata.name,
         repositoryOpts: {
-          repo: "https://traefik.github.io/charts",
+          repo: chart.registryUrl,
         },
         values: {
           service: {
@@ -84,8 +87,8 @@ export class Traefik extends pulumi.ComponentResource {
           experimental: {
             plugins: {
               "crowdsec-bouncer": {
-                moduleName: "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin",
-                version: "v1.7.1",
+                moduleName: crowdsecPlugin.moduleName,
+                version: crowdsecPlugin.version,
               },
             },
           },
