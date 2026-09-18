@@ -39,6 +39,8 @@ export interface RenovateArgs {
   githubAppId: pulumi.Input<string>;
   githubAppInstallationId: pulumi.Input<string>;
   githubAppPrivateKey: pulumi.Input<string>;
+  dockerhubUsername: pulumi.Input<string>;
+  dockerhubToken: pulumi.Input<string>;
 }
 
 export class Renovate extends pulumi.ComponentResource {
@@ -48,6 +50,15 @@ export class Renovate extends pulumi.ComponentResource {
     });
 
     const { githubAppId: appId, githubAppInstallationId: installationId, githubAppPrivateKey: privateKey } = args;
+
+    const hostRulesJson = pulumi
+      .all([args.dockerhubUsername, args.dockerhubToken])
+      .apply(([username, password]) =>
+        JSON.stringify([
+          { hostType: "docker", matchHost: "docker.io", username, password },
+          { hostType: "docker", matchHost: "hub.docker.com", username, password },
+        ]),
+      );
 
     const ns = new k8s.core.v1.Namespace(
       "renovate",
@@ -63,6 +74,7 @@ export class Renovate extends pulumi.ComponentResource {
           "app-id": appId,
           "installation-id": installationId,
           "private-key.pem": privateKey,
+          "host-rules.json": hostRulesJson,
         },
       },
       { parent: this },
@@ -109,9 +121,16 @@ export class Renovate extends pulumi.ComponentResource {
                         { name: "RENOVATE_PLATFORM", value: "github" },
                         { name: "RENOVATE_AUTODISCOVER", value: "false" },
                         { name: "RENOVATE_REPOSITORIES", value: "JacobMillward/homelab" },
-                        // Renovate expects renovate.json to already exist at
-                        // the repo root (Task 3) — no onboarding PR needed.
                         { name: "RENOVATE_ONBOARDING", value: "false" },
+                        {
+                          name: "RENOVATE_HOST_RULES",
+                          valueFrom: {
+                            secretKeyRef: {
+                              name: appCreds.metadata.name,
+                              key: "host-rules.json",
+                            },
+                          },
+                        },
                       ],
                       volumeMounts: [{ name: "shared", mountPath: "/shared" }],
                     },

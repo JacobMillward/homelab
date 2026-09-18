@@ -60,6 +60,8 @@ new Renovate(ctx, {
   githubAppId: renovateGithubAppId,
   githubAppInstallationId: renovateGithubAppInstallationId,
   githubAppPrivateKey: renovateGithubAppPrivateKey,
+  dockerhubUsername: config.requireSecret("dockerhubUsername"),
+  dockerhubToken: config.requireSecret("dockerhubToken"),
 });
 const crowdsec = new CrowdSec(ctx, { storageClassName: longhorn.storageClassName });
 const traefik = new Traefik(ctx, {
