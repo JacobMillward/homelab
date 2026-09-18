@@ -10,10 +10,18 @@ import { setupNetbird } from "./netbird";
 import { Synology } from "./synology";
 import { Authelia } from "./authelia";
 import { CrowdSec } from "./crowdsec";
+import { Renovate } from "./renovate";
 
 const config = new pulumi.Config();
 const domain = config.require("domain");
 const cloudflareApiToken = config.requireSecret("cloudflareApiToken");
+const renovateGithubAppId = config.requireSecret("renovateGithubAppId");
+const renovateGithubAppInstallationId = config.requireSecret(
+  "renovateGithubAppInstallationId",
+);
+const renovateGithubAppPrivateKey = config.requireSecret(
+  "renovateGithubAppPrivateKey",
+);
 const talosStack = new pulumi.StackReference(config.require("talosStackRef"));
 const kubeconfig = talosStack
   .requireOutput("kubeconfigRaw")
@@ -48,6 +56,11 @@ const vpsConfig = {
 const longhorn = new Longhorn(ctx);
 new MetalLB(ctx);
 new CertManager(ctx);
+new Renovate(ctx, {
+  githubAppId: renovateGithubAppId,
+  githubAppInstallationId: renovateGithubAppInstallationId,
+  githubAppPrivateKey: renovateGithubAppPrivateKey,
+});
 const crowdsec = new CrowdSec(ctx, { storageClassName: longhorn.storageClassName });
 const traefik = new Traefik(ctx, {
   crowdsecBouncerApiKey: crowdsec.bouncerApiKey,
