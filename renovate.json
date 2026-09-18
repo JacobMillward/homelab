@@ -62,6 +62,35 @@
         "moduleName:\\s*\"(?<depName>[^\"]+)\",\\s*\\n\\s*version:\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "go"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^stacks/platform/longhorn\\.ts$/",
+        "/^stacks/platform/metallb\\.ts$/",
+        "/^stacks/platform/postgresql\\.ts$/",
+        "/^stacks/platform/traefik\\.ts$/",
+        "/^stacks/platform/crowdsec/index\\.ts$/",
+        "/^stacks/apps/home-automation/zigbee2mqtt\\.ts$/"
+      ],
+      "matchStrings": [
+        "chart:\\s*\"(?<depName>[^\"]+)\",\\s*\\n\\s*version:\\s*\"(?<currentValue>[^\"]+)\"[\\s\\S]*?repo:\\s*\"(?<registryUrl>[^\"]+)\""
+      ],
+      "datasourceTemplate": "helm"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^stacks/platform/netbird/wg-peer\\.ts$/",
+        "/^stacks/platform/netbird/server\\.ts$/",
+        "/^stacks/platform/crowdsec/blocklist-cronjob\\.ts$/",
+        "/^stacks/apps/home-automation/mosquitto\\.ts$/",
+        "/^stacks/apps/joplin/index\\.ts$/",
+        "/^stacks/platform/authelia/index\\.ts$/",
+        "/^stacks/platform/renovate\\.ts$/"
+      ],
+      "matchStrings": ["image:\\s*\"(?<depName>[^\":]+):(?<currentValue>[^\"]+)\""],
+      "datasourceTemplate": "docker"
     }
   ]
 }
