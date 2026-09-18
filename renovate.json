@@ -10,6 +10,35 @@
     "enabled": true
   },
   "minimumReleaseAge": "14 days",
-  "packageRules": [],
+  "packageRules": [
+    {
+      "groupName": "talos/vps updates (manual only)",
+      "matchFileNames": ["stacks/talos/**", "stacks/vps/**"],
+      "automerge": false
+    },
+    {
+      "groupName": "platform/apps non-major updates",
+      "matchFileNames": ["stacks/platform/**", "stacks/apps/**"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "groupName": "platform/apps access-chain (manual until rollout safety lands)",
+      "matchFileNames": [
+        "stacks/platform/traefik.ts",
+        "stacks/platform/authelia/**",
+        "stacks/platform/metallb.ts",
+        "stacks/platform/netbird/**",
+        "stacks/platform/cert-manager.ts",
+        "stacks/platform/crowdsec/**",
+        "stacks/apps/dns.ts"
+      ],
+      "automerge": false
+    }
+  ],
   "customManagers": []
 }
