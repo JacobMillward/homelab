@@ -40,5 +40,28 @@
       "automerge": false
     }
   ],
-  "customManagers": []
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^stacks/platform/cert-manager\\.ts$/"],
+      "matchStrings": [
+        "chart:\\s*\"(?<depName>[^\"]+)\",\\s*\\n\\s*version:\\s*\"(?<currentValue>[^\"]+)\"[\\s\\S]*?repo:\\s*\"(?<registryUrl>[^\"]+)\""
+      ],
+      "datasourceTemplate": "helm"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^stacks/platform/netbird/router\\.ts$/"],
+      "matchStrings": ["image:\\s*\"(?<depName>[^\":]+):(?<currentValue>[^\"]+)\""],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^stacks/platform/traefik\\.ts$/"],
+      "matchStrings": [
+        "moduleName:\\s*\"(?<depName>[^\"]+)\",\\s*\\n\\s*version:\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "go"
+    }
+  ]
 }
