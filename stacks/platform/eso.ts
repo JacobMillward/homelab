@@ -147,5 +147,30 @@ export class ExternalSecrets extends pulumi.ComponentResource {
     );
 
     this.secretStoreName = secretStore.metadata.name.apply((n) => n ?? "homelab-vault-store");
+
+    const operatorNs = new k8s.core.v1.Namespace(
+      "pulumi-operator",
+      { metadata: { name: "pulumi-operator" } },
+      { parent: this },
+    );
+
+    new k8s.apiextensions.CustomResource(
+      "pulumi-platform-apps-creds",
+      {
+        apiVersion: "external-secrets.io/v1",
+        kind: "ExternalSecret",
+        metadata: { name: "pulumi-platform-apps-creds", namespace: operatorNs.metadata.name },
+        spec: {
+          secretStoreRef: { name: this.secretStoreName, kind: "ClusterSecretStore" },
+          target: { name: "pulumi-platform-apps-creds" },
+          data: [
+            { secretKey: "PULUMI_CONFIG_PASSPHRASE", remoteRef: { key: "Pulumi Platform-Apps Automation", property: "Pulumi Passphrase" } },
+            { secretKey: "AWS_ACCESS_KEY_ID", remoteRef: { key: "Pulumi Platform-Apps Automation", property: "Garage Access Key ID" } },
+            { secretKey: "AWS_SECRET_ACCESS_KEY", remoteRef: { key: "Pulumi Platform-Apps Automation", property: "Garage Secret Access Key" } },
+          ],
+        },
+      },
+      { parent: this, dependsOn: [secretStore] },
+    );
   }
 }
