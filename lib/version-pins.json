@@ -17,7 +17,7 @@
     },
     "postgresql": {
       "chart": "cloudnative-pg",
-      "version": "0.27.1",
+      "version": "0.29.0",
       "registryUrl": "https://cloudnative-pg.github.io/charts"
     },
     "traefik": {
