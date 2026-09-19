@@ -22,7 +22,7 @@
     },
     "traefik": {
       "chart": "traefik",
-      "version": "39.0.6",
+      "version": "39.0.9",
       "registryUrl": "https://traefik.github.io/charts"
     },
     "crowdsec": {
