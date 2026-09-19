@@ -3,5 +3,5 @@ config:
   homelab-apps:talosStackRef: organization/homelab-talos/homelab
   homelab-apps:platformStackRef: organization/homelab-platform/homelab
   homelab-apps:cloudflareApiToken:
-    secure: v1:pKAO4RIMcv2WDCV8:blBMTPga/hj2SNfGtXWz+sIIxboBZoiBdD/uxUa0hGvMrlAhbTdunJfRPmAY0unmLxebKwSPNeQ9NkJUgFb8saq/5sTY
-encryptionsalt: v1:jg2Lf4U0Yb8=:v1:622zu2eL7CaUcblQ:sETSfDIFhfqdqF/4uzlIfAEEn47Anw==
+    secure: v1:y8rolldVFKQWq3gd:GOyOF5jzDAMcnO5m8uDiwUF83aby3/J89YUlNVHKGSHN2lGY6YeVWt8dXDFDMjExAj2RZDeoYbaWNdPOFs+vsZ8M9EIC
+encryptionsalt: v1:QKlePBGpFAQ=:v1:ngiqGKN7nHXvqPmI:vCPeFaalMvMQY0rpVrxh69+coSpIGQ==
