@@ -5,13 +5,17 @@ import { PlatformCtx } from "./context";
 
 const chart = helmChart("certManager");
 
+export interface CertManagerArgs {
+  cloudflareDnsEditApiToken: pulumi.Input<string>;
+}
+
 export class CertManager extends pulumi.ComponentResource {
-  constructor(ctx: PlatformCtx) {
+  constructor(ctx: PlatformCtx, args: CertManagerArgs) {
     super("platform:CertManager", "cert-manager", {}, {
       providers: { kubernetes: ctx.k8sProvider },
     });
 
-    const cloudflareApiToken = ctx.opField("Cloudflare Api Token (DnsEdit)");
+    const cloudflareApiToken = args.cloudflareDnsEditApiToken;
 
     const ns = new k8s.core.v1.Namespace(
       "cert-manager",

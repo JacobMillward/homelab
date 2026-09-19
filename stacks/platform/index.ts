@@ -16,6 +16,7 @@ import { ExternalSecrets } from "./eso";
 const config = new pulumi.Config();
 const domain = config.require("domain");
 const cloudflareApiToken = config.requireSecret("cloudflareApiToken");
+const cloudflareDnsEditApiToken = config.requireSecret("cloudflareDnsEditApiToken");
 const renovateGithubAppId = config.requireSecret("renovateGithubAppId");
 const renovateGithubAppInstallationId = config.requireSecret(
   "renovateGithubAppInstallationId",
@@ -58,7 +59,7 @@ const eso = new ExternalSecrets(ctx, {
 
 const longhorn = new Longhorn(ctx);
 new MetalLB(ctx);
-new CertManager(ctx);
+new CertManager(ctx, { cloudflareDnsEditApiToken });
 new Renovate(ctx, {
   githubAppId: renovateGithubAppId,
   githubAppInstallationId: renovateGithubAppInstallationId,
