@@ -5,7 +5,6 @@ import * as hcloud from "@pulumi/hcloud";
 import * as random from "@pulumi/random";
 import { getSnapshotId } from "./flatcar";
 import { buildIgnitionConfig } from "./ignition";
-import { makeOpField } from "homelab-lib";
 
 const relayPort = 33443;
 
@@ -29,10 +28,8 @@ export class VpsServer extends pulumi.ComponentResource {
     const config = new pulumi.Config();
     const domain = config.require("domain");
 
-    const opField = makeOpField({ parent: this });
-
-    const hcloudToken = opField("Hetzner API Token");
-    const cloudflareApiToken = opField("Cloudflare Api Token (DnsEdit)");
+    const hcloudToken = pulumi.unsecret(config.requireSecret("hetznerApiToken"));
+    const cloudflareApiToken = config.requireSecret("cloudflareDnsEditApiToken");
 
     // ---------------------------------------------------------------------------
     // Secrets
