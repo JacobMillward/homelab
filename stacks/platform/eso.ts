@@ -13,6 +13,7 @@ export interface EsoArgs {
 
 export class ExternalSecrets extends pulumi.ComponentResource {
   readonly secretStoreName: pulumi.Output<string>;
+  readonly operatorNamespace: k8s.core.v1.Namespace;
 
   constructor(ctx: PlatformCtx, args: EsoArgs) {
     super("platform:ExternalSecrets", "external-secrets", {}, {
@@ -172,5 +173,7 @@ export class ExternalSecrets extends pulumi.ComponentResource {
       },
       { parent: this, dependsOn: [secretStore] },
     );
+
+    this.operatorNamespace = operatorNs;
   }
 }
