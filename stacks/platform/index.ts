@@ -12,6 +12,7 @@ import { Authelia } from "./authelia";
 import { CrowdSec } from "./crowdsec";
 import { Renovate } from "./renovate";
 import { ExternalSecrets } from "./eso";
+import { PulumiOperator } from "./pko";
 
 const config = new pulumi.Config();
 const domain = config.require("domain");
@@ -56,6 +57,8 @@ const eso = new ExternalSecrets(ctx, {
   onePasswordConnectToken: config.requireSecret("onePasswordConnectToken"),
   homelabVaultId: config.require("homelabVaultId"),
 });
+
+new PulumiOperator(ctx, { operatorNamespace: eso.operatorNamespace });
 
 const longhorn = new Longhorn(ctx);
 new MetalLB(ctx);

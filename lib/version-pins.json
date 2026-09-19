@@ -39,6 +39,11 @@
       "chart": "external-secrets",
       "version": "2.10.0",
       "registryUrl": "https://charts.external-secrets.io"
+    },
+    "pulumiKubernetesOperator": {
+      "chart": "oci://ghcr.io/pulumi/helm-charts/pulumi-kubernetes-operator",
+      "version": "2.9.1",
+      "registryUrl": ""
     }
   },
   "docker": {
@@ -54,7 +59,8 @@
     "renovateInit": { "image": "alpine", "tag": "3.21" },
     "renovate": { "image": "renovate/renovate", "tag": "44.101.2" },
     "onePasswordConnectApi": { "image": "1password/connect-api", "tag": "1.8.2" },
-    "onePasswordConnectSync": { "image": "1password/connect-sync", "tag": "1.8.2" }
+    "onePasswordConnectSync": { "image": "1password/connect-sync", "tag": "1.8.2" },
+    "pulumiCli": { "image": "pulumi/pulumi", "tag": "3.263.0-nonroot" }
   },
   "go": {
     "traefikCrowdsecPlugin": {
