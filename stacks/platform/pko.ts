@@ -53,6 +53,13 @@ export class PulumiOperator extends pulumi.ComponentResource {
       { parent: this },
     );
 
+    const netbirdSdkInitContainer = (repoDir: string) => ({
+      name: "generate-netbird-sdk",
+      image: dockerImage("pulumiCli"),
+      command: ["pulumi", "install", "--no-dependencies", "--cwd", `/share/source/${repoDir}`],
+      volumeMounts: [{ name: "share", mountPath: "/share" }],
+    });
+
     const commonStackSpec = {
       serviceAccountName: workspaceSa.metadata.name,
       envRefs: {
@@ -66,9 +73,6 @@ export class PulumiOperator extends pulumi.ComponentResource {
       refresh: true,
       continueResyncOnCommitMatch: true,
       resyncFrequencySeconds: 3600,
-      workspaceTemplate: {
-        spec: { image: dockerImage("pulumiCli") },
-      },
     };
 
     const platformStack = new k8s.apiextensions.CustomResource(
@@ -77,7 +81,17 @@ export class PulumiOperator extends pulumi.ComponentResource {
         apiVersion: "pulumi.com/v1",
         kind: "Stack",
         metadata: { name: "homelab-platform", namespace: ns.metadata.name },
-        spec: { ...commonStackSpec, stack: "homelab", repoDir: "stacks/platform" },
+        spec: {
+          ...commonStackSpec,
+          stack: "homelab",
+          repoDir: "stacks/platform",
+          workspaceTemplate: {
+            spec: {
+              image: dockerImage("pulumiCli"),
+              podTemplate: { spec: { initContainers: [netbirdSdkInitContainer("stacks/apps")], containers: [] } },
+            },
+          },
+        },
       },
       { parent: this, dependsOn: [operator, authDelegatorBinding, clusterAdminBinding] },
     );
@@ -93,6 +107,12 @@ export class PulumiOperator extends pulumi.ComponentResource {
           stack: "homelab",
           repoDir: "stacks/apps",
           prerequisites: [{ name: "homelab-platform" }],
+          workspaceTemplate: {
+            spec: {
+              image: dockerImage("pulumiCli"),
+              podTemplate: { spec: { initContainers: [netbirdSdkInitContainer("stacks/platform")], containers: [] } },
+            },
+          },
         },
       },
       { parent: this, dependsOn: [operator, authDelegatorBinding, clusterAdminBinding, platformStack] },
