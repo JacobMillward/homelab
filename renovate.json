@@ -23,20 +23,19 @@
       "automerge": true
     },
     {
-      "matchUpdateTypes": ["major"],
-      "automerge": false
+      "groupName": "platform/apps non-major updates",
+      "matchDepTypes": ["platform"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
     },
     {
-      "groupName": "platform/apps access-chain (manual until rollout safety lands)",
-      "matchFileNames": [
-        "stacks/platform/traefik.ts",
-        "stacks/platform/authelia/**",
-        "stacks/platform/metallb.ts",
-        "stacks/platform/netbird/**",
-        "stacks/platform/cert-manager.ts",
-        "stacks/platform/crowdsec/**",
-        "stacks/apps/dns.ts"
-      ],
+      "groupName": "platform/apps core-infra",
+      "matchDepTypes": ["core-infra"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "matchUpdateTypes": ["major"],
       "automerge": false
     }
   ],
@@ -46,7 +45,7 @@
       "fileFormat": "json",
       "managerFilePatterns": ["/^lib/version-pins\\.json$/"],
       "matchStrings": [
-        "$each(helm, function($v, $k) { {\"depName\": $v.chart, \"currentValue\": $v.version, \"registryUrl\": $v.registryUrl} })"
+        "$each(helm, function($v, $k) { {\"depName\": $v.chart, \"currentValue\": $v.version, \"registryUrl\": $v.registryUrl, \"depType\": $v.tier ? $v.tier : \"platform\"} })"
       ],
       "datasourceTemplate": "helm"
     },
@@ -55,7 +54,7 @@
       "fileFormat": "json",
       "managerFilePatterns": ["/^lib/version-pins\\.json$/"],
       "matchStrings": [
-        "$each(docker, function($v, $k) { {\"depName\": $v.image, \"currentValue\": $v.tag, \"currentDigest\": $v.digest} })"
+        "$each(docker, function($v, $k) { {\"depName\": $v.image, \"currentValue\": $v.tag, \"currentDigest\": $v.digest, \"depType\": $v.tier ? $v.tier : \"platform\"} })"
       ],
       "datasourceTemplate": "docker"
     },
@@ -64,7 +63,7 @@
       "fileFormat": "json",
       "managerFilePatterns": ["/^lib/version-pins\\.json$/"],
       "matchStrings": [
-        "$each(go, function($v, $k) { {\"depName\": $v.moduleName, \"currentValue\": $v.version} })"
+        "$each(go, function($v, $k) { {\"depName\": $v.moduleName, \"currentValue\": $v.version, \"depType\": $v.tier ? $v.tier : \"platform\"} })"
       ],
       "datasourceTemplate": "go"
     }

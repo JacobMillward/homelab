@@ -3,7 +3,8 @@
     "certManager": {
       "chart": "cert-manager",
       "version": "v1.21.1",
-      "registryUrl": "https://charts.jetstack.io"
+      "registryUrl": "https://charts.jetstack.io",
+      "tier": "core-infra"
     },
     "longhorn": {
       "chart": "longhorn",
@@ -13,7 +14,8 @@
     "metallb": {
       "chart": "metallb",
       "version": "0.15.3",
-      "registryUrl": "https://metallb.github.io/metallb"
+      "registryUrl": "https://metallb.github.io/metallb",
+      "tier": "core-infra"
     },
     "postgresql": {
       "chart": "cloudnative-pg",
@@ -23,12 +25,14 @@
     "traefik": {
       "chart": "traefik",
       "version": "39.0.6",
-      "registryUrl": "https://traefik.github.io/charts"
+      "registryUrl": "https://traefik.github.io/charts",
+      "tier": "core-infra"
     },
     "crowdsec": {
       "chart": "crowdsec",
       "version": "0.24.2",
-      "registryUrl": "https://crowdsecurity.github.io/helm-charts"
+      "registryUrl": "https://crowdsecurity.github.io/helm-charts",
+      "tier": "core-infra"
     },
     "zigbee2mqtt": {
       "chart": "zigbee2mqtt",
@@ -42,15 +46,15 @@
     }
   },
   "docker": {
-    "netbirdRouter": { "image": "netbirdio/netbird", "tag": "0.67.4", "digest": "sha256:ab1307e6189e4f51e5c05c518bb9699255aff2710e9872324f0e6814a2c5d043" },
-    "netbirdWgPeer": { "image": "alpine", "tag": "3.21", "digest": "sha256:ce64758a109eb420d874a118f87920e625e12d3634e03b4a5573fd9f6e5d3507" },
-    "netbirdServer": { "image": "netbirdio/netbird-server", "tag": "0.67.4", "digest": "sha256:101b5d83cda2b22c7915c350ab259bcb9f7b64612d1927c1efe5f4b9616f08be" },
-    "netbirdDashboard": { "image": "netbirdio/dashboard", "tag": "v2.36.0", "digest": "sha256:0def57db6bbd4ab1559554e161e9e05e066f5411db7885b52e81bddb9791cad2" },
-    "crowdsecCurl": { "image": "curlimages/curl", "tag": "8.22.0", "digest": "sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777" },
-    "crowdsecKubectl": { "image": "alpine/kubectl", "tag": "1.37.0", "digest": "sha256:954b65dea0eb140219b440413ede17c2eca205866df350d3c1fbc84d28af14ae" },
+    "netbirdRouter": { "image": "netbirdio/netbird", "tag": "0.67.4", "digest": "sha256:ab1307e6189e4f51e5c05c518bb9699255aff2710e9872324f0e6814a2c5d043", "tier": "core-infra" },
+    "netbirdWgPeer": { "image": "alpine", "tag": "3.21", "digest": "sha256:ce64758a109eb420d874a118f87920e625e12d3634e03b4a5573fd9f6e5d3507", "tier": "core-infra" },
+    "netbirdServer": { "image": "netbirdio/netbird-server", "tag": "0.67.4", "digest": "sha256:101b5d83cda2b22c7915c350ab259bcb9f7b64612d1927c1efe5f4b9616f08be", "tier": "core-infra" },
+    "netbirdDashboard": { "image": "netbirdio/dashboard", "tag": "v2.36.0", "digest": "sha256:0def57db6bbd4ab1559554e161e9e05e066f5411db7885b52e81bddb9791cad2", "tier": "core-infra" },
+    "crowdsecCurl": { "image": "curlimages/curl", "tag": "8.22.0", "digest": "sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777", "tier": "core-infra" },
+    "crowdsecKubectl": { "image": "alpine/kubectl", "tag": "1.37.0", "digest": "sha256:954b65dea0eb140219b440413ede17c2eca205866df350d3c1fbc84d28af14ae", "tier": "core-infra" },
     "mosquitto": { "image": "eclipse-mosquitto", "tag": "2.0.22", "digest": "sha256:199ea8ef2e35ec2b1b37e59cfd1dbae538ed4dfa4a2251a121a52215a6248a21" },
     "joplin": { "image": "joplin/server", "tag": "3.5.2", "digest": "sha256:5d9e7f9d31b436cb1b99d1a6a65d8c5bf760829094617e8ad1e956fd925de888" },
-    "authelia": { "image": "authelia/authelia", "tag": "4.38", "digest": "sha256:46021dc20efdcc5cdc38a29e3050b8835429a155ae6215388ed3b793a02eb0ab" },
+    "authelia": { "image": "authelia/authelia", "tag": "4.38", "digest": "sha256:46021dc20efdcc5cdc38a29e3050b8835429a155ae6215388ed3b793a02eb0ab", "tier": "core-infra" },
     "renovate": { "image": "renovate/renovate", "tag": "44.101.2", "digest": "sha256:f8fa576e7775e87495eb2a457b3614dc37662bc3b8f22da04e2d47d638ae4d97" },
     "githubAppInstallationToken": { "image": "ghcr.io/mshekow/github-app-installation-token", "tag": "2026.07.26", "digest": "sha256:9c818c32d25be97ff940b8ee0ee5a85b620ef618dfcbe73ad5b64fda81a0a541" },
     "onePasswordConnectApi": { "image": "1password/connect-api", "tag": "1.8.2", "digest": "sha256:e915c0c843972f02b0e7e2de502bda8bd4a092288b3f1866098a857bd715a281" },
@@ -61,7 +65,8 @@
   "go": {
     "traefikCrowdsecPlugin": {
       "moduleName": "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin",
-      "version": "v1.7.1"
+      "version": "v1.7.1",
+      "tier": "core-infra"
     }
   }
 }
