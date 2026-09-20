@@ -23,13 +23,11 @@
       "automerge": true
     },
     {
-      "groupName": "platform/apps non-major updates",
       "matchDepTypes": ["platform"],
       "matchUpdateTypes": ["patch", "minor"],
       "automerge": true
     },
     {
-      "groupName": "platform/apps core-infra",
       "matchDepTypes": ["core-infra"],
       "matchUpdateTypes": ["patch", "minor"],
       "automerge": true
