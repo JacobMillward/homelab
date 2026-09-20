@@ -38,10 +38,6 @@
         "stacks/apps/dns.ts"
       ],
       "automerge": false
-    },
-    {
-      "matchFileNames": ["lib/version-pins.json"],
-      "pinDigests": false
     }
   ],
   "customManagers": [
@@ -59,7 +55,7 @@
       "fileFormat": "json",
       "managerFilePatterns": ["/^lib/version-pins\\.json$/"],
       "matchStrings": [
-        "$each(docker, function($v, $k) { {\"depName\": $v.image, \"currentValue\": $v.tag} })"
+        "$each(docker, function($v, $k) { {\"depName\": $v.image, \"currentValue\": $v.tag, \"currentDigest\": $v.digest} })"
       ],
       "datasourceTemplate": "docker"
     },
