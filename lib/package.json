@@ -5,5 +5,9 @@
   "main": "index.ts",
   "peerDependencies": {
     "@pulumi/pulumi": "^3.226.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18",
+    "typescript": "^5.0.0"
   }
 }
