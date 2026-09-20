@@ -10,6 +10,7 @@ export interface HelmChartRef {
 export interface DockerImageRef {
   image: string;
   tag: string;
+  digest: string;
 }
 
 export interface GoModuleRef {
@@ -34,7 +35,7 @@ export function helmChart(name: keyof VersionsFile["helm"]): HelmChartRef {
 
 export function dockerImage(name: keyof VersionsFile["docker"]): string {
   const ref = dockerImageRef(name);
-  return `${ref.image}:${ref.tag}`;
+  return `${ref.image}:${ref.tag}@${ref.digest}`;
 }
 
 export function dockerImageRef(name: keyof VersionsFile["docker"]): DockerImageRef {

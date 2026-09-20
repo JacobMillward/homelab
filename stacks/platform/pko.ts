@@ -20,8 +20,7 @@ export class PulumiOperator extends pulumi.ComponentResource {
     const operator = new k8s.helm.v3.Release(
       "pulumi-kubernetes-operator",
       {
-        chart: `oci://${chart.image}`,
-        version: chart.tag,
+        chart: `oci://${chart.image}@${chart.digest}`,
         namespace: ns.metadata.name,
       },
       { parent: this },
