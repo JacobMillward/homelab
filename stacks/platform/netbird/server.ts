@@ -161,6 +161,7 @@ export class NetbirdServer extends pulumi.ComponentResource {
         spec: {
           replicas: 1,
           strategy: { type: "Recreate" },
+          progressDeadlineSeconds: 120,
           selector: { matchLabels: { app: "netbird-server" } },
           template: {
             metadata: { labels: { app: "netbird-server" } },
@@ -274,6 +275,8 @@ export class NetbirdServer extends pulumi.ComponentResource {
         metadata: { name: "netbird-dashboard", namespace: this.namespace.metadata.name },
         spec: {
           replicas: 1,
+          strategy: { type: "RollingUpdate", rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } },
+          progressDeadlineSeconds: 120,
           selector: { matchLabels: { app: "netbird-dashboard" } },
           template: {
             metadata: { labels: { app: "netbird-dashboard" } },
