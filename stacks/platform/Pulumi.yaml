@@ -5,6 +5,8 @@ runtime:
     typescript: true
     packagemanager: pnpm
 description: Platform services (cert-manager, metallb, traefik, etc.)
+backend:
+  url: file://~
 packages:
   netbird:
     source: pulumi/pulumi/terraform-provider
