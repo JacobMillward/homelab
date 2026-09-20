@@ -222,11 +222,11 @@ export class Traefik extends pulumi.ComponentResource {
       { provider: cloudflareProvider, parent: this },
     );
 
-    // Look up the Helm-created service to reuse its selector
+    // Static ID (chart fullname is "traefik" for this release name), not release.status - avoids an unknown-value cascade into wg-home-peer on every Traefik values change.
     const helmSvc = k8s.core.v1.Service.get(
       "traefik-helm-svc",
-      pulumi.interpolate`${release.status.namespace}/${release.status.name}`,
-      { parent: this },
+      pulumi.interpolate`${ns.metadata.name}/traefik`,
+      { parent: this, dependsOn: [release] },
     );
     this.clusterIp = helmSvc.spec.clusterIP;
 
