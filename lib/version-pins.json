@@ -13,7 +13,7 @@
     },
     "metallb": {
       "chart": "metallb",
-      "version": "0.15.3",
+      "version": "0.16.1",
       "registryUrl": "https://metallb.github.io/metallb",
       "tier": "core-infra"
     },
