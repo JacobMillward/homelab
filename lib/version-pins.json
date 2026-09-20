@@ -49,7 +49,7 @@
     "netbirdRouter": { "image": "netbirdio/netbird", "tag": "0.67.4", "digest": "sha256:ab1307e6189e4f51e5c05c518bb9699255aff2710e9872324f0e6814a2c5d043", "tier": "core-infra" },
     "netbirdWgPeer": { "image": "alpine", "tag": "3.21", "digest": "sha256:ce64758a109eb420d874a118f87920e625e12d3634e03b4a5573fd9f6e5d3507", "tier": "core-infra" },
     "netbirdServer": { "image": "netbirdio/netbird-server", "tag": "0.67.4", "digest": "sha256:101b5d83cda2b22c7915c350ab259bcb9f7b64612d1927c1efe5f4b9616f08be", "tier": "core-infra" },
-    "netbirdDashboard": { "image": "netbirdio/dashboard", "tag": "v2.36.0", "digest": "sha256:0def57db6bbd4ab1559554e161e9e05e066f5411db7885b52e81bddb9791cad2", "tier": "core-infra" },
+    "netbirdDashboard": { "image": "netbirdio/dashboard", "tag": "v2.92.0", "digest": "sha256:fa2d8b02a81761e4d2a22df4041d13316b7635f1e93273eafeb53d4991e55b5a", "tier": "core-infra" },
     "crowdsecCurl": { "image": "curlimages/curl", "tag": "8.22.0", "digest": "sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777", "tier": "core-infra" },
     "crowdsecKubectl": { "image": "alpine/kubectl", "tag": "1.37.0", "digest": "sha256:954b65dea0eb140219b440413ede17c2eca205866df350d3c1fbc84d28af14ae", "tier": "core-infra" },
     "mosquitto": { "image": "eclipse-mosquitto", "tag": "2.0.22", "digest": "sha256:199ea8ef2e35ec2b1b37e59cfd1dbae538ed4dfa4a2251a121a52215a6248a21" },
