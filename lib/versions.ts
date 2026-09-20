@@ -33,9 +33,14 @@ export function helmChart(name: keyof VersionsFile["helm"]): HelmChartRef {
 }
 
 export function dockerImage(name: keyof VersionsFile["docker"]): string {
+  const ref = dockerImageRef(name);
+  return `${ref.image}:${ref.tag}`;
+}
+
+export function dockerImageRef(name: keyof VersionsFile["docker"]): DockerImageRef {
   const ref = versions.docker[name as string];
   if (!ref) throw new Error(`Unknown docker image "${String(name)}" in lib/version-pins.json`);
-  return `${ref.image}:${ref.tag}`;
+  return ref;
 }
 
 export function goModule(name: keyof VersionsFile["go"]): GoModuleRef {
