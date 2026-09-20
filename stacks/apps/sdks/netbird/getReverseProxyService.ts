@@ -29,12 +29,16 @@ export interface GetReverseProxyServiceArgs {
  * A collection of values returned by getReverseProxyService.
  */
 export interface GetReverseProxyServiceResult {
+    readonly accessRestrictions: outputs.GetReverseProxyServiceAccessRestrictions;
     readonly auth: outputs.GetReverseProxyServiceAuth;
     readonly domain: string;
     readonly enabled: boolean;
     readonly id: string;
+    readonly listenPort: number;
+    readonly mode: string;
     readonly name: string;
     readonly passHostHeader: boolean;
+    readonly portAutoAssigned: boolean;
     readonly proxyCluster: string;
     readonly rewriteRedirects: boolean;
     readonly targets: outputs.GetReverseProxyServiceTarget[];

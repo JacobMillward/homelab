@@ -5,6 +5,120 @@ import * as pulumi from "@pulumi/pulumi";
 import * as inputs from "../types/input";
 import * as outputs from "../types/output";
 
+export interface AgentNetworkGuardrailModelAllowlist {
+    /**
+     * Whether the model allowlist check is active
+     */
+    enabled: boolean;
+    /**
+     * Allowed catalog model IDs
+     */
+    models: string[];
+}
+
+export interface AgentNetworkGuardrailPromptCapture {
+    /**
+     * Whether prompt capture is enabled for this guardrail
+     */
+    enabled: boolean;
+    /**
+     * Whether captured prompts have PII redacted
+     */
+    redactPii: boolean;
+}
+
+export interface AgentNetworkPolicyBudgetLimit {
+    /**
+     * Whether the budget limit is enforced
+     */
+    enabled: boolean;
+    /**
+     * USD allowed per source group per window (0 = uncapped)
+     */
+    groupCapUsd: number;
+    /**
+     * USD allowed per user per window (0 = uncapped)
+     */
+    userCapUsd: number;
+    /**
+     * Reset frequency in seconds (minimum 60 when enabled)
+     */
+    windowSeconds: number;
+}
+
+export interface AgentNetworkPolicyTokenLimit {
+    /**
+     * Whether the token limit is enforced
+     */
+    enabled: boolean;
+    /**
+     * Tokens allowed per source group per window (0 = uncapped)
+     */
+    groupCap: number;
+    /**
+     * Tokens allowed per individual user per window (0 = uncapped)
+     */
+    userCap: number;
+    /**
+     * Reset frequency in seconds (minimum 60 when enabled)
+     */
+    windowSeconds: number;
+}
+
+export interface AgentNetworkProviderModel {
+    /**
+     * Model identifier (e.g. `gpt-4o-mini`)
+     */
+    id: string;
+    /**
+     * Cost per 1k input tokens in USD
+     */
+    inputPer1k: number;
+    /**
+     * Cost per 1k output tokens in USD
+     */
+    outputPer1k: number;
+}
+
+export interface GetAgentNetworkGuardrailModelAllowlist {
+    enabled: boolean;
+    models: string[];
+}
+
+export interface GetAgentNetworkGuardrailPromptCapture {
+    enabled: boolean;
+    redactPii: boolean;
+}
+
+export interface GetAgentNetworkPolicyBudgetLimit {
+    enabled: boolean;
+    groupCapUsd: number;
+    userCapUsd: number;
+    windowSeconds: number;
+}
+
+export interface GetAgentNetworkPolicyTokenLimit {
+    enabled: boolean;
+    groupCap: number;
+    userCap: number;
+    windowSeconds: number;
+}
+
+export interface GetAgentNetworkProviderModel {
+    /**
+     * Model identifier
+     */
+    id: string;
+    /**
+     * Cost per 1k input tokens in USD
+     */
+    inputPer1k: number;
+    /**
+     * Cost per 1k output tokens in USD
+     */
+    outputPer1k: number;
+}
+
 export interface GetNameserverGroupNameserver {
     /**
      * Nameserver IP
@@ -138,11 +252,34 @@ export interface GetReverseProxyClustersCluster {
     connectedProxies: number;
 }
 
+export interface GetReverseProxyServiceAccessRestrictions {
+    /**
+     * CIDR allowlist
+     */
+    allowedCidrs: string[];
+    /**
+     * ISO 3166-1 alpha-2 country codes to allow
+     */
+    allowedCountries: string[];
+    /**
+     * CIDR blocklist
+     */
+    blockedCidrs: string[];
+    /**
+     * ISO 3166-1 alpha-2 country codes to block
+     */
+    blockedCountries: string[];
+}
+
 export interface GetReverseProxyServiceAuth {
     /**
      * Bearer token authentication
      */
     bearerAuth: outputs.GetReverseProxyServiceAuthBearerAuth;
+    /**
+     * Static header-value authentication rules
+     */
+    headerAuths: outputs.GetReverseProxyServiceAuthHeaderAuth[];
     /**
      * Link authentication
      */
@@ -163,6 +300,18 @@ export interface GetReverseProxyServiceAuthBearerAuth {
      */
     distributionGroups: string[];
     enabled: boolean;
+}
+
+export interface GetReverseProxyServiceAuthHeaderAuth {
+    enabled: boolean;
+    /**
+     * HTTP header name to check
+     */
+    header: string;
+    /**
+     * Expected header value
+     */
+    value: string;
 }
 
 export interface GetReverseProxyServiceAuthLinkAuth {
@@ -189,6 +338,10 @@ export interface GetReverseProxyServiceTarget {
      */
     host: string;
     /**
+     * Per-target options
+     */
+    options: outputs.GetReverseProxyServiceTargetOptions;
+    /**
      * URL path prefix for this target
      */
     path: string;
@@ -197,7 +350,7 @@ export interface GetReverseProxyServiceTarget {
      */
     port: number;
     /**
-     * Protocol to use when connecting to the backend (http, https)
+     * Protocol to use when connecting to the backend (http, https for HTTP mode; tcp, udp for L4 mode)
      */
     protocol: string;
     /**
@@ -208,6 +361,33 @@ export interface GetReverseProxyServiceTarget {
      * Target type (peer, host, domain, subnet)
      */
     targetType: string;
+}
+
+export interface GetReverseProxyServiceTargetOptions {
+    /**
+     * Extra headers sent to the backend (HTTP only). Marked sensitive since values commonly carry credentials, e.g. an `Authorization` header.
+     */
+    customHeaders: {[key: string]: string};
+    /**
+     * Controls how the request path is rewritten before forwarding (HTTP only)
+     */
+    pathRewrite: string;
+    /**
+     * Send PROXY Protocol v2 header to this backend (TCP/TLS only)
+     */
+    proxyProtocol: boolean;
+    /**
+     * Per-target response timeout as a Go duration string
+     */
+    requestTimeout: string;
+    /**
+     * Idle timeout before a UDP session is reaped (UDP only)
+     */
+    sessionIdleTimeout: string;
+    /**
+     * Skip TLS certificate verification for this backend (HTTPS targets only)
+     */
+    skipTlsVerify: boolean;
 }
 
 export interface NameserverGroupNameserver {
@@ -332,11 +512,34 @@ export interface PostureCheckProcessCheck {
     windowsPath?: string;
 }
 
+export interface ReverseProxyServiceAccessRestrictions {
+    /**
+     * CIDR allowlist
+     */
+    allowedCidrs?: string[];
+    /**
+     * ISO 3166-1 alpha-2 country codes to allow
+     */
+    allowedCountries?: string[];
+    /**
+     * CIDR blocklist
+     */
+    blockedCidrs?: string[];
+    /**
+     * ISO 3166-1 alpha-2 country codes to block
+     */
+    blockedCountries?: string[];
+}
+
 export interface ReverseProxyServiceAuth {
     /**
      * Bearer token authentication
      */
     bearerAuth?: outputs.ReverseProxyServiceAuthBearerAuth;
+    /**
+     * Static header-value authentication rules
+     */
+    headerAuths?: outputs.ReverseProxyServiceAuthHeaderAuth[];
     /**
      * Link authentication
      */
@@ -357,6 +560,18 @@ export interface ReverseProxyServiceAuthBearerAuth {
      */
     distributionGroups?: string[];
     enabled: boolean;
+}
+
+export interface ReverseProxyServiceAuthHeaderAuth {
+    enabled: boolean;
+    /**
+     * HTTP header name to check
+     */
+    header: string;
+    /**
+     * Expected header value
+     */
+    value: string;
 }
 
 export interface ReverseProxyServiceAuthLinkAuth {
@@ -383,6 +598,10 @@ export interface ReverseProxyServiceTarget {
      */
     host: string;
     /**
+     * Per-target options
+     */
+    options?: outputs.ReverseProxyServiceTargetOptions;
+    /**
      * URL path prefix for this target. Defaults to "/" if omitted.
      */
     path: string;
@@ -391,7 +610,7 @@ export interface ReverseProxyServiceTarget {
      */
     port: number;
     /**
-     * Protocol to use when connecting to the backend (http, https)
+     * Protocol to use when connecting to the backend (http, https for HTTP mode; tcp, udp for L4 mode)
      */
     protocol: string;
     /**
@@ -402,5 +621,32 @@ export interface ReverseProxyServiceTarget {
      * Target type (peer, host, domain, subnet)
      */
     targetType: string;
+}
+
+export interface ReverseProxyServiceTargetOptions {
+    /**
+     * Extra headers sent to the backend (HTTP only). Marked sensitive since values commonly carry credentials, e.g. an `Authorization` header.
+     */
+    customHeaders?: {[key: string]: string};
+    /**
+     * Controls how the request path is rewritten before forwarding. Default strips the matched prefix. "preserve" keeps the full original path. (HTTP only)
+     */
+    pathRewrite?: string;
+    /**
+     * Send PROXY Protocol v2 header to this backend (TCP/TLS only)
+     */
+    proxyProtocol?: boolean;
+    /**
+     * Per-target response timeout as a Go duration string (e.g. "30s", "2m")
+     */
+    requestTimeout?: string;
+    /**
+     * Idle timeout before a UDP session is reaped, as a Go duration string (e.g. "30s", "2m"). Maximum 10m. (UDP only)
+     */
+    sessionIdleTimeout?: string;
+    /**
+     * Skip TLS certificate verification for this backend (HTTPS targets only)
+     */
+    skipTlsVerify?: boolean;
 }
 

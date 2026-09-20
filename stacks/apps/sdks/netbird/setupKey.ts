@@ -49,7 +49,7 @@ export class SetupKey extends pulumi.CustomResource {
      */
     declare public /*out*/ readonly expires: pulumi.Output<string>;
     /**
-     * Expiry time in seconds (0 is unlimited)
+     * Expiry time in seconds (0 is unlimited). The API reports an absolute expiry date and no creation date, so this value cannot be read back and an imported key adopts whatever the configuration says.
      */
     declare public readonly expirySeconds: pulumi.Output<number>;
     /**
@@ -81,7 +81,7 @@ export class SetupKey extends pulumi.CustomResource {
      */
     declare public /*out*/ readonly updatedAt: pulumi.Output<string>;
     /**
-     * Maximum number of times SetupKey can be used (0 for unlimited)
+     * Maximum number of times SetupKey can be used (0 for unlimited). A one-off key is always limited to 1 by the server, so leave this unset for one-off keys.
      */
     declare public readonly usageLimit: pulumi.Output<number>;
     /**
@@ -167,7 +167,7 @@ export interface SetupKeyState {
      */
     expires?: pulumi.Input<string | undefined>;
     /**
-     * Expiry time in seconds (0 is unlimited)
+     * Expiry time in seconds (0 is unlimited). The API reports an absolute expiry date and no creation date, so this value cannot be read back and an imported key adopts whatever the configuration says.
      */
     expirySeconds?: pulumi.Input<number | undefined>;
     /**
@@ -199,7 +199,7 @@ export interface SetupKeyState {
      */
     updatedAt?: pulumi.Input<string | undefined>;
     /**
-     * Maximum number of times SetupKey can be used (0 for unlimited)
+     * Maximum number of times SetupKey can be used (0 for unlimited). A one-off key is always limited to 1 by the server, so leave this unset for one-off keys.
      */
     usageLimit?: pulumi.Input<number | undefined>;
     /**
@@ -229,7 +229,7 @@ export interface SetupKeyArgs {
      */
     ephemeral?: pulumi.Input<boolean | undefined>;
     /**
-     * Expiry time in seconds (0 is unlimited)
+     * Expiry time in seconds (0 is unlimited). The API reports an absolute expiry date and no creation date, so this value cannot be read back and an imported key adopts whatever the configuration says.
      */
     expirySeconds?: pulumi.Input<number | undefined>;
     /**
@@ -245,7 +245,7 @@ export interface SetupKeyArgs {
      */
     type?: pulumi.Input<string | undefined>;
     /**
-     * Maximum number of times SetupKey can be used (0 for unlimited)
+     * Maximum number of times SetupKey can be used (0 for unlimited). A one-off key is always limited to 1 by the server, so leave this unset for one-off keys.
      */
     usageLimit?: pulumi.Input<number | undefined>;
 }

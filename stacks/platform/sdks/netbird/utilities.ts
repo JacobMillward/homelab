@@ -101,7 +101,7 @@ export async function getPackage(): Promise<string | undefined> {
 		baseProviderVersion: "1.1.1",
 		baseProviderDownloadUrl: "",
 		packageName: "netbird",
-		packageVersion: "0.0.9",
-		base64Parameter: "eyJyZW1vdGUiOnsidXJsIjoicmVnaXN0cnkub3BlbnRvZnUub3JnL25ldGJpcmRpby9uZXRiaXJkIiwidmVyc2lvbiI6IjAuMC45In19",
+		packageVersion: "0.0.10",
+		base64Parameter: "eyJyZW1vdGUiOnsidXJsIjoicmVnaXN0cnkub3BlbnRvZnUub3JnL25ldGJpcmRpby9uZXRiaXJkIiwidmVyc2lvbiI6IjAuMC4xMCJ9fQ==",
 	});
 }

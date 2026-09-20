@@ -69,7 +69,7 @@ export class User extends pulumi.CustomResource {
      */
     declare public readonly role: pulumi.Output<string>;
     /**
-     * User status (active or invited)
+     * User status (active, invited or blocked)
      */
     declare public /*out*/ readonly status: pulumi.Output<string>;
 
@@ -158,7 +158,7 @@ export interface UserState {
      */
     role?: pulumi.Input<string | undefined>;
     /**
-     * User status (active or invited)
+     * User status (active, invited or blocked)
      */
     status?: pulumi.Input<string | undefined>;
 }

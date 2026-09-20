@@ -10,6 +10,26 @@ export type AccountSettings = import("./accountSettings").AccountSettings;
 export const AccountSettings: typeof import("./accountSettings").AccountSettings = null as any;
 utilities.lazyLoad(exports, ["AccountSettings"], () => require("./accountSettings"));
 
+export { AgentNetworkGuardrailArgs, AgentNetworkGuardrailState } from "./agentNetworkGuardrail";
+export type AgentNetworkGuardrail = import("./agentNetworkGuardrail").AgentNetworkGuardrail;
+export const AgentNetworkGuardrail: typeof import("./agentNetworkGuardrail").AgentNetworkGuardrail = null as any;
+utilities.lazyLoad(exports, ["AgentNetworkGuardrail"], () => require("./agentNetworkGuardrail"));
+
+export { AgentNetworkPolicyArgs, AgentNetworkPolicyState } from "./agentNetworkPolicy";
+export type AgentNetworkPolicy = import("./agentNetworkPolicy").AgentNetworkPolicy;
+export const AgentNetworkPolicy: typeof import("./agentNetworkPolicy").AgentNetworkPolicy = null as any;
+utilities.lazyLoad(exports, ["AgentNetworkPolicy"], () => require("./agentNetworkPolicy"));
+
+export { AgentNetworkProviderArgs, AgentNetworkProviderState } from "./agentNetworkProvider";
+export type AgentNetworkProvider = import("./agentNetworkProvider").AgentNetworkProvider;
+export const AgentNetworkProvider: typeof import("./agentNetworkProvider").AgentNetworkProvider = null as any;
+utilities.lazyLoad(exports, ["AgentNetworkProvider"], () => require("./agentNetworkProvider"));
+
+export { AgentNetworkSettingsArgs, AgentNetworkSettingsState } from "./agentNetworkSettings";
+export type AgentNetworkSettings = import("./agentNetworkSettings").AgentNetworkSettings;
+export const AgentNetworkSettings: typeof import("./agentNetworkSettings").AgentNetworkSettings = null as any;
+utilities.lazyLoad(exports, ["AgentNetworkSettings"], () => require("./agentNetworkSettings"));
+
 export { DnsRecordArgs, DnsRecordState } from "./dnsRecord";
 export type DnsRecord = import("./dnsRecord").DnsRecord;
 export const DnsRecord: typeof import("./dnsRecord").DnsRecord = null as any;
@@ -29,6 +49,21 @@ export { GetAccountSettingsResult } from "./getAccountSettings";
 export const getAccountSettings: typeof import("./getAccountSettings").getAccountSettings = null as any;
 export const getAccountSettingsOutput: typeof import("./getAccountSettings").getAccountSettingsOutput = null as any;
 utilities.lazyLoad(exports, ["getAccountSettings","getAccountSettingsOutput"], () => require("./getAccountSettings"));
+
+export { GetAgentNetworkGuardrailArgs, GetAgentNetworkGuardrailResult, GetAgentNetworkGuardrailOutputArgs } from "./getAgentNetworkGuardrail";
+export const getAgentNetworkGuardrail: typeof import("./getAgentNetworkGuardrail").getAgentNetworkGuardrail = null as any;
+export const getAgentNetworkGuardrailOutput: typeof import("./getAgentNetworkGuardrail").getAgentNetworkGuardrailOutput = null as any;
+utilities.lazyLoad(exports, ["getAgentNetworkGuardrail","getAgentNetworkGuardrailOutput"], () => require("./getAgentNetworkGuardrail"));
+
+export { GetAgentNetworkPolicyArgs, GetAgentNetworkPolicyResult, GetAgentNetworkPolicyOutputArgs } from "./getAgentNetworkPolicy";
+export const getAgentNetworkPolicy: typeof import("./getAgentNetworkPolicy").getAgentNetworkPolicy = null as any;
+export const getAgentNetworkPolicyOutput: typeof import("./getAgentNetworkPolicy").getAgentNetworkPolicyOutput = null as any;
+utilities.lazyLoad(exports, ["getAgentNetworkPolicy","getAgentNetworkPolicyOutput"], () => require("./getAgentNetworkPolicy"));
+
+export { GetAgentNetworkProviderArgs, GetAgentNetworkProviderResult, GetAgentNetworkProviderOutputArgs } from "./getAgentNetworkProvider";
+export const getAgentNetworkProvider: typeof import("./getAgentNetworkProvider").getAgentNetworkProvider = null as any;
+export const getAgentNetworkProviderOutput: typeof import("./getAgentNetworkProvider").getAgentNetworkProviderOutput = null as any;
+utilities.lazyLoad(exports, ["getAgentNetworkProvider","getAgentNetworkProviderOutput"], () => require("./getAgentNetworkProvider"));
 
 export { GetDnsRecordArgs, GetDnsRecordResult, GetDnsRecordOutputArgs } from "./getDnsRecord";
 export const getDnsRecord: typeof import("./getDnsRecord").getDnsRecord = null as any;
@@ -234,6 +269,14 @@ const _module = {
         switch (type) {
             case "netbird:index/accountSettings:AccountSettings":
                 return new AccountSettings(name, <any>undefined, { urn })
+            case "netbird:index/agentNetworkGuardrail:AgentNetworkGuardrail":
+                return new AgentNetworkGuardrail(name, <any>undefined, { urn })
+            case "netbird:index/agentNetworkPolicy:AgentNetworkPolicy":
+                return new AgentNetworkPolicy(name, <any>undefined, { urn })
+            case "netbird:index/agentNetworkProvider:AgentNetworkProvider":
+                return new AgentNetworkProvider(name, <any>undefined, { urn })
+            case "netbird:index/agentNetworkSettings:AgentNetworkSettings":
+                return new AgentNetworkSettings(name, <any>undefined, { urn })
             case "netbird:index/dnsRecord:DnsRecord":
                 return new DnsRecord(name, <any>undefined, { urn })
             case "netbird:index/dnsSettings:DnsSettings":
@@ -278,6 +321,10 @@ const _module = {
     },
 };
 pulumi.runtime.registerResourceModule("netbird", "index/accountSettings", _module)
+pulumi.runtime.registerResourceModule("netbird", "index/agentNetworkGuardrail", _module)
+pulumi.runtime.registerResourceModule("netbird", "index/agentNetworkPolicy", _module)
+pulumi.runtime.registerResourceModule("netbird", "index/agentNetworkProvider", _module)
+pulumi.runtime.registerResourceModule("netbird", "index/agentNetworkSettings", _module)
 pulumi.runtime.registerResourceModule("netbird", "index/dnsRecord", _module)
 pulumi.runtime.registerResourceModule("netbird", "index/dnsSettings", _module)
 pulumi.runtime.registerResourceModule("netbird", "index/dnsZone", _module)
