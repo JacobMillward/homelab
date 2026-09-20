@@ -3,15 +3,15 @@
   "version": "0.1.0",
   "main": "index.ts",
   "devDependencies": {
-    "@types/node": "^18",
-    "typescript": "^5.0.0"
+    "@types/node": "^18.19.130",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@pulumi/cloudflare": "^6.13.0",
-    "@pulumi/kubernetes": "^4.25.0",
+    "@pulumi/cloudflare": "^6.21.0",
+    "@pulumi/kubernetes": "^4.34.1",
     "@pulumi/netbird": "file:sdks/netbird",
-    "@pulumi/pulumi": "^3.226.0",
-    "@pulumi/random": "^4.19.1",
+    "@pulumi/pulumi": "^3.263.0",
+    "@pulumi/random": "^4.21.2",
     "homelab-lib": "workspace:*"
   },
   "trustedDependencies": [
