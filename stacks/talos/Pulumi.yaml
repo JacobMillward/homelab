@@ -5,3 +5,5 @@ runtime:
     typescript: true
     packagemanager: pnpm
 description: Talos cluster bootstrap and lifecycle
+backend:
+  url: file://~

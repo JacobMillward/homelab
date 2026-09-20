@@ -3,3 +3,4 @@ kubeconfig.yaml
 talosconfig.yaml
 node_modules/
 stacks/*/sdks/
+stacks/*/pnpm-workspace.yaml
