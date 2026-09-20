@@ -36,6 +36,13 @@ export class CertManager extends pulumi.ComponentResource {
         },
         values: {
           crds: { enabled: true },
+          strategy: { type: "RollingUpdate", rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } },
+          webhook: {
+            strategy: { type: "RollingUpdate", rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } },
+          },
+          cainjector: {
+            strategy: { type: "RollingUpdate", rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } },
+          },
         },
       },
       { parent: this },
