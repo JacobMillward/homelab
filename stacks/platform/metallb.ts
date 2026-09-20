@@ -39,6 +39,9 @@ export class MetalLB extends pulumi.ComponentResource {
           repo: chart.registryUrl,
         },
         values: {
+          controller: {
+            strategy: { type: "RollingUpdate", rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } },
+          },
           speaker: {
             // Talos labels control plane nodes with
             // node.kubernetes.io/exclude-from-external-load-balancers
