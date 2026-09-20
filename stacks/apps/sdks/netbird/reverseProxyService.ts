@@ -35,6 +35,10 @@ export class ReverseProxyService extends pulumi.CustomResource {
     }
 
     /**
+     * Connection-level access restrictions based on IP or geography
+     */
+    declare public readonly accessRestrictions: pulumi.Output<outputs.ReverseProxyServiceAccessRestrictions | undefined>;
+    /**
      * Authentication configuration
      */
     declare public readonly auth: pulumi.Output<outputs.ReverseProxyServiceAuth>;
@@ -47,6 +51,14 @@ export class ReverseProxyService extends pulumi.CustomResource {
      */
     declare public readonly enabled: pulumi.Output<boolean>;
     /**
+     * Port the proxy listens on (L4/TLS only). Set to 0 for auto-assignment.
+     */
+    declare public readonly listenPort: pulumi.Output<number>;
+    /**
+     * Service mode: "http" for L7 reverse proxy, "tcp"/"udp"/"tls" for L4 passthrough
+     */
+    declare public readonly mode: pulumi.Output<string>;
+    /**
      * Service name
      */
     declare public readonly name: pulumi.Output<string>;
@@ -54,6 +66,10 @@ export class ReverseProxyService extends pulumi.CustomResource {
      * When true, the original client Host header is passed through to the backend
      */
     declare public readonly passHostHeader: pulumi.Output<boolean>;
+    /**
+     * Whether the listen port was auto-assigned by the server
+     */
+    declare public /*out*/ readonly portAutoAssigned: pulumi.Output<boolean>;
     /**
      * The proxy cluster handling this service (derived from domain)
      */
@@ -80,11 +96,15 @@ export class ReverseProxyService extends pulumi.CustomResource {
         opts = opts || {};
         if (opts.id) {
             const state = argsOrState as ReverseProxyServiceState | undefined;
+            resourceInputs["accessRestrictions"] = state?.accessRestrictions;
             resourceInputs["auth"] = state?.auth;
             resourceInputs["domain"] = state?.domain;
             resourceInputs["enabled"] = state?.enabled;
+            resourceInputs["listenPort"] = state?.listenPort;
+            resourceInputs["mode"] = state?.mode;
             resourceInputs["name"] = state?.name;
             resourceInputs["passHostHeader"] = state?.passHostHeader;
+            resourceInputs["portAutoAssigned"] = state?.portAutoAssigned;
             resourceInputs["proxyCluster"] = state?.proxyCluster;
             resourceInputs["rewriteRedirects"] = state?.rewriteRedirects;
             resourceInputs["targets"] = state?.targets;
@@ -99,13 +119,17 @@ export class ReverseProxyService extends pulumi.CustomResource {
             if (args?.targets === undefined && !opts.urn) {
                 throw new Error("Missing required property 'targets'");
             }
+            resourceInputs["accessRestrictions"] = args?.accessRestrictions;
             resourceInputs["auth"] = args?.auth;
             resourceInputs["domain"] = args?.domain;
             resourceInputs["enabled"] = args?.enabled;
+            resourceInputs["listenPort"] = args?.listenPort;
+            resourceInputs["mode"] = args?.mode;
             resourceInputs["name"] = args?.name;
             resourceInputs["passHostHeader"] = args?.passHostHeader;
             resourceInputs["rewriteRedirects"] = args?.rewriteRedirects;
             resourceInputs["targets"] = args?.targets;
+            resourceInputs["portAutoAssigned"] = undefined /*out*/;
             resourceInputs["proxyCluster"] = undefined /*out*/;
         }
         opts = pulumi.mergeOptions(utilities.resourceOptsDefaults(), opts);
@@ -117,6 +141,10 @@ export class ReverseProxyService extends pulumi.CustomResource {
  * Input properties used for looking up and filtering ReverseProxyService resources.
  */
 export interface ReverseProxyServiceState {
+    /**
+     * Connection-level access restrictions based on IP or geography
+     */
+    accessRestrictions?: pulumi.Input<inputs.ReverseProxyServiceAccessRestrictions | undefined>;
     /**
      * Authentication configuration
      */
@@ -130,6 +158,14 @@ export interface ReverseProxyServiceState {
      */
     enabled?: pulumi.Input<boolean | undefined>;
     /**
+     * Port the proxy listens on (L4/TLS only). Set to 0 for auto-assignment.
+     */
+    listenPort?: pulumi.Input<number | undefined>;
+    /**
+     * Service mode: "http" for L7 reverse proxy, "tcp"/"udp"/"tls" for L4 passthrough
+     */
+    mode?: pulumi.Input<string | undefined>;
+    /**
      * Service name
      */
     name?: pulumi.Input<string | undefined>;
@@ -137,6 +173,10 @@ export interface ReverseProxyServiceState {
      * When true, the original client Host header is passed through to the backend
      */
     passHostHeader?: pulumi.Input<boolean | undefined>;
+    /**
+     * Whether the listen port was auto-assigned by the server
+     */
+    portAutoAssigned?: pulumi.Input<boolean | undefined>;
     /**
      * The proxy cluster handling this service (derived from domain)
      */
@@ -156,6 +196,10 @@ export interface ReverseProxyServiceState {
  */
 export interface ReverseProxyServiceArgs {
     /**
+     * Connection-level access restrictions based on IP or geography
+     */
+    accessRestrictions?: pulumi.Input<inputs.ReverseProxyServiceAccessRestrictions | undefined>;
+    /**
      * Authentication configuration
      */
     auth: pulumi.Input<inputs.ReverseProxyServiceAuth>;
@@ -167,6 +211,14 @@ export interface ReverseProxyServiceArgs {
      * Whether the service is enabled
      */
     enabled?: pulumi.Input<boolean | undefined>;
+    /**
+     * Port the proxy listens on (L4/TLS only). Set to 0 for auto-assignment.
+     */
+    listenPort?: pulumi.Input<number | undefined>;
+    /**
+     * Service mode: "http" for L7 reverse proxy, "tcp"/"udp"/"tls" for L4 passthrough
+     */
+    mode?: pulumi.Input<string | undefined>;
     /**
      * Service name
      */

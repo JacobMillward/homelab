@@ -5,6 +5,81 @@ import * as pulumi from "@pulumi/pulumi";
 import * as inputs from "../types/input";
 import * as outputs from "../types/output";
 
+export interface AgentNetworkGuardrailModelAllowlist {
+    /**
+     * Whether the model allowlist check is active
+     */
+    enabled?: pulumi.Input<boolean | undefined>;
+    /**
+     * Allowed catalog model IDs
+     */
+    models: pulumi.Input<pulumi.Input<string>[]>;
+}
+
+export interface AgentNetworkGuardrailPromptCapture {
+    /**
+     * Whether prompt capture is enabled for this guardrail
+     */
+    enabled?: pulumi.Input<boolean | undefined>;
+    /**
+     * Whether captured prompts have PII redacted
+     */
+    redactPii?: pulumi.Input<boolean | undefined>;
+}
+
+export interface AgentNetworkPolicyBudgetLimit {
+    /**
+     * Whether the budget limit is enforced
+     */
+    enabled?: pulumi.Input<boolean | undefined>;
+    /**
+     * USD allowed per source group per window (0 = uncapped)
+     */
+    groupCapUsd?: pulumi.Input<number | undefined>;
+    /**
+     * USD allowed per user per window (0 = uncapped)
+     */
+    userCapUsd?: pulumi.Input<number | undefined>;
+    /**
+     * Reset frequency in seconds (minimum 60 when enabled)
+     */
+    windowSeconds?: pulumi.Input<number | undefined>;
+}
+
+export interface AgentNetworkPolicyTokenLimit {
+    /**
+     * Whether the token limit is enforced
+     */
+    enabled?: pulumi.Input<boolean | undefined>;
+    /**
+     * Tokens allowed per source group per window (0 = uncapped)
+     */
+    groupCap?: pulumi.Input<number | undefined>;
+    /**
+     * Tokens allowed per individual user per window (0 = uncapped)
+     */
+    userCap?: pulumi.Input<number | undefined>;
+    /**
+     * Reset frequency in seconds (minimum 60 when enabled)
+     */
+    windowSeconds?: pulumi.Input<number | undefined>;
+}
+
+export interface AgentNetworkProviderModel {
+    /**
+     * Model identifier (e.g. `gpt-4o-mini`)
+     */
+    id: pulumi.Input<string>;
+    /**
+     * Cost per 1k input tokens in USD
+     */
+    inputPer1k: pulumi.Input<number>;
+    /**
+     * Cost per 1k output tokens in USD
+     */
+    outputPer1k: pulumi.Input<number>;
+}
+
 export interface GetPolicyRule {
     /**
      * Policy Rule Action (accept|drop)
@@ -275,11 +350,34 @@ export interface PostureCheckProcessCheck {
     windowsPath?: pulumi.Input<string | undefined>;
 }
 
+export interface ReverseProxyServiceAccessRestrictions {
+    /**
+     * CIDR allowlist
+     */
+    allowedCidrs?: pulumi.Input<pulumi.Input<string>[] | undefined>;
+    /**
+     * ISO 3166-1 alpha-2 country codes to allow
+     */
+    allowedCountries?: pulumi.Input<pulumi.Input<string>[] | undefined>;
+    /**
+     * CIDR blocklist
+     */
+    blockedCidrs?: pulumi.Input<pulumi.Input<string>[] | undefined>;
+    /**
+     * ISO 3166-1 alpha-2 country codes to block
+     */
+    blockedCountries?: pulumi.Input<pulumi.Input<string>[] | undefined>;
+}
+
 export interface ReverseProxyServiceAuth {
     /**
      * Bearer token authentication
      */
     bearerAuth?: pulumi.Input<inputs.ReverseProxyServiceAuthBearerAuth | undefined>;
+    /**
+     * Static header-value authentication rules
+     */
+    headerAuths?: pulumi.Input<pulumi.Input<inputs.ReverseProxyServiceAuthHeaderAuth>[] | undefined>;
     /**
      * Link authentication
      */
@@ -300,6 +398,18 @@ export interface ReverseProxyServiceAuthBearerAuth {
      */
     distributionGroups?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     enabled: pulumi.Input<boolean>;
+}
+
+export interface ReverseProxyServiceAuthHeaderAuth {
+    enabled: pulumi.Input<boolean>;
+    /**
+     * HTTP header name to check
+     */
+    header: pulumi.Input<string>;
+    /**
+     * Expected header value
+     */
+    value: pulumi.Input<string>;
 }
 
 export interface ReverseProxyServiceAuthLinkAuth {
@@ -326,6 +436,10 @@ export interface ReverseProxyServiceTarget {
      */
     host?: pulumi.Input<string | undefined>;
     /**
+     * Per-target options
+     */
+    options?: pulumi.Input<inputs.ReverseProxyServiceTargetOptions | undefined>;
+    /**
      * URL path prefix for this target. Defaults to "/" if omitted.
      */
     path?: pulumi.Input<string | undefined>;
@@ -334,7 +448,7 @@ export interface ReverseProxyServiceTarget {
      */
     port: pulumi.Input<number>;
     /**
-     * Protocol to use when connecting to the backend (http, https)
+     * Protocol to use when connecting to the backend (http, https for HTTP mode; tcp, udp for L4 mode)
      */
     protocol: pulumi.Input<string>;
     /**
@@ -345,4 +459,31 @@ export interface ReverseProxyServiceTarget {
      * Target type (peer, host, domain, subnet)
      */
     targetType: pulumi.Input<string>;
+}
+
+export interface ReverseProxyServiceTargetOptions {
+    /**
+     * Extra headers sent to the backend (HTTP only). Marked sensitive since values commonly carry credentials, e.g. an `Authorization` header.
+     */
+    customHeaders?: pulumi.Input<{[key: string]: pulumi.Input<string>} | undefined>;
+    /**
+     * Controls how the request path is rewritten before forwarding. Default strips the matched prefix. "preserve" keeps the full original path. (HTTP only)
+     */
+    pathRewrite?: pulumi.Input<string | undefined>;
+    /**
+     * Send PROXY Protocol v2 header to this backend (TCP/TLS only)
+     */
+    proxyProtocol?: pulumi.Input<boolean | undefined>;
+    /**
+     * Per-target response timeout as a Go duration string (e.g. "30s", "2m")
+     */
+    requestTimeout?: pulumi.Input<string | undefined>;
+    /**
+     * Idle timeout before a UDP session is reaped, as a Go duration string (e.g. "30s", "2m"). Maximum 10m. (UDP only)
+     */
+    sessionIdleTimeout?: pulumi.Input<string | undefined>;
+    /**
+     * Skip TLS certificate verification for this backend (HTTPS targets only)
+     */
+    skipTlsVerify?: pulumi.Input<boolean | undefined>;
 }
