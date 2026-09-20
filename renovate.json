@@ -64,6 +64,26 @@
         "$each(go, function($v, $k) { {\"depName\": $v.moduleName, \"currentValue\": $v.version, \"depType\": $v.tier ? $v.tier : \"platform\"} })"
       ],
       "datasourceTemplate": "go"
+    },
+    {
+      "customType": "jsonata",
+      "fileFormat": "yaml",
+      "managerFilePatterns": ["/^stacks/(apps|platform)/Pulumi\\.yaml$/"],
+      "matchStrings": [
+        "{\"depName\": packages.netbird.parameters[0], \"currentValue\": packages.netbird.parameters[1], \"datasource\": \"terraform-provider\"}"
+      ]
     }
-  ]
+  ],
+  "postUpgradeTasks": {
+    "installTools": { "npm": {} },
+    "commands": ["bash scripts/generate-netbird-sdk.sh"],
+    "fileFilters": [
+      "stacks/apps/Pulumi.yaml",
+      "stacks/platform/Pulumi.yaml",
+      "stacks/apps/sdks/netbird/**",
+      "stacks/platform/sdks/netbird/**",
+      "pnpm-lock.yaml"
+    ],
+    "executionMode": "branch"
+  }
 }

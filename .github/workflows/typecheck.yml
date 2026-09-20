@@ -8,28 +8,15 @@ jobs:
   typecheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
-          version: 11
-      - uses: actions/setup-node@v4
+          version: 12
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
-      - name: Install Pulumi CLI
-        run: |
-          curl -fsSL https://get.pulumi.com | sh
-          echo "$HOME/.pulumi/bin" >> "$GITHUB_PATH"
-      # Generates stacks/{apps,platform}/sdks/netbird, a `file:` dependency pnpm
-      # needs to resolve. Pulumi.yaml pins backend: url: file://~ so this never
-      # touches the real Garage backend or Pulumi Cloud - see Justfile's `pulumi`
-      # recipe for the real backend, scoped to actual stack operations only.
-      - run: pulumi install --no-dependencies --cwd stacks/apps
-      - run: pulumi install --no-dependencies --cwd stacks/platform
-      # not --frozen-lockfile: the netbird SDK regeneration above isn't
-      # perfectly reproducible (transitive dep versions can drift slightly
-      # between runs), so the lockfile may need small in-CI adjustments.
-      - run: pnpm install
+      - run: pnpm install --frozen-lockfile
       - run: |
           for pkg in homelab-lib homelab-apps homelab-platform homelab-talos homelab-vps; do
             echo "::group::tsc --noEmit ($pkg)"

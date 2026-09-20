@@ -30,9 +30,12 @@ pulumi STACK *args:
 
 # Install dependencies for all stacks
 install:
-    pulumi install --no-dependencies --cwd stacks/apps
-    pulumi install --no-dependencies --cwd stacks/platform
     pnpm install
+
+# Regenerate stacks/{apps,platform}/sdks/netbird from Pulumi.yaml's packages.netbird
+# spec (e.g. after bumping its version) and commit the result
+regenerate-netbird-sdk:
+    @bash scripts/generate-netbird-sdk.sh
 
 # Initialize all Pulumi stacks (run once)
 init:
