@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "main": "index.ts",
   "devDependencies": {
-    "@types/node": "^18",
-    "typescript": "^5.0.0"
+    "@types/node": "18.19.130",
+    "typescript": "5.9.3"
   },
   "dependencies": {
     "homelab-lib": "workspace:*",
     "@pulumi/pulumi": "^3.226.0",
     "@pulumi/command": "^1.0.0",
-    "@pulumiverse/talos": "^0.7.1"
+    "@pulumiverse/talos": "^0.8.0"
   },
   "trustedDependencies": [
     "@pulumi/command",
