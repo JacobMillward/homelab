@@ -48,7 +48,9 @@ PersistentKeepalive = 25
         metadata: { name: "wg-home-peer", namespace: namespace.metadata.name },
         spec: {
           replicas: 1,
+          // Recreate: two pods sharing this peer identity would fight over one WireGuard session.
           strategy: { type: "Recreate" },
+          progressDeadlineSeconds: 120,
           selector: { matchLabels: { app: "wg-home-peer" } },
           template: {
             metadata: { labels: { app: "wg-home-peer" } },
@@ -68,6 +70,12 @@ PersistentKeepalive = 25
                       "while :; do sleep 86400 & wait $!; done",
                   ],
                   securityContext: { privileged: true },
+                  readinessProbe: {
+                    exec: { command: ["sh", "-c", "wg show wg0 latest-handshakes | awk '{exit ($2==0)}'"] },
+                    initialDelaySeconds: 15,
+                    periodSeconds: 15,
+                    failureThreshold: 3,
+                  },
                   volumeMounts: [
                     { name: "wg-config-template", mountPath: "/etc/wireguard-template", readOnly: true },
                     { name: "wg-config-rendered", mountPath: "/etc/wireguard" },

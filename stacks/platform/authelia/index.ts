@@ -138,6 +138,7 @@ users:
         spec: {
           replicas: 1,
           strategy: { type: "Recreate" },
+          progressDeadlineSeconds: 120,
           selector: { matchLabels: labels },
           template: {
             metadata: { labels },
@@ -166,6 +167,12 @@ users:
                   livenessProbe: {
                     httpGet: { path: "/api/health", port: "http" },
                     initialDelaySeconds: 10,
+                  },
+                  readinessProbe: {
+                    httpGet: { path: "/api/health", port: "http" },
+                    initialDelaySeconds: 5,
+                    periodSeconds: 5,
+                    failureThreshold: 3,
                   },
                 },
               ],
