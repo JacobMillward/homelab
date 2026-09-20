@@ -54,6 +54,8 @@ export class NetbirdRouter extends pulumi.ComponentResource {
         },
         spec: {
           replicas: 1,
+          strategy: { type: "Recreate" },
+          progressDeadlineSeconds: 120,
           selector: { matchLabels: { app: "netbird-router" } },
           template: {
             metadata: { labels: { app: "netbird-router" } },
@@ -89,6 +91,12 @@ export class NetbirdRouter extends pulumi.ComponentResource {
                     capabilities: {
                       add: ["NET_ADMIN", "SYS_RESOURCE", "SYS_ADMIN"],
                     },
+                  },
+                  readinessProbe: {
+                    exec: { command: ["sh", "-c", "netbird status | grep -q 'Management: Connected'"] },
+                    initialDelaySeconds: 10,
+                    periodSeconds: 10,
+                    failureThreshold: 3,
                   },
                   volumeMounts: [{ name: "config", mountPath: "/var/lib/netbird" }],
                 },
