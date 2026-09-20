@@ -38,6 +38,10 @@
         "stacks/apps/dns.ts"
       ],
       "automerge": false
+    },
+    {
+      "matchFileNames": ["lib/version-pins.json"],
+      "pinDigests": false
     }
   ],
   "customManagers": [
