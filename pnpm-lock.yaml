@@ -99,17 +99,17 @@ importers:
         specifier: ^3.226.0
         version: 3.263.0(typescript@5.9.3)
       '@pulumiverse/talos':
-        specifier: ^0.7.1
-        version: 0.7.1(typescript@5.9.3)
+        specifier: ^0.8.0
+        version: 0.8.1(typescript@5.9.3)
       homelab-lib:
         specifier: workspace:*
         version: link:../../lib
     devDependencies:
       '@types/node':
-        specifier: ^18
+        specifier: 18.19.130
         version: 18.19.130
       typescript:
-        specifier: ^5.0.0
+        specifier: 5.9.3
         version: 5.9.3
 
   stacks/vps:
@@ -122,7 +122,7 @@ importers:
         version: 1.2.1(typescript@5.9.3)
       '@pulumi/hcloud':
         specifier: ^1.32.1
-        version: 1.32.1(typescript@5.9.3)
+        version: 1.42.0(typescript@5.9.3)
       '@pulumi/pulumi':
         specifier: ^3.226.0
         version: 3.263.0(typescript@5.9.3)
@@ -134,10 +134,10 @@ importers:
         version: link:../../lib
     devDependencies:
       '@types/node':
-        specifier: ^18
+        specifier: 18.19.130
         version: 18.19.130
       typescript:
-        specifier: ^5.0.0
+        specifier: 5.9.3
         version: 5.9.3
 
 packages:
@@ -470,8 +470,8 @@ packages:
   '@pulumi/command@1.2.1':
     resolution: {integrity: sha512-mutNDIUYP67yCBYOVIidQyxuTwZDY9v/sx9EGbgIv4PXfyfolOKGgGLeoHEbI1lxRwaw2wbTZ3VNIynDnA5VKA==}
 
-  '@pulumi/hcloud@1.32.1':
-    resolution: {integrity: sha512-BpsKKQ83Mt7l+0m07S97gSACT0p9dzehtJUyLvTwuOfFY8JKcG8hgfwt7IMjFqR3HfK4+EX12Qpb8H9gNkM/Kg==}
+  '@pulumi/hcloud@1.42.0':
+    resolution: {integrity: sha512-vy/GJSVADB+q+rSLDeFM0dDM59r8wz6VeJr5Da1N7CRt4qYa2WeITQywkzqLbEZJfrJ8ghV7kYSSkeFSIKbKkA==}
 
   '@pulumi/kubernetes@4.34.1':
     resolution: {integrity: sha512-WU0mxW6MHTVJbCfIi8Pie/V/2LqF7XYyTq7lYn6s07mro1ztewP1Sr7GcrvSYDFfXUIAFQgu9uX3VadvoiXhIA==}
@@ -500,8 +500,8 @@ packages:
   '@pulumi/tls@5.6.1':
     resolution: {integrity: sha512-Uijxsh1TfNpr52a307WA3kUTYLOu/jU/nApuz5ovYRZseZkLTLrrF/PiYpIwudum0AXt04XiBHPCHqleM7YX2Q==}
 
-  '@pulumiverse/talos@0.7.1':
-    resolution: {integrity: sha512-bofeJ0x/NB2lEaehrcOORuxd3BOhqY0/+DsPE2AOMYvtpW2is22NBPb8jrttWX7Z733NmI1b3CuVdHQCdeTp+g==}
+  '@pulumiverse/talos@0.8.1':
+    resolution: {integrity: sha512-GTiqBuWRvunu70uTwmx9mL99B2Yc+I96XMm4bwTP2gE+M/0e8eICcwo3Hs/3LN/vhGgkGWZNFInUSwZlgZFgeg==}
 
   '@sigstore/bundle@4.0.0':
     resolution: {integrity: sha512-NwCl5Y0V6Di0NexvkTqdoVfmjTaQwoLM236r89KEojGmq/jMls8S+zb7yOwAPdXvbwfKDlP+lmXgAL4vKSQT+A==}
@@ -1518,7 +1518,7 @@ snapshots:
       - ts-node
       - typescript
 
-  '@pulumi/hcloud@1.32.1(typescript@5.9.3)':
+  '@pulumi/hcloud@1.42.0(typescript@5.9.3)':
     dependencies:
       '@pulumi/pulumi': 3.263.0(typescript@5.9.3)
     transitivePeerDependencies:
@@ -1634,7 +1634,7 @@ snapshots:
       - ts-node
       - typescript
 
-  '@pulumiverse/talos@0.7.1(typescript@5.9.3)':
+  '@pulumiverse/talos@0.8.1(typescript@5.9.3)':
     dependencies:
       '@pulumi/pulumi': 3.263.0(typescript@5.9.3)
     transitivePeerDependencies:
