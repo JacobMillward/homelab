@@ -3,38 +3,6 @@ import * as k8s from "@pulumi/kubernetes";
 import { dockerImage } from "homelab-lib";
 import { PlatformCtx } from "./context";
 
-const GITHUB_APP_TOKEN_SCRIPT = `
-set -eu
-apk add --no-cache openssl curl >/dev/null
-
-APP_ID=$(cat /secrets/app-id)
-INSTALLATION_ID=$(cat /secrets/installation-id)
-
-NOW=$(date +%s)
-IAT=$((NOW - 60))
-EXP=$((NOW + 540))
-
-b64() { openssl base64 -A | tr '+/' '-_' | tr -d '='; }
-
-HEADER=$(printf '{"alg":"RS256","typ":"JWT"}' | b64)
-PAYLOAD=$(printf '{"iat":%s,"exp":%s,"iss":"%s"}' "$IAT" "$EXP" "$APP_ID" | b64)
-SIGNATURE=$(printf '%s.%s' "$HEADER" "$PAYLOAD" | openssl dgst -sha256 -sign /secrets/private-key.pem | b64)
-JWT="$HEADER.$PAYLOAD.$SIGNATURE"
-
-TOKEN=$(curl -sf -X POST \\
-  -H "Authorization: Bearer $JWT" \\
-  -H "Accept: application/vnd.github+json" \\
-  "https://api.github.com/app/installations/$INSTALLATION_ID/access_tokens" \\
-  | grep -o '"token"[^,]*' | sed 's/.*: *"\\(.*\\)"/\\1/')
-
-if [ -z "$TOKEN" ]; then
-  echo "Failed to obtain GitHub App installation token" >&2
-  exit 1
-fi
-
-printf '%s' "$TOKEN" > /shared/renovate-token
-`;
-
 export interface RenovateArgs {
   githubAppId: pulumi.Input<string>;
   githubAppInstallationId: pulumi.Input<string>;
@@ -93,6 +61,10 @@ export class Renovate extends pulumi.ComponentResource {
               template: {
                 spec: {
                   restartPolicy: "Never",
+                  securityContext: {
+                    runAsNonRoot: true,
+                    seccompProfile: { type: "RuntimeDefault" },
+                  },
                   volumes: [
                     { name: "app-creds", secret: { secretName: appCreds.metadata.name } },
                     { name: "shared", emptyDir: {} },
@@ -100,8 +72,17 @@ export class Renovate extends pulumi.ComponentResource {
                   initContainers: [
                     {
                       name: "github-app-token",
-                      image: dockerImage("renovateInit"),
-                      command: ["/bin/sh", "-c", GITHUB_APP_TOKEN_SCRIPT],
+                      image: dockerImage("githubAppInstallationToken"),
+                      command: [
+                        "sh",
+                        "-c",
+                        'node /app/index.js "$(cat /secrets/app-id)" "$(cat /secrets/installation-id)" /secrets/private-key.pem > /shared/renovate-token',
+                      ],
+                      securityContext: {
+                        runAsUser: 1000,
+                        allowPrivilegeEscalation: false,
+                        capabilities: { drop: ["ALL"] },
+                      },
                       volumeMounts: [
                         { name: "app-creds", mountPath: "/secrets", readOnly: true },
                         { name: "shared", mountPath: "/shared" },
@@ -117,6 +98,10 @@ export class Renovate extends pulumi.ComponentResource {
                         "-c",
                         "export RENOVATE_TOKEN=$(cat /shared/renovate-token); exec renovate",
                       ],
+                      securityContext: {
+                        allowPrivilegeEscalation: false,
+                        capabilities: { drop: ["ALL"] },
+                      },
                       env: [
                         { name: "RENOVATE_PLATFORM", value: "github" },
                         { name: "RENOVATE_AUTODISCOVER", value: "false" },
