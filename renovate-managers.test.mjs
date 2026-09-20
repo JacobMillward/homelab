@@ -24,31 +24,43 @@ const plain = (obj) => JSON.parse(JSON.stringify(obj));
 test("helm customManager extracts a known chart correctly", async () => {
   const matches = await extract("helm");
   const certManager = matches.find((m) => m.depName === "cert-manager");
+  const source = Object.values(versions.helm).find((v) => v.chart === "cert-manager");
   assert.deepEqual(plain(certManager), {
     depName: "cert-manager",
-    currentValue: "v1.20.0",
-    registryUrl: "https://charts.jetstack.io",
+    currentValue: source.version,
+    registryUrl: source.registryUrl,
+    depType: source.tier ?? "platform",
   });
 });
 
 test("docker customManager extracts a known image correctly", async () => {
   const matches = await extract("docker");
   const authelia = matches.find((m) => m.depName === "authelia/authelia");
-  assert.deepEqual(plain(authelia), { depName: "authelia/authelia", currentValue: "4.38" });
+  const source = Object.values(versions.docker).find((v) => v.image === "authelia/authelia");
+  assert.deepEqual(plain(authelia), {
+    depName: "authelia/authelia",
+    currentValue: source.tag,
+    currentDigest: source.digest,
+    depType: source.tier ?? "platform",
+  });
 });
 
 test("go customManager extracts the known module correctly", async () => {
   const matches = await extract("go");
+  const source = Object.values(versions.go).find(
+    (v) => v.moduleName === "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin",
+  );
   assert.deepEqual(plain(matches), [
     {
       depName: "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin",
-      currentValue: "v1.7.1",
+      currentValue: source.version,
+      depType: source.tier ?? "platform",
     },
   ]);
 });
 
 test("every helm/docker/go entry in lib/version-pins.json is actually referenced by some .ts file", () => {
-  const grepPattern = '(helmChart|dockerImage|goModule)\\("[a-zA-Z0-9]+"\\)';
+  const grepPattern = '(helmChart|dockerImage|dockerImageRef|goModule)\\("[a-zA-Z0-9]+"\\)';
   const output = execSync(
     `grep -rhoE '${grepPattern}' stacks/platform stacks/apps --include="*.ts" | grep -v node_modules | grep -v /sdks/`,
     { encoding: "utf8" },
