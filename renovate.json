@@ -10,6 +10,7 @@
     "enabled": true
   },
   "minimumReleaseAge": "14 days",
+  "ignorePaths": ["stacks/*/sdks/**"],
   "packageRules": [
     {
       "groupName": "talos/vps updates (manual only)",
