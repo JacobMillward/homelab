@@ -1,9 +1,9 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
-import { helmChart, dockerImage } from "homelab-lib";
+import { dockerImage, dockerImageRef } from "homelab-lib";
 import { PlatformCtx } from "./context";
 
-const chart = helmChart("pulumiKubernetesOperator");
+const chart = dockerImageRef("pulumiKubernetesOperator");
 
 export interface PulumiOperatorArgs {
   operatorNamespace: k8s.core.v1.Namespace;
@@ -20,8 +20,8 @@ export class PulumiOperator extends pulumi.ComponentResource {
     const operator = new k8s.helm.v3.Release(
       "pulumi-kubernetes-operator",
       {
-        chart: chart.chart,
-        version: chart.version,
+        chart: `oci://${chart.image}`,
+        version: chart.tag,
         namespace: ns.metadata.name,
       },
       { parent: this },

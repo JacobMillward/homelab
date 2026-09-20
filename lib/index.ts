@@ -6,5 +6,5 @@ export {
   HOME_TUNNEL_ADDRESS,
 } from "./tunnel";
 export { POD_CIDR } from "./cluster";
-export { helmChart, dockerImage, goModule } from "./versions";
+export { helmChart, dockerImage, dockerImageRef, goModule } from "./versions";
 export type { HelmChartRef, DockerImageRef, GoModuleRef } from "./versions";
