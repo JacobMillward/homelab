@@ -72,10 +72,8 @@ export class Traefik extends pulumi.ComponentResource {
               loadBalancerIP: this.loadBalancerIp,
             },
           },
-          logs: {
-            access: {
-              enabled: true,
-            },
+          accessLog: {
+            enabled: true,
           },
           ports: {
             websecure: {
