@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "main": "index.ts",
   "devDependencies": {
-    "@types/node": "^18",
-    "typescript": "^5.0.0"
+    "@types/node": "^24.0.0",
+    "typescript": "^7.0.0"
   },
   "dependencies": {
     "homelab-lib": "workspace:*",
