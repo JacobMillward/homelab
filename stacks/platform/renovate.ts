@@ -108,6 +108,10 @@ export class Renovate extends pulumi.ComponentResource {
                         { name: "RENOVATE_REPOSITORIES", value: "JacobMillward/homelab" },
                         { name: "RENOVATE_ONBOARDING", value: "false" },
                         {
+                          name: "RENOVATE_ALLOWED_COMMANDS",
+                          value: JSON.stringify(["^bash scripts/generate-netbird-sdk\\.sh$"]),
+                        },
+                        {
                           name: "RENOVATE_HOST_RULES",
                           valueFrom: {
                             secretKeyRef: {
