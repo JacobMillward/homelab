@@ -4,7 +4,7 @@
   "main": "index.ts",
   "devDependencies": {
     "@types/node": "^18.19.130",
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.0"
   },
   "dependencies": {
     "@pulumi/cloudflare": "^6.21.0",
