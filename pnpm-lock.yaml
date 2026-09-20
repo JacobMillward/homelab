@@ -16,32 +16,32 @@ importers:
     dependencies:
       '@pulumi/pulumi':
         specifier: ^3.226.0
-        version: 3.263.0(typescript@5.9.3)
+        version: 3.263.0(typescript@6.0.3)
     devDependencies:
       '@types/node':
         specifier: ^24.0.0
         version: 24.13.6
       typescript:
-        specifier: ^5.0.0
-        version: 5.9.3
+        specifier: ^6.0.0
+        version: 6.0.3
 
   stacks/apps:
     dependencies:
       '@pulumi/cloudflare':
         specifier: ^6.21.0
-        version: 6.21.0(typescript@5.9.3)
+        version: 6.21.0(typescript@6.0.3)
       '@pulumi/kubernetes':
         specifier: ^4.34.1
-        version: 4.34.1(typescript@5.9.3)
+        version: 4.34.1(typescript@6.0.3)
       '@pulumi/netbird':
         specifier: file:sdks/netbird
         version: file:stacks/apps/sdks/netbird
       '@pulumi/pulumi':
         specifier: ^3.263.0
-        version: 3.263.0(typescript@5.9.3)
+        version: 3.263.0(typescript@6.0.3)
       '@pulumi/random':
         specifier: ^4.21.2
-        version: 4.21.2(typescript@5.9.3)
+        version: 4.21.2(typescript@6.0.3)
       homelab-lib:
         specifier: workspace:*
         version: link:../../lib
@@ -50,8 +50,8 @@ importers:
         specifier: ^24.0.0
         version: 24.13.6
       typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
+        specifier: ^6.0.0
+        version: 6.0.3
 
   stacks/platform:
     dependencies:
@@ -60,25 +60,25 @@ importers:
         version: 2.2.1
       '@pulumi/cloudflare':
         specifier: ^6.21.0
-        version: 6.21.0(typescript@5.9.3)
+        version: 6.21.0(typescript@6.0.3)
       '@pulumi/command':
         specifier: ^1.2.1
-        version: 1.2.1(typescript@5.9.3)
+        version: 1.2.1(typescript@6.0.3)
       '@pulumi/kubernetes':
         specifier: ^4.34.1
-        version: 4.34.1(typescript@5.9.3)
+        version: 4.34.1(typescript@6.0.3)
       '@pulumi/netbird':
         specifier: file:sdks/netbird
         version: file:stacks/platform/sdks/netbird
       '@pulumi/pulumi':
         specifier: ^3.263.0
-        version: 3.263.0(typescript@5.9.3)
+        version: 3.263.0(typescript@6.0.3)
       '@pulumi/random':
         specifier: ^4.21.2
-        version: 4.21.2(typescript@5.9.3)
+        version: 4.21.2(typescript@6.0.3)
       '@pulumi/tls':
         specifier: ^5.6.1
-        version: 5.6.1(typescript@5.9.3)
+        version: 5.6.1(typescript@6.0.3)
       homelab-lib:
         specifier: workspace:*
         version: link:../../lib
@@ -87,8 +87,8 @@ importers:
         specifier: ^24.0.0
         version: 24.13.6
       typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
+        specifier: ^6.0.0
+        version: 6.0.3
 
   stacks/talos:
     dependencies:
@@ -1071,13 +1071,13 @@ packages:
     resolution: {integrity: sha512-50QV99kCKH5P/Vs4E2Gzp7BopNV+KzTXqWeaxrfu5IQJBOULRsTIS9seSsOVT8ZnGXzCyx55nYWAi4qJzpZKEQ==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
-  typescript@4.9.5:
-    resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
-    engines: {node: '>=4.2.0'}
-    hasBin: true
-
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+  typescript@6.0.3:
+    resolution: {integrity: sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -1510,9 +1510,25 @@ snapshots:
       - ts-node
       - typescript
 
+  '@pulumi/cloudflare@6.21.0(typescript@6.0.3)':
+    dependencies:
+      '@pulumi/pulumi': 3.263.0(typescript@6.0.3)
+    transitivePeerDependencies:
+      - supports-color
+      - ts-node
+      - typescript
+
   '@pulumi/command@1.2.1(typescript@5.9.3)':
     dependencies:
       '@pulumi/pulumi': 3.263.0(typescript@5.9.3)
+    transitivePeerDependencies:
+      - supports-color
+      - ts-node
+      - typescript
+
+  '@pulumi/command@1.2.1(typescript@6.0.3)':
+    dependencies:
+      '@pulumi/pulumi': 3.263.0(typescript@6.0.3)
     transitivePeerDependencies:
       - supports-color
       - ts-node
@@ -1526,9 +1542,9 @@ snapshots:
       - ts-node
       - typescript
 
-  '@pulumi/kubernetes@4.34.1(typescript@5.9.3)':
+  '@pulumi/kubernetes@4.34.1(typescript@6.0.3)':
     dependencies:
-      '@pulumi/pulumi': 3.263.0(typescript@5.9.3)
+      '@pulumi/pulumi': 3.263.0(typescript@6.0.3)
       glob: 12.0.0
       shell-quote: 1.10.0
     transitivePeerDependencies:
@@ -1538,53 +1554,21 @@ snapshots:
 
   '@pulumi/netbird@file:stacks/apps/sdks/netbird':
     dependencies:
-      '@pulumi/pulumi': 3.263.0(typescript@4.9.5)
+      '@pulumi/pulumi': 3.263.0(typescript@6.0.3)
       '@types/node': 24.13.6
-      typescript: 4.9.5
+      typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
       - ts-node
 
   '@pulumi/netbird@file:stacks/platform/sdks/netbird':
     dependencies:
-      '@pulumi/pulumi': 3.263.0(typescript@4.9.5)
+      '@pulumi/pulumi': 3.263.0(typescript@6.0.3)
       '@types/node': 24.13.6
-      typescript: 4.9.5
+      typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
       - ts-node
-
-  '@pulumi/pulumi@3.263.0(typescript@4.9.5)':
-    dependencies:
-      '@grpc/grpc-js': 1.14.5
-      '@logdna/tail-file': 2.2.0
-      '@npmcli/arborist': 9.9.1
-      '@opentelemetry/api': 1.9.1
-      '@opentelemetry/core': 2.11.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/exporter-trace-otlp-grpc': 0.220.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/exporter-zipkin': 2.11.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/instrumentation': 0.220.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/instrumentation-grpc': 0.220.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/resources': 2.11.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/sdk-trace-base': 2.11.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/sdk-trace-node': 2.11.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/semantic-conventions': 1.43.0
-      '@types/google-protobuf': 3.15.12
-      '@types/semver': 7.8.0
-      execa: 5.1.1
-      google-protobuf: 3.21.4
-      ini: 2.0.0
-      js-yaml: 4.3.2
-      minimist: 1.2.8
-      normalize-package-data: 6.0.2
-      require-from-string: 2.0.2
-      semver: 7.8.5
-      source-map-support: 0.5.21
-      upath: 1.2.0
-    optionalDependencies:
-      typescript: 4.9.5
-    transitivePeerDependencies:
-      - supports-color
 
   '@pulumi/pulumi@3.263.0(typescript@5.9.3)':
     dependencies:
@@ -1618,6 +1602,38 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@pulumi/pulumi@3.263.0(typescript@6.0.3)':
+    dependencies:
+      '@grpc/grpc-js': 1.14.5
+      '@logdna/tail-file': 2.2.0
+      '@npmcli/arborist': 9.9.1
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/core': 2.11.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/exporter-trace-otlp-grpc': 0.220.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/exporter-zipkin': 2.11.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/instrumentation': 0.220.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/instrumentation-grpc': 0.220.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/resources': 2.11.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-trace-base': 2.11.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-trace-node': 2.11.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/semantic-conventions': 1.43.0
+      '@types/google-protobuf': 3.15.12
+      '@types/semver': 7.8.0
+      execa: 5.1.1
+      google-protobuf: 3.21.4
+      ini: 2.0.0
+      js-yaml: 4.3.2
+      minimist: 1.2.8
+      normalize-package-data: 6.0.2
+      require-from-string: 2.0.2
+      semver: 7.8.5
+      source-map-support: 0.5.21
+      upath: 1.2.0
+    optionalDependencies:
+      typescript: 6.0.3
+    transitivePeerDependencies:
+      - supports-color
+
   '@pulumi/random@4.21.2(typescript@5.9.3)':
     dependencies:
       '@pulumi/pulumi': 3.263.0(typescript@5.9.3)
@@ -1626,9 +1642,17 @@ snapshots:
       - ts-node
       - typescript
 
-  '@pulumi/tls@5.6.1(typescript@5.9.3)':
+  '@pulumi/random@4.21.2(typescript@6.0.3)':
     dependencies:
-      '@pulumi/pulumi': 3.263.0(typescript@5.9.3)
+      '@pulumi/pulumi': 3.263.0(typescript@6.0.3)
+    transitivePeerDependencies:
+      - supports-color
+      - ts-node
+      - typescript
+
+  '@pulumi/tls@5.6.1(typescript@6.0.3)':
+    dependencies:
+      '@pulumi/pulumi': 3.263.0(typescript@6.0.3)
     transitivePeerDependencies:
       - supports-color
       - ts-node
@@ -2240,9 +2264,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  typescript@4.9.5: {}
-
   typescript@5.9.3: {}
+
+  typescript@6.0.3: {}
 
   undici-types@5.26.5: {}
 
