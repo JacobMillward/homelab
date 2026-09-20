@@ -1,8 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "moduleResolution": "bundler",
-    "types": ["node"]
+    "rootDir": "."
   },
   "include": ["**/*.ts"]
 }
