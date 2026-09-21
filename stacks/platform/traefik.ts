@@ -1,7 +1,7 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as cloudflare from "@pulumi/cloudflare";
-import { POD_CIDR, helmChart, goModule } from "homelab-lib";
+import { POD_CIDR, helmChart, goModule, DOMAIN, TRAEFIK_IP } from "homelab-lib";
 import { PlatformCtx } from "./context";
 
 const chart = helmChart("traefik");
@@ -31,7 +31,33 @@ export interface CrowdsecPluginSpec {
   crowdsecLapiScheme: string;
 }
 
+export interface PublicDnsSpec {
+  provider: cloudflare.Provider;
+  zoneId: pulumi.Input<string>;
+  ipv4: pulumi.Input<string>;
+  ipv6: pulumi.Input<string>;
+}
+
+// Apps register their own hostname rather than Traefik holding a list of them.
+export function createPublicDnsRecord(
+  parent: pulumi.Resource,
+  subdomain: string,
+  dns: PublicDnsSpec,
+) {
+  for (const [suffix, type, content] of [
+    ["dns", "A", dns.ipv4],
+    ["dns-v6", "AAAA", dns.ipv6],
+  ] as const) {
+    new cloudflare.DnsRecord(
+      `${subdomain}-${suffix}`,
+      { zoneId: dns.zoneId, name: subdomain, type, content, proxied: false, ttl: 60 },
+      { provider: dns.provider, parent },
+    );
+  }
+}
+
 export class Traefik extends pulumi.ComponentResource {
+  readonly publicDns!: PublicDnsSpec;
   readonly loadBalancerIp: string;
   readonly clusterIp: pulumi.Output<string>;
   readonly internalIp: pulumi.Output<string>;
@@ -43,10 +69,7 @@ export class Traefik extends pulumi.ComponentResource {
       providers: { kubernetes: ctx.k8sProvider },
     });
 
-    const config = new pulumi.Config();
-    this.loadBalancerIp = config.require("traefikIp");
-
-    const domain = config.require("domain");
+    this.loadBalancerIp = TRAEFIK_IP;
 
     const ns = new k8s.core.v1.Namespace(
       "traefik",
@@ -108,7 +131,7 @@ export class Traefik extends pulumi.ComponentResource {
           // *.${domain} doesn't cover two-level names like
           // z2m.internal.${domain} or dashboard.internal.${domain} —
           // wildcards only match one label.
-          dnsNames: [`*.${domain}`, `*.internal.${domain}`],
+          dnsNames: [`*.${DOMAIN}`, `*.internal.${DOMAIN}`],
         },
       },
       { parent: this },
@@ -171,7 +194,7 @@ export class Traefik extends pulumi.ComponentResource {
           entryPoints: ["websecure"],
           routes: [
             {
-              match: `Host(\`auth.${domain}\`)`,
+              match: `Host(\`auth.${DOMAIN}\`)`,
               kind: "Rule",
               services: [{ name: "idp-authelia", namespace: "authelia", port: 80 }],
               middlewares: [{ name: "crowdsec-bouncer" }],
@@ -190,35 +213,16 @@ export class Traefik extends pulumi.ComponentResource {
     );
 
     const cloudflareZone = cloudflare.getZoneOutput(
-      { filter: { name: domain } },
+      { filter: { name: DOMAIN } },
       { provider: cloudflareProvider, parent: this },
     );
 
-    new cloudflare.DnsRecord(
-      "auth-dns",
-      {
-        zoneId: cloudflareZone.id,
-        name: "auth",
-        type: "A",
-        content: args.vpsIp,
-        proxied: false,
-        ttl: 60,
-      },
-      { provider: cloudflareProvider, parent: this },
-    );
-
-    new cloudflare.DnsRecord(
-      "auth-dns-v6",
-      {
-        zoneId: cloudflareZone.id,
-        name: "auth",
-        type: "AAAA",
-        content: args.vpsIpv6,
-        proxied: false,
-        ttl: 60,
-      },
-      { provider: cloudflareProvider, parent: this },
-    );
+    this.publicDns = {
+      provider: cloudflareProvider,
+      zoneId: cloudflareZone.id,
+      ipv4: args.vpsIp,
+      ipv6: args.vpsIpv6,
+    };
 
     // Static ID (chart fullname is "traefik" for this release name), not release.status - avoids an unknown-value cascade into wg-home-peer on every Traefik values change.
     const helmSvc = k8s.core.v1.Service.get(

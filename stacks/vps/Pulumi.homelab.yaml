@@ -1,5 +1,4 @@
 config:
-  homelab-vps:domain: millward-yuan.net
   homelab-vps:serverType: cx23
   homelab-vps:serverLocation: nbg1
   homelab-vps:flatcarChannel: stable

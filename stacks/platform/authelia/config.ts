@@ -1,4 +1,5 @@
 import * as pulumi from "@pulumi/pulumi";
+import { OidcClientSpec } from "./oidc-client";
 
 export interface AutheliaConfigArgs {
   domain: string;
@@ -7,14 +8,51 @@ export interface AutheliaConfigArgs {
   storageEncryptionKey: pulumi.Output<string>;
   oidcHmacSecret: pulumi.Output<string>;
   oidcIssuerPrivateKey: pulumi.Output<string>;
-  netbirdOidcClientId: pulumi.Output<string>;
-  netbirdOidcClientSecret: pulumi.Output<string>;
+  oidcClients: OidcClientSpec[];
+}
+
+function renderOidcClient(client: {
+  clientId: string;
+  clientSecret: string;
+  clientName: string;
+  redirectUris: string[];
+  scopes: string[];
+  authorizationPolicy: string;
+  userinfoSignedResponseAlg?: string;
+}): string {
+  const redirectUrisYaml = client.redirectUris
+    .map((u) => `          - "${u}"`)
+    .join("\n");
+  const scopesYaml = client.scopes.map((s) => `          - "${s}"`).join("\n");
+  return `      - client_id: "${client.clientId}"
+        client_name: "${client.clientName}"
+        client_secret: "${client.clientSecret}"
+        public: false
+        authorization_policy: "${client.authorizationPolicy}"
+        redirect_uris:
+${redirectUrisYaml}
+        scopes:
+${scopesYaml}${client.userinfoSignedResponseAlg ? `\n        userinfo_signed_response_alg: "${client.userinfoSignedResponseAlg}"` : ""}`;
 }
 
 // Pure function — no Pulumi resources, just YAML generation.
 export function buildAutheliaConfig(
   args: AutheliaConfigArgs,
 ): pulumi.Output<string> {
+  const clientOutputs = args.oidcClients.map((c) =>
+    pulumi.all([c.clientId, c.clientSecret]).apply(([clientId, clientSecret]) =>
+      renderOidcClient({
+        clientId,
+        clientSecret,
+        clientName: c.clientName,
+        redirectUris: c.redirectUris as string[],
+        scopes: c.scopes,
+        authorizationPolicy: c.authorizationPolicy,
+        userinfoSignedResponseAlg: c.userinfoSignedResponseAlg,
+      }),
+    ),
+  );
+
   return pulumi
     .all([
       args.jwtSecret,
@@ -22,8 +60,7 @@ export function buildAutheliaConfig(
       args.storageEncryptionKey,
       args.oidcHmacSecret,
       args.oidcIssuerPrivateKey,
-      args.netbirdOidcClientId,
-      args.netbirdOidcClientSecret,
+      pulumi.all(clientOutputs),
     ])
     .apply(
       ([
@@ -32,8 +69,7 @@ export function buildAutheliaConfig(
         storageEncryptionKey,
         oidcHmacSecret,
         oidcIssuerPrivateKey,
-        netbirdOidcClientId,
-        netbirdOidcClientSecret,
+        renderedClients,
       ]) => `
 theme: dark
 default_2fa_method: "totp"
@@ -84,18 +120,7 @@ ${oidcIssuerPrivateKey
   .map((l) => "      " + l)
   .join("\n")}
     clients:
-      - client_id: "${netbirdOidcClientId}"
-        client_name: "NetBird"
-        client_secret: "${netbirdOidcClientSecret}"
-        public: false
-        authorization_policy: "one_factor"
-        redirect_uris:
-          - "https://netbird.${args.domain}/oauth2/callback"
-        scopes:
-          - "openid"
-          - "profile"
-          - "email"
-        userinfo_signed_response_alg: "none"
+${renderedClients.join("\n")}
 
 jwt_secret: "${jwtSecret}"
 `,

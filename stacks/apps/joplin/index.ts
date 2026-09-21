@@ -1,6 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
-import { dockerImage } from "homelab-lib";
+import { dockerImage, DOMAIN } from "homelab-lib";
 import { AppCtx } from "../app";
 
 export class Joplin extends pulumi.ComponentResource {
@@ -14,8 +14,7 @@ export class Joplin extends pulumi.ComponentResource {
       },
     );
 
-    const config = new pulumi.Config();
-    const host = `joplin.${config.require("domain")}`;
+    const host = `joplin.${DOMAIN}`;
     const childOpts = { parent: this };
 
     const ns = new k8s.core.v1.Namespace(

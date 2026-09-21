@@ -2,8 +2,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   forgejoRequest,
+  forgejoBasicRequest,
   userProvider,
   accessTokenProvider,
+  adminTokenProvider,
+  runnerTokenProvider,
   deployKeyProvider,
   repositoryProvider,
   pushMirrorProvider,
@@ -247,4 +250,94 @@ test("pushMirrorProvider.create posts to /repos/{owner}/{repo}/push_mirrors", as
 
   assert.equal(result.id, "push-mirror-1");
   assert.deepEqual(result.outs, { remoteName: "push-mirror-1" });
+});
+
+test("forgejoBasicRequest sends basic auth credentials", async () => {
+  let capturedUrl, capturedInit;
+  const fakeFetch = async (url, init) => {
+    capturedUrl = url;
+    capturedInit = init;
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  };
+
+  await forgejoBasicRequest(
+    "https://git.example.com",
+    "jacob",
+    "hunter2",
+    "POST",
+    "/users/jacob/tokens",
+    { name: "pulumi" },
+    fakeFetch,
+  );
+
+  assert.equal(capturedUrl, "https://git.example.com/api/v1/users/jacob/tokens");
+  assert.equal(
+    capturedInit.headers.Authorization,
+    `Basic ${Buffer.from("jacob:hunter2").toString("base64")}`,
+  );
+});
+
+test("adminTokenProvider.create mints a token over basic auth", async () => {
+  let capturedUrl, capturedInit;
+  const fakeFetch = async (url, init) => {
+    capturedUrl = url;
+    capturedInit = init;
+    return new Response(JSON.stringify({ id: 7, sha1: "abc123" }), { status: 201 });
+  };
+
+  const result = await adminTokenProvider.create(
+    {
+      endpoint: "https://git.example.com",
+      username: "jacob",
+      password: "hunter2",
+      tokenName: "pulumi",
+    },
+    fakeFetch,
+  );
+
+  assert.equal(capturedUrl, "https://git.example.com/api/v1/users/jacob/tokens");
+  assert.deepEqual(JSON.parse(capturedInit.body), { name: "pulumi", scopes: ["all"] });
+  assert.equal(result.id, "7");
+  assert.equal(result.outs.token, "abc123");
+  assert.equal(result.outs.tokenId, 7);
+});
+
+test("adminTokenProvider.delete removes the token it created", async () => {
+  let capturedUrl, capturedMethod;
+  const fakeFetch = async (url, init) => {
+    capturedUrl = url;
+    capturedMethod = init.method;
+    return new Response(null, { status: 204 });
+  };
+
+  await adminTokenProvider.delete(
+    "7",
+    {
+      endpoint: "https://git.example.com",
+      username: "jacob",
+      password: "hunter2",
+      tokenId: 7,
+      token: "abc123",
+    },
+    fakeFetch,
+  );
+
+  assert.equal(capturedUrl, "https://git.example.com/api/v1/users/jacob/tokens/7");
+  assert.equal(capturedMethod, "DELETE");
+});
+
+test("runnerTokenProvider.create reads the admin registration token", async () => {
+  let capturedUrl;
+  const fakeFetch = async (url) => {
+    capturedUrl = url;
+    return new Response(JSON.stringify({ token: "runner-tok" }), { status: 200 });
+  };
+
+  const result = await runnerTokenProvider.create(
+    { client: { endpoint: "https://git.example.com", adminToken: "tok123" } },
+    fakeFetch,
+  );
+
+  assert.equal(capturedUrl, "https://git.example.com/api/v1/admin/runners/registration-token");
+  assert.equal(result.outs.token, "runner-tok");
 });

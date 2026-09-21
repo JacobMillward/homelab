@@ -3,7 +3,7 @@ import * as path from "path";
 import * as pulumi from "@pulumi/pulumi";
 import * as talos from "@pulumiverse/talos";
 import * as command from "@pulumi/command";
-import { Node } from "homelab-lib";
+import { Node, DOMAIN, TRAEFIK_IP } from "homelab-lib";
 
 const config = new pulumi.Config();
 const clusterName = config.require("clusterName");
@@ -66,6 +66,15 @@ for (const mt of machineTypes) {
   extraManifests:
     - https://raw.githubusercontent.com/alex1989hu/kubelet-serving-cert-approver/main/deploy/standalone-install.yaml
     - https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml`,
+        // kubelet/containerd pull images using the node's own DNS, not
+        // CoreDNS or NetBird's mesh DNS, so self-built images pushed to the
+        // in-cluster registry need this to resolve at the node level too.
+        `machine:
+  network:
+    extraHostEntries:
+      - ip: ${TRAEFIK_IP}
+        aliases:
+          - registry.internal.${DOMAIN}`,
     ];
 
     if (mt === "controlplane") {

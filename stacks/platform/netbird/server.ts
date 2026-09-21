@@ -1,7 +1,7 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
-import { dockerImage } from "homelab-lib";
+import { dockerImage, DOMAIN } from "homelab-lib";
 import { PlatformCtx } from "../context";
 import { ForwardAuthSpec } from "../traefik";
 
@@ -30,8 +30,7 @@ export class NetbirdServer extends pulumi.ComponentResource {
 
     const { storageClassName, vps, traefikIp, forwardAuthSpec, secretStoreName } = args;
     const config = new pulumi.Config();
-    const rawDomain = config.require("domain");
-    const domain = `netbird.${rawDomain}`;
+    const domain = `netbird.${DOMAIN}`;
 
     this.namespace = new k8s.core.v1.Namespace(
       "netbird",
@@ -106,8 +105,8 @@ export class NetbirdServer extends pulumi.ComponentResource {
     dashboardRedirectURIs:
       - "https://${domain}/nb-auth"
       - "https://${domain}/nb-silent-auth"
-      - "https://dashboard.internal.${rawDomain}/nb-auth"
-      - "https://dashboard.internal.${rawDomain}/nb-silent-auth"
+      - "https://dashboard.internal.${DOMAIN}/nb-auth"
+      - "https://dashboard.internal.${DOMAIN}/nb-silent-auth"
     cliRedirectURIs:
       - "http://localhost:53000/"
   store:
@@ -169,7 +168,7 @@ export class NetbirdServer extends pulumi.ComponentResource {
               hostAliases: [
                 {
                   ip: traefikIp,
-                  hostnames: [`auth.${rawDomain}`],
+                  hostnames: [`auth.${DOMAIN}`],
                 },
               ],
               containers: [
@@ -485,7 +484,7 @@ export class NetbirdServer extends pulumi.ComponentResource {
           entryPoints: ["websecure"],
           routes: [
             {
-              match: `Host(\`dashboard.internal.${rawDomain}\`)`,
+              match: `Host(\`dashboard.internal.${DOMAIN}\`)`,
               kind: "Rule",
               services: [{ name: dashboardSvc.metadata.name, port: 80 }],
               middlewares: [{ name: "authelia" }],

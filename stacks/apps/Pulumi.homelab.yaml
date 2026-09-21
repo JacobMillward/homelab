@@ -1,5 +1,4 @@
 config:
-  homelab-apps:domain: millward-yuan.net
   homelab-apps:talosStackRef: organization/homelab-talos/homelab
   homelab-apps:platformStackRef: organization/homelab-platform/homelab
   homelab-apps:cloudflareApiToken:

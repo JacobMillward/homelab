@@ -4,7 +4,8 @@
   "description": "Shared helpers for homelab Pulumi stacks",
   "main": "index.ts",
   "peerDependencies": {
-    "@pulumi/pulumi": "^3.226.0"
+    "@pulumi/pulumi": "^3.226.0",
+    "@pulumi/command": "^1.2.1"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

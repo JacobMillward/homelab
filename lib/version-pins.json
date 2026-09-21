@@ -60,7 +60,9 @@
     "onePasswordConnectApi": { "image": "1password/connect-api", "tag": "1.8.2", "digest": "sha256:e915c0c843972f02b0e7e2de502bda8bd4a092288b3f1866098a857bd715a281" },
     "onePasswordConnectSync": { "image": "1password/connect-sync", "tag": "1.8.2", "digest": "sha256:6297ca6136c0f0fb096bc64c49e1bc8df2aab35282ebff8c7bb60745ef176d0d" },
     "pulumiCli": { "image": "pulumi/pulumi", "tag": "3.263.0-nonroot", "digest": "sha256:470b9e17d7544af3fd643fb5675849ff912639d0e7caa1a92852d7649ca0dad0" },
-    "pulumiKubernetesOperator": { "image": "ghcr.io/pulumi/helm-charts/pulumi-kubernetes-operator", "tag": "2.9.1", "digest": "sha256:1454e81ca5d681f85d605e4051c50f7767a229821e1df52fa4cdd2208b3d12b1" }
+    "pulumiKubernetesOperator": { "image": "ghcr.io/pulumi/helm-charts/pulumi-kubernetes-operator", "tag": "2.9.1", "digest": "sha256:1454e81ca5d681f85d605e4051c50f7767a229821e1df52fa4cdd2208b3d12b1" },
+    "forgejo": { "image": "codeberg.org/forgejo/forgejo", "tag": "16.0.5", "digest": "sha256:cf5f5ae6acf2ababca0ee3d255705b83a47f35b25e07fc931d694d60664053fe", "tier": "core-infra" },
+    "zot": { "image": "ghcr.io/project-zot/zot-linux-amd64", "tag": "v2.1.21", "digest": "sha256:8258443838e95989c13c891f78a02bc1c391b5a00591ffef24cb8c17cde28038", "tier": "core-infra" }
   },
   "go": {
     "traefikCrowdsecPlugin": {

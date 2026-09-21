@@ -3,6 +3,7 @@ import * as cloudflare from "@pulumi/cloudflare";
 import * as command from "@pulumi/command";
 import * as hcloud from "@pulumi/hcloud";
 import * as random from "@pulumi/random";
+import { DOMAIN } from "homelab-lib";
 import { getSnapshotId } from "./flatcar";
 import { buildIgnitionConfig } from "./ignition";
 
@@ -26,7 +27,6 @@ export class VpsServer extends pulumi.ComponentResource {
     super("vps:VpsServer", "vps");
 
     const config = new pulumi.Config();
-    const domain = config.require("domain");
 
     const hcloudToken = pulumi.unsecret(config.requireSecret("hetznerApiToken"));
     const cloudflareApiToken = config.requireSecret("cloudflareDnsEditApiToken");
@@ -70,7 +70,7 @@ export class VpsServer extends pulumi.ComponentResource {
       vpsPrivateKey: vpsKeys.stdout.apply((s) => s.split("|")[0]),
       homePubKey: homeKeys.stdout.apply((s) => s.split("|")[1]),
       relayAuthSecret: relaySecret.result,
-      domain: `netbird.${domain}`,
+      domain: `netbird.${DOMAIN}`,
       relayPort,
       cloudflareApiToken,
     });
@@ -167,7 +167,7 @@ export class VpsServer extends pulumi.ComponentResource {
     );
 
     const cloudflareZone = cloudflare.getZoneOutput(
-      { filter: { name: domain } },
+      { filter: { name: DOMAIN } },
       { provider: cloudflareProvider, parent: this },
     );
 
@@ -219,7 +219,7 @@ export class VpsServer extends pulumi.ComponentResource {
       homeKeys.stdout.apply((s) => s.split("|")[1]),
     );
     this.relayAuthSecret = pulumi.secret(relaySecret.result);
-    this.relayAddress = pulumi.interpolate`rels://netbird.${domain}:${relayPort}`;
-    this.stunAddress = pulumi.interpolate`stun:netbird.${domain}:3478`;
+    this.relayAddress = pulumi.interpolate`rels://netbird.${DOMAIN}:${relayPort}`;
+    this.stunAddress = pulumi.interpolate`stun:netbird.${DOMAIN}:3478`;
   }
 }

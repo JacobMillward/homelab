@@ -37,21 +37,143 @@ export async function forgejoRequest<T = unknown>(
   return text ? (JSON.parse(text) as T) : (undefined as T);
 }
 
-// NOTE on typing: pulumi.dynamic.ResourceProvider's create/diff/update
-// methods receive fully-resolved plain values at runtime — the Pulumi engine
-// walks the whole props object graph and resolves every Input/Output before
-// invoking the provider, even nested ones (e.g. ForgejoClientArgs.endpoint).
-// The constructor-facing "<X>Inputs" types below (used by the pulumi.dynamic.
-// Resource subclasses) are deliberately different from what the provider
-// classes' create() methods actually receive — they get the "Resolved" shape
-// instead, matching each <x>Provider.create() helper's own parameter type
-// exactly (reused via Parameters<...> so the two can't drift apart).
-//
-// delete(id, props) only ever receives the *outputs* from create() — not the
-// original inputs — so every "<X>Outputs" type below deliberately carries
-// whatever delete() needs (the client credentials, identifying path
-// segments) even where that duplicates something already in inputs. There is
-// no other way for delete() to get at it.
+// Minting the first token is the one call that can't use a token, so it goes
+// through basic auth instead (the API requires it for this route specifically).
+export async function forgejoBasicRequest<T = unknown>(
+  endpoint: string,
+  username: string,
+  password: string,
+  method: string,
+  path: string,
+  body?: unknown,
+  fetchImpl: typeof fetch = fetch,
+): Promise<T> {
+  const url = `${endpoint.replace(/\/$/, "")}/api/v1${path}`;
+  const res = await fetchImpl(url, {
+    method,
+    headers: {
+      Authorization: `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`,
+      "Content-Type": "application/json",
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Forgejo API ${method} ${path} failed: ${res.status} ${text}`);
+  }
+
+  if (res.status === 204) return undefined as T;
+  const text = await res.text();
+  return text ? (JSON.parse(text) as T) : (undefined as T);
+}
+
+// NOTE: ResourceProvider.create/delete receive fully-resolved plain values,
+// not Input/Output. delete() only gets create()'s outs, never the original
+// inputs, so "<X>Outputs" below carries whatever delete() needs.
+
+export interface ForgejoAdminTokenInputs {
+  endpoint: pulumi.Input<string>;
+  username: pulumi.Input<string>;
+  password: pulumi.Input<string>;
+  tokenName: pulumi.Input<string>;
+}
+
+interface ForgejoAdminTokenOutputs {
+  endpoint: string;
+  username: string;
+  password: string;
+  tokenId: number;
+  token: string;
+}
+
+export const adminTokenProvider = {
+  async create(
+    inputs: { endpoint: string; username: string; password: string; tokenName: string },
+    fetchImpl: typeof fetch = fetch,
+  ): Promise<{ id: string; outs: ForgejoAdminTokenOutputs }> {
+    const created = await forgejoBasicRequest<{ id: number; sha1: string }>(
+      inputs.endpoint,
+      inputs.username,
+      inputs.password,
+      "POST",
+      `/users/${inputs.username}/tokens`,
+      { name: inputs.tokenName, scopes: ["all"] },
+      fetchImpl,
+    );
+    return {
+      id: String(created.id),
+      outs: { ...inputs, tokenId: created.id, token: created.sha1 },
+    };
+  },
+
+  async delete(
+    _id: string,
+    outs: ForgejoAdminTokenOutputs,
+    fetchImpl: typeof fetch = fetch,
+  ): Promise<void> {
+    await forgejoBasicRequest(
+      outs.endpoint,
+      outs.username,
+      outs.password,
+      "DELETE",
+      `/users/${outs.username}/tokens/${outs.tokenId}`,
+      undefined,
+      fetchImpl,
+    );
+  },
+};
+
+export class ForgejoAdminToken extends pulumi.dynamic.Resource {
+  readonly token!: pulumi.Output<string>;
+
+  constructor(name: string, args: ForgejoAdminTokenInputs, opts?: pulumi.CustomResourceOptions) {
+    super(
+      adminTokenProvider as pulumi.dynamic.ResourceProvider,
+      name,
+      { ...args, tokenId: undefined, token: undefined },
+      { ...opts, additionalSecretOutputs: ["token", "password"] },
+    );
+  }
+}
+
+export interface ForgejoRunnerTokenInputs {
+  client: ForgejoClientArgs;
+}
+
+interface ForgejoRunnerTokenOutputs {
+  client: ResolvedClient;
+  token: string;
+}
+
+export const runnerTokenProvider = {
+  async create(
+    inputs: { client: ResolvedClient },
+    fetchImpl: typeof fetch = fetch,
+  ): Promise<{ id: string; outs: ForgejoRunnerTokenOutputs }> {
+    const res = await forgejoRequest<{ token: string }>(
+      inputs.client,
+      "GET",
+      "/admin/runners/registration-token",
+      undefined,
+      fetchImpl,
+    );
+    return { id: "runner-registration-token", outs: { client: inputs.client, token: res.token } };
+  },
+};
+
+export class ForgejoRunnerToken extends pulumi.dynamic.Resource {
+  readonly token!: pulumi.Output<string>;
+
+  constructor(name: string, args: ForgejoRunnerTokenInputs, opts?: pulumi.CustomResourceOptions) {
+    super(
+      runnerTokenProvider as pulumi.dynamic.ResourceProvider,
+      name,
+      { ...args, token: undefined },
+      { ...opts, additionalSecretOutputs: ["token"] },
+    );
+  }
+}
 
 export interface ForgejoUserInputs {
   client: ForgejoClientArgs;
@@ -364,8 +486,7 @@ interface ForgejoPushMirrorOutputs {
   remoteName: string;
 }
 
-// No delete() — Forgejo push mirrors are one-way config, not something this
-// project needs torn down; `pulumi destroy` will simply leave it configured.
+// No delete(). Push mirrors are one-way config; pulumi destroy just leaves it configured.
 export const pushMirrorProvider = {
   async create(
     inputs: {

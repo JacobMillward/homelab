@@ -13,6 +13,7 @@ export interface CrowdSecArgs {
 
 export class CrowdSec extends pulumi.ComponentResource {
   readonly bouncerApiKey: pulumi.Output<string>;
+  readonly firewallBouncerApiKey: pulumi.Output<string>;
   readonly lapiServiceName: pulumi.Output<string>;
 
   constructor(ctx: PlatformCtx, args: CrowdSecArgs) {
@@ -54,6 +55,22 @@ export class CrowdSec extends pulumi.ComponentResource {
       childOpts,
     );
 
+    const firewallBouncerKey = new random.RandomPassword(
+      "crowdsec-firewall-bouncer-key",
+      { length: 32, special: false },
+      childOpts,
+    );
+    this.firewallBouncerApiKey = firewallBouncerKey.result;
+
+    const firewallBouncerSecret = new k8s.core.v1.Secret(
+      "crowdsec-firewall-bouncer-key",
+      {
+        metadata: { namespace: ns.metadata.name },
+        stringData: { key: this.firewallBouncerApiKey },
+      },
+      childOpts,
+    );
+
     const config = new pulumi.Config();
     const enrollKey = config.requireSecret("crowdsecEnrollKey");
 
@@ -71,7 +88,7 @@ export class CrowdSec extends pulumi.ComponentResource {
           container_runtime: "containerd",
           agent: {
             env: [
-              { name: "COLLECTIONS", value: "crowdsecurity/traefik" },
+              { name: "COLLECTIONS", value: "crowdsecurity/traefik,LePresidente/gitea" },
               { name: "PARSERS", value: "crowdsecurity/geoip-enrich" },
             ],
             acquisition: [
@@ -81,6 +98,12 @@ export class CrowdSec extends pulumi.ComponentResource {
                 program: "traefik",
                 poll_without_inotify: true,
               },
+              {
+                namespace: "forgejo",
+                podName: "forgejo-*",
+                program: "gitea",
+                poll_without_inotify: true,
+              },
             ],
           },
           lapi: {
@@ -88,6 +111,10 @@ export class CrowdSec extends pulumi.ComponentResource {
               {
                 name: "BOUNCER_KEY_traefik",
                 valueFrom: { secretKeyRef: { name: bouncerSecret.metadata.name, key: "key" } },
+              },
+              {
+                name: "BOUNCER_KEY_firewall",
+                valueFrom: { secretKeyRef: { name: firewallBouncerSecret.metadata.name, key: "key" } },
               },
               { name: "ENROLL_KEY", value: enrollKey },
               { name: "ENROLL_INSTANCE_NAME", value: "homelab" },
