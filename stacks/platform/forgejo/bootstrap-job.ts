@@ -5,6 +5,10 @@ import { dockerImage } from "homelab-lib";
 import { OidcClientSpec } from "../authelia";
 import { CONFIG_PATH, GIT_UID, configVolume, configVolumeMount, dbEnv } from "./container";
 
+// Forgejo derives its OAuth callback path from this, so it has to match the
+// redirect URI registered with Authelia exactly, case included.
+export const AUTH_SOURCE_NAME = "Authelia";
+
 export interface BootstrapJobArgs {
   namespace: pulumi.Output<string>;
   deployment: k8s.apps.v1.Deployment;
@@ -45,9 +49,9 @@ forgejo() { command forgejo --config /tmp/app.ini "$@"; }
 forgejo admin user create --username jacob --password '${adminPassword.result}' --email jacob@${args.domain} --admin --must-change-password=false \\
   || forgejo admin user change-password --username jacob --password '${adminPassword.result}' --must-change-password=false
 
-AUTH_ID=$(forgejo admin auth list | awk '$2 == "Authelia" { print $1 }')
+AUTH_ID=$(forgejo admin auth list | awk '$2 == "${AUTH_SOURCE_NAME}" { print $1 }')
 if [ -z "$AUTH_ID" ]; then
-  forgejo admin auth add-oauth --name Authelia --provider openidConnect \\
+  forgejo admin auth add-oauth --name ${AUTH_SOURCE_NAME} --provider openidConnect \\
     --key '${args.oidcClient.clientId}' --secret '${args.oidcClient.clientSecret}' \\
     --auto-discover-url https://auth.${args.domain}/.well-known/openid-configuration \\
     --scopes openid --scopes profile --scopes email

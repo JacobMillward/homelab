@@ -13,7 +13,7 @@ import { CrowdSec } from "./crowdsec";
 import { Renovate } from "./renovate";
 import { ExternalSecrets } from "./eso";
 import { PulumiOperator } from "./pko";
-import { Forgejo } from "./forgejo";
+import { Forgejo, FORGEJO_AUTH_SOURCE_NAME } from "./forgejo";
 import { Registry } from "./registry";
 import { DOMAIN } from "homelab-lib";
 
@@ -88,7 +88,7 @@ const netbirdOidc = createOidcClient("netbird", {
   userinfoSignedResponseAlg: "none",
 });
 const forgejoOidc = createOidcClient("forgejo", {
-  redirectUris: [`https://git.${DOMAIN}/user/oauth2/authelia/callback`],
+  redirectUris: [`https://git.${DOMAIN}/user/oauth2/${FORGEJO_AUTH_SOURCE_NAME}/callback`],
 });
 
 const authelia = new Authelia(ctx, {
