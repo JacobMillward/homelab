@@ -74,6 +74,13 @@ frontend app_publish
 
 backend home_traefik
     server home ${HOME_TUNNEL_IP}:443 send-proxy
+
+frontend forgejo_ssh
+    bind *:22
+    default_backend home_forgejo_ssh
+
+backend home_forgejo_ssh
+    server home ${HOME_TUNNEL_IP}:22
 `),
               },
             },
@@ -105,6 +112,9 @@ NB_TLS_KEY_FILE=/certs/privkey.pem
         systemd: {
           units: [
             { name: "wg-quick@wg0.service", enabled: true },
+            // No keys are provisioned, so this only occupies Forgejo's SSH port.
+            { name: "sshd.socket", mask: true },
+            { name: "sshd.service", mask: true },
             {
               name: "haproxy.service",
               enabled: true,

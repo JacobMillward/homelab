@@ -113,6 +113,13 @@ export class VpsServer extends pulumi.ComponentResource {
           },
           {
             direction: "in",
+            protocol: "tcp",
+            port: "22",
+            sourceIps: ["0.0.0.0/0", "::/0"],
+            description: "Forgejo SSH, tunnelled to home",
+          },
+          {
+            direction: "in",
             protocol: "udp",
             port: "51820",
             // WireGuard peers roam across networks, so source IP restriction
