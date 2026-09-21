@@ -62,7 +62,7 @@ else
 fi
 
 forgejo forgejo-cli actions register --secret '${args.runnerSecret}' \\
-  --name forgejo-runner --labels self-hosted:host
+  --name forgejo-runner --labels self-hosted
 `;
 
   const job = new k8s.batch.v1.Job(
