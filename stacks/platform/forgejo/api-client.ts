@@ -485,6 +485,9 @@ export const pushMirrorProvider = {
   },
 
   async delete(id: string, outs: ForgejoPushMirrorOutputs, fetchImpl: typeof fetch = fetch): Promise<void> {
+    // Mirrors created before this provider recorded its client can't be removed
+    // over the API; leaving them is better than failing every later apply.
+    if (!outs.client) return;
     await forgejoRequest(
       outs.client,
       "DELETE",
