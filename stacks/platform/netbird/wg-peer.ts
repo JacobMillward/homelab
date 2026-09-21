@@ -8,6 +8,7 @@ export interface VpsTunnelArgs {
   vpsIp: pulumi.Input<string>;
   vpsWgPublicKey: pulumi.Input<string>;
   traefikIp: pulumi.Input<string>;
+  forgejoSshIp: pulumi.Input<string>;
 }
 
 export class VpsTunnel extends pulumi.ComponentResource {
@@ -16,7 +17,17 @@ export class VpsTunnel extends pulumi.ComponentResource {
       providers: { kubernetes: ctx.k8sProvider },
     });
 
-    const { namespace, vpsIp, vpsWgPublicKey, traefikIp } = args;
+    const { namespace, vpsIp, vpsWgPublicKey, traefikIp, forgejoSshIp } = args;
+
+    const forward = (port: number, dest: pulumi.Input<string>) =>
+      pulumi.interpolate`iptables -t nat -%OP% PREROUTING -p tcp --dport ${port} -j DNAT --to-destination ${dest}:${port}; iptables -%OP% FORWARD -p tcp -d ${dest} --dport ${port} -j ACCEPT; iptables -t nat -%OP% POSTROUTING -p tcp -d ${dest} --dport ${port} -j MASQUERADE`;
+
+    const rules = pulumi
+      .all([forward(443, traefikIp), forward(22, forgejoSshIp)])
+      .apply(([https, ssh]) => ({
+        up: [https, ssh].join("; ").replace(/%OP%/g, "A"),
+        down: [https, ssh].join("; ").replace(/%OP%/g, "D"),
+      }));
 
     const privateKeyPlaceholder = "__HOME_WG_PRIVATE_KEY__";
 
@@ -28,8 +39,8 @@ export class VpsTunnel extends pulumi.ComponentResource {
           "wg0.conf": pulumi.interpolate`[Interface]
 Address = ${HOME_TUNNEL_ADDRESS}
 PrivateKey = ${privateKeyPlaceholder}
-PostUp = sysctl -w net.ipv4.ip_forward=1; iptables -t nat -A PREROUTING -p tcp --dport 443 -j DNAT --to-destination ${traefikIp}:443; iptables -A FORWARD -p tcp -d ${traefikIp} --dport 443 -j ACCEPT; iptables -t nat -A POSTROUTING -p tcp -d ${traefikIp} --dport 443 -j MASQUERADE
-PostDown = iptables -t nat -D PREROUTING -p tcp --dport 443 -j DNAT --to-destination ${traefikIp}:443; iptables -D FORWARD -p tcp -d ${traefikIp} --dport 443 -j ACCEPT; iptables -t nat -D POSTROUTING -p tcp -d ${traefikIp} --dport 443 -j MASQUERADE
+PostUp = sysctl -w net.ipv4.ip_forward=1; ${rules.up}
+PostDown = ${rules.down}
 
 [Peer]
 PublicKey = ${vpsWgPublicKey}

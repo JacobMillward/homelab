@@ -104,6 +104,7 @@ const netbird = setupNetbird({
   traefikIp: traefik.loadBalancerIp,
   traefikClusterIp: traefik.clusterIp,
   traefikInternalIp: traefik.internalIp,
+  forgejoSshIp: config.require("forgejoSshIp"),
   forwardAuthSpec: traefik.forwardAuthSpec,
   vps: vpsConfig,
   secretStoreName: eso.secretStoreName,
