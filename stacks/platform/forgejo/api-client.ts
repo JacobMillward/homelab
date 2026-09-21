@@ -137,43 +137,6 @@ export class ForgejoAdminToken extends pulumi.dynamic.Resource {
   }
 }
 
-export interface ForgejoRunnerTokenInputs {
-  client: ForgejoClientArgs;
-}
-
-interface ForgejoRunnerTokenOutputs {
-  client: ResolvedClient;
-  token: string;
-}
-
-export const runnerTokenProvider = {
-  async create(
-    inputs: { client: ResolvedClient },
-    fetchImpl: typeof fetch = fetch,
-  ): Promise<{ id: string; outs: ForgejoRunnerTokenOutputs }> {
-    const res = await forgejoRequest<{ token: string }>(
-      inputs.client,
-      "GET",
-      "/admin/runners/registration-token",
-      undefined,
-      fetchImpl,
-    );
-    return { id: "runner-registration-token", outs: { client: inputs.client, token: res.token } };
-  },
-};
-
-export class ForgejoRunnerToken extends pulumi.dynamic.Resource {
-  readonly token!: pulumi.Output<string>;
-
-  constructor(name: string, args: ForgejoRunnerTokenInputs, opts?: pulumi.CustomResourceOptions) {
-    super(
-      runnerTokenProvider as pulumi.dynamic.ResourceProvider,
-      name,
-      { ...args, token: undefined },
-      { ...opts, additionalSecretOutputs: ["token"] },
-    );
-  }
-}
 
 export interface ForgejoUserInputs {
   client: ForgejoClientArgs;

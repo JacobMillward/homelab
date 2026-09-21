@@ -16,12 +16,8 @@ import {
 import { createBootstrapJob } from "./bootstrap-job";
 
 export { AUTH_SOURCE_NAME as FORGEJO_AUTH_SOURCE_NAME } from "./bootstrap-job";
-import {
-  ForgejoAdminToken,
-  ForgejoPushMirror,
-  ForgejoRepository,
-  ForgejoRunnerToken,
-} from "./api-client";
+import { ForgejoAdminToken, ForgejoPushMirror, ForgejoRepository } from "./api-client";
+import { createRunner } from "./runner";
 
 const SSH_PORT = 22;
 const BOUNCER_CONFIG_PATH = "/etc/crowdsec/bouncers/crowdsec-firewall-bouncer.yaml";
@@ -44,7 +40,6 @@ export class Forgejo extends pulumi.ComponentResource {
   readonly deployment: k8s.apps.v1.Deployment;
   readonly oidcClient: OidcClientSpec;
   readonly adminApiToken: pulumi.Output<string>;
-  readonly runnerRegistrationToken: pulumi.Output<string>;
   readonly endpoint: pulumi.Output<string>;
   readonly repoOwner: string;
   readonly repoName: string;
@@ -275,15 +270,27 @@ export class Forgejo extends pulumi.ComponentResource {
       { ...childOpts, dependsOn: [crowdsecMiddleware] },
     );
 
+    // 40 hex chars: Forgejo requires exactly that for a runner's shared secret.
+    const runnerSecret = new random.RandomBytes("forgejo-runner-secret", { length: 20 }, childOpts);
+
     const bootstrap = createBootstrapJob(this, {
       namespace: this.namespace.metadata.name,
       deployment: this.deployment,
       configSecretName: configSecret.metadata.name,
       dbSecretName,
+      runnerSecret: runnerSecret.hex,
       domain: args.domain,
       oidcClient: args.oidcClient,
     });
     this.endpoint = pulumi.output(`https://git.${args.domain}`);
+
+    createRunner(this, {
+      namespace: this.namespace.metadata.name,
+      endpoint: this.endpoint,
+      secret: runnerSecret.hex,
+      registry: args.registry,
+      dependsOn: [bootstrap.job],
+    });
 
     const adminToken = new ForgejoAdminToken(
       "forgejo-admin-token",
@@ -298,11 +305,6 @@ export class Forgejo extends pulumi.ComponentResource {
     this.adminApiToken = adminToken.token;
 
     const client = { endpoint: this.endpoint, adminToken: this.adminApiToken };
-    this.runnerRegistrationToken = new ForgejoRunnerToken(
-      "forgejo-runner-token",
-      { client },
-      { parent: this },
-    ).token;
     const repo = new ForgejoRepository(
       "homelab-import",
       {
