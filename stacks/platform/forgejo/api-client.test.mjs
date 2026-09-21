@@ -248,7 +248,35 @@ test("pushMirrorProvider.create posts to /repos/{owner}/{repo}/push_mirrors", as
   );
 
   assert.equal(result.id, "push-mirror-1");
-  assert.deepEqual(result.outs, { remoteName: "push-mirror-1" });
+  assert.deepEqual(result.outs, {
+    remoteName: "push-mirror-1",
+    owner: "jacob",
+    repo: "homelab",
+    client: { endpoint: "https://git.example.com", adminToken: "tok123" },
+  });
+});
+
+test("pushMirrorProvider.delete DELETEs /repos/{owner}/{repo}/push_mirrors/{name}", async () => {
+  let capturedUrl, capturedMethod;
+  const fakeFetch = async (url, init) => {
+    capturedUrl = url;
+    capturedMethod = init.method;
+    return new Response(null, { status: 204 });
+  };
+
+  await pushMirrorProvider.delete(
+    "push-mirror-1",
+    {
+      remoteName: "push-mirror-1",
+      owner: "jacob",
+      repo: "homelab",
+      client: { endpoint: "https://git.example.com", adminToken: "tok123" },
+    },
+    fakeFetch,
+  );
+
+  assert.equal(capturedUrl, "https://git.example.com/api/v1/repos/jacob/homelab/push_mirrors/push-mirror-1");
+  assert.equal(capturedMethod, "DELETE");
 });
 
 test("forgejoBasicRequest sends basic auth credentials", async () => {

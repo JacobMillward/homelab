@@ -447,9 +447,11 @@ export interface ForgejoPushMirrorInputs {
 
 interface ForgejoPushMirrorOutputs {
   remoteName: string;
+  owner: string;
+  repo: string;
+  client: ResolvedClient;
 }
 
-// No delete(). Push mirrors are one-way config; pulumi destroy just leaves it configured.
 export const pushMirrorProvider = {
   async create(
     inputs: {
@@ -472,10 +474,24 @@ export const pushMirrorProvider = {
         remote_username: inputs.remoteUsername,
         remote_password: inputs.remotePassword,
         interval: inputs.interval ?? "8h0m0s",
+        sync_on_commit: true,
       },
       fetchImpl,
     );
-    return { id: mirror.remote_name, outs: { remoteName: mirror.remote_name } };
+    return {
+      id: mirror.remote_name,
+      outs: { remoteName: mirror.remote_name, owner: inputs.owner, repo: inputs.repo, client: inputs.client },
+    };
+  },
+
+  async delete(id: string, outs: ForgejoPushMirrorOutputs, fetchImpl: typeof fetch = fetch): Promise<void> {
+    await forgejoRequest(
+      outs.client,
+      "DELETE",
+      `/repos/${outs.owner}/${outs.repo}/push_mirrors/${outs.remoteName}`,
+      undefined,
+      fetchImpl,
+    );
   },
 };
 
@@ -485,6 +501,10 @@ class ForgejoPushMirrorProvider
 {
   async create(inputs: Parameters<typeof pushMirrorProvider.create>[0]) {
     return pushMirrorProvider.create(inputs);
+  }
+
+  async delete(id: string, outs: ForgejoPushMirrorOutputs) {
+    return pushMirrorProvider.delete(id, outs);
   }
 }
 
