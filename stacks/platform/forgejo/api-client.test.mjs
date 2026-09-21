@@ -6,7 +6,6 @@ import {
   userProvider,
   accessTokenProvider,
   adminTokenProvider,
-  runnerTokenProvider,
   deployKeyProvider,
   repositoryProvider,
   pushMirrorProvider,
@@ -326,18 +325,3 @@ test("adminTokenProvider.delete removes the token it created", async () => {
   assert.equal(capturedMethod, "DELETE");
 });
 
-test("runnerTokenProvider.create reads the admin registration token", async () => {
-  let capturedUrl;
-  const fakeFetch = async (url) => {
-    capturedUrl = url;
-    return new Response(JSON.stringify({ token: "runner-tok" }), { status: 200 });
-  };
-
-  const result = await runnerTokenProvider.create(
-    { client: { endpoint: "https://git.example.com", adminToken: "tok123" } },
-    fakeFetch,
-  );
-
-  assert.equal(capturedUrl, "https://git.example.com/api/v1/admin/runners/registration-token");
-  assert.equal(result.outs.token, "runner-tok");
-});

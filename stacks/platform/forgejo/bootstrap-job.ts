@@ -14,6 +14,7 @@ export interface BootstrapJobArgs {
   deployment: k8s.apps.v1.Deployment;
   configSecretName: pulumi.Output<string>;
   dbSecretName: pulumi.Output<string>;
+  runnerSecret: pulumi.Output<string>;
   domain: string;
   oidcClient: OidcClientSpec;
 }
@@ -59,6 +60,9 @@ else
   forgejo admin auth update-oauth --id "$AUTH_ID" \\
     --key '${args.oidcClient.clientId}' --secret '${args.oidcClient.clientSecret}'
 fi
+
+forgejo forgejo-cli actions register --secret '${args.runnerSecret}' \\
+  --name forgejo-runner --labels self-hosted:host
 `;
 
   const job = new k8s.batch.v1.Job(
