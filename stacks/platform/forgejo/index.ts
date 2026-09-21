@@ -14,6 +14,8 @@ import {
   seedConfigCommand,
 } from "./container";
 import { createBootstrapJob } from "./bootstrap-job";
+
+export { AUTH_SOURCE_NAME as FORGEJO_AUTH_SOURCE_NAME } from "./bootstrap-job";
 import {
   ForgejoAdminToken,
   ForgejoPushMirror,
