@@ -8,14 +8,16 @@ import { Traefik } from "./traefik";
 import { PostgreSQL } from "./postgresql";
 import { setupNetbird } from "./netbird";
 import { Synology } from "./synology";
-import { Authelia } from "./authelia";
+import { Authelia, createOidcClient } from "./authelia";
 import { CrowdSec } from "./crowdsec";
 import { Renovate } from "./renovate";
 import { ExternalSecrets } from "./eso";
 import { PulumiOperator } from "./pko";
+import { Forgejo } from "./forgejo";
+import { Registry } from "./registry";
+import { DOMAIN } from "homelab-lib";
 
 const config = new pulumi.Config();
-const domain = config.require("domain");
 const cloudflareApiToken = config.requireSecret("cloudflareApiToken");
 const cloudflareDnsEditApiToken = config.requireSecret("cloudflareDnsEditApiToken");
 const renovateGithubAppId = config.requireSecret("renovateGithubAppId");
@@ -79,9 +81,21 @@ const traefik = new Traefik(ctx, {
 });
 new PostgreSQL(ctx);
 const synology = new Synology(ctx);
+const registry = new Registry(ctx, { domain: DOMAIN, storageClassName: longhorn.storageClassName });
+
+const netbirdOidc = createOidcClient("netbird", {
+  redirectUris: [`https://netbird.${DOMAIN}/oauth2/callback`],
+  userinfoSignedResponseAlg: "none",
+});
+const forgejoOidc = createOidcClient("forgejo", {
+  redirectUris: [`https://git.${DOMAIN}/user/oauth2/authelia/callback`],
+});
+
 const authelia = new Authelia(ctx, {
-  domain,
+  domain: DOMAIN,
   storageClassName: longhorn.storageClassName,
+  oidcClients: [netbirdOidc, forgejoOidc],
+  publicDns: traefik.publicDns,
 });
 
 const netbird = setupNetbird({
@@ -93,8 +107,25 @@ const netbird = setupNetbird({
   forwardAuthSpec: traefik.forwardAuthSpec,
   vps: vpsConfig,
   secretStoreName: eso.secretStoreName,
-  netbirdOidcClientId: authelia.netbirdOidcClientId,
-  netbirdOidcClientSecret: authelia.netbirdOidcClientSecret,
+  netbirdOidcClientId: netbirdOidc.clientId,
+  netbirdOidcClientSecret: netbirdOidc.clientSecret,
+});
+
+const forgejo = new Forgejo(ctx, {
+  domain: DOMAIN,
+  storageClassName: longhorn.storageClassName,
+  oidcClient: forgejoOidc,
+  sshLoadBalancerIp: config.require("forgejoSshIp"),
+  crowdsecPluginSpec: traefik.crowdsecPluginSpec,
+  githubMirrorToken: config.requireSecret("githubMirrorToken"),
+  crowdsecFirewallBouncerApiKey: crowdsec.firewallBouncerApiKey,
+  registry: {
+    pushHost: registry.pushHost,
+    username: registry.username,
+    password: registry.password,
+    dependsOn: [netbird.registryDns, registry.deployment],
+  },
+  publicDns: traefik.publicDns,
 });
 
 export { storageClassName } from "./longhorn";
@@ -106,9 +137,11 @@ export const traefikInternalIp = traefik.internalIp;
 export const synologyPvNames = synology.pvNames;
 export const autheliaServiceName = authelia.serviceName;
 export const autheliaNamespace = authelia.namespace.metadata.name;
-export const netbirdOidcClientId = authelia.netbirdOidcClientId;
-export const netbirdOidcClientSecret = authelia.netbirdOidcClientSecret;
+export const netbirdOidcClientId = netbirdOidc.clientId;
+export const netbirdOidcClientSecret = netbirdOidc.clientSecret;
 export const forwardAuthSpec = traefik.forwardAuthSpec;
 export const crowdsecPluginSpec = traefik.crowdsecPluginSpec;
 export const vpsIp = vpsConfig.ip;
+export const forgejoServiceName = forgejo.serviceName;
+export const forgejoNamespace = forgejo.namespace.metadata.name;
 

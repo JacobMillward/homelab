@@ -1,21 +1,20 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as netbird from "@pulumi/netbird";
+import { DOMAIN } from "homelab-lib";
 
 export function configureNetbird(
   provider: netbird.Provider,
   dependsOn: pulumi.Resource[],
   oidc: { clientId: pulumi.Input<string>; clientSecret: pulumi.Input<string> },
 ) {
-  const config = new pulumi.Config();
-  const domain = config.require("domain");
   const opts = { provider, dependsOn };
 
-  new netbird.IdentityProvider(
+  const identityProvider = new netbird.IdentityProvider(
     "authelia",
     {
       name: "Authelia",
       type: "oidc",
-      issuer: `https://auth.${domain}`,
+      issuer: `https://auth.${DOMAIN}`,
       clientId: oidc.clientId,
       clientSecret: oidc.clientSecret,
     },
@@ -84,12 +83,12 @@ export function configureNetbird(
     opts,
   );
 
-  // DNS zone for internal-only app subdomains (*.internal.${domain})
+  // DNS zone for internal-only app subdomains (*.internal.${DOMAIN})
   const zone = new netbird.DnsZone(
     "internal-zone",
     {
-      name: `internal.${domain}`,
-      domain: `internal.${domain}`,
+      name: `internal.${DOMAIN}`,
+      domain: `internal.${DOMAIN}`,
       enabled: true,
       enableSearchDomain: false,
       distributionGroups: [allGroup.apply((g) => g.id)],
@@ -97,13 +96,13 @@ export function configureNetbird(
     opts,
   );
 
-  // Tell peers to resolve internal.${domain} via CoreDNS (reachable
+  // Tell peers to resolve internal.${DOMAIN} via CoreDNS (reachable
   // through the k8s-router peer that advertises 10.96.0.0/12)
   new netbird.NameserverGroup(
     "k8s-dns",
     {
       name: "k8s-dns",
-      domains: [`internal.${domain}`],
+      domains: [`internal.${DOMAIN}`],
       primary: false,
       nameservers: [{ ip: "10.96.0.10", nsType: "udp", port: 53 }],
       groups: [allGroup.apply((g) => g.id)],
@@ -113,5 +112,5 @@ export function configureNetbird(
     opts,
   );
 
-  return { setupKey: setupKey.key, dnsZoneId: zone.id };
+  return { setupKey: setupKey.key, dnsZoneId: zone.id, identityProvider };
 }

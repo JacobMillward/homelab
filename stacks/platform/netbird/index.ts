@@ -1,6 +1,8 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as netbird from "@pulumi/netbird";
+import * as crypto from "crypto";
+import { DOMAIN } from "homelab-lib";
 import { PlatformCtx } from "../context";
 import { NetbirdServer } from "./server";
 import { NetbirdRouter } from "./router";
@@ -32,7 +34,6 @@ interface NetbirdArgs {
 export function setupNetbird(args: NetbirdArgs) {
   const { ctx, storageClassName, traefikIp, traefikClusterIp, traefikInternalIp, forwardAuthSpec, vps, netbirdOidcClientId, netbirdOidcClientSecret, secretStoreName } = args;
   const config = new pulumi.Config();
-  const domain = config.require("domain");
 
   const server = new NetbirdServer(ctx, {
     storageClassName,
@@ -65,12 +66,50 @@ export function setupNetbird(args: NetbirdArgs) {
     { clientId: netbirdOidcClientId, clientSecret: netbirdOidcClientSecret },
   );
 
+  // Dex reads Authelia's client_id/secret from its own sqlite store (set by
+  // identityProvider above) but doesn't hot-reload it on a rotation. A
+  // separate patch, applied only after identityProvider, restarts the pod
+  // without creating a cycle (identityProvider itself depends on the
+  // Deployment already existing).
+  const oidcConfigHash = pulumi
+    .all([netbirdOidcClientId, netbirdOidcClientSecret])
+    .apply(([id, secret]) => crypto.createHash("sha256").update(`${id}:${secret}`).digest("hex"));
+
+  new k8s.apps.v1.DeploymentPatch(
+    "netbird-server-oidc-restart",
+    {
+      metadata: {
+        name: server.serverDeployment.metadata.name,
+        namespace: server.serverDeployment.metadata.namespace,
+      },
+      spec: {
+        template: {
+          metadata: { annotations: { "homelab.internal/oidc-config-hash": oidcConfigHash } },
+        },
+      },
+    },
+    { provider: ctx.k8sProvider, dependsOn: [nbConfig.identityProvider] },
+  );
+
   // Dashboard is mesh-only (traefik-internal) — give mesh peers a NetBird
   // DNS record for it, same as any other internal app.
   new netbird.DnsRecord(
     "netbird-dashboard-dns",
     {
-      name: `dashboard.internal.${domain}`,
+      name: `dashboard.internal.${DOMAIN}`,
+      zoneId: nbConfig.dnsZoneId,
+      type: "A",
+      content: traefikInternalIp,
+      ttl: 300,
+    },
+    { provider: nbProvider },
+  );
+
+  // Registry is mesh-only too, same target IP as the dashboard.
+  const registryDns = new netbird.DnsRecord(
+    "registry-internal-dns",
+    {
+      name: `registry.internal.${DOMAIN}`,
       zoneId: nbConfig.dnsZoneId,
       type: "A",
       content: traefikInternalIp,
@@ -97,8 +136,9 @@ export function setupNetbird(args: NetbirdArgs) {
 
   return {
     dnsZoneId: nbConfig.dnsZoneId,
-    managementUrl: `https://netbird.${domain}`,
+    managementUrl: `https://netbird.${DOMAIN}`,
     pat,
+    registryDns,
   };
 }
 

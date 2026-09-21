@@ -5,24 +5,31 @@ import * as tls from "@pulumi/tls";
 import * as command from "@pulumi/command";
 import { dockerImage } from "homelab-lib";
 import { PlatformCtx } from "../context";
+import { PublicDnsSpec, createPublicDnsRecord } from "../traefik";
 import { buildAutheliaConfig } from "./config";
+import { OidcClientSpec } from "./oidc-client";
+
+export { createOidcClient } from "./oidc-client";
+export type { OidcClientSpec } from "./oidc-client";
 
 export interface AutheliaArgs {
   domain: string;
   storageClassName: pulumi.Input<string>;
+  oidcClients: OidcClientSpec[];
+  publicDns: PublicDnsSpec;
 }
 
 export class Authelia extends pulumi.ComponentResource {
   readonly namespace: k8s.core.v1.Namespace;
   readonly serviceName: pulumi.Output<string>;
-  readonly netbirdOidcClientId: pulumi.Output<string>;
-  readonly netbirdOidcClientSecret: pulumi.Output<string>;
 
   constructor(ctx: PlatformCtx, args: AutheliaArgs) {
     super("platform:Authelia", "authelia", {}, {
       providers: { kubernetes: ctx.k8sProvider },
     });
     const childOpts = { parent: this };
+
+    createPublicDnsRecord(this, "auth", args.publicDns);
 
     this.namespace = new k8s.core.v1.Namespace(
       "authelia",
@@ -55,19 +62,6 @@ export class Authelia extends pulumi.ComponentResource {
       { algorithm: "RSA", rsaBits: 4096 },
       childOpts,
     );
-    const netbirdOidcClientId = new random.RandomPassword(
-      "netbird-oidc-client-id",
-      { length: 32, special: false },
-      childOpts,
-    );
-    const netbirdOidcClientSecret = new random.RandomPassword(
-      "netbird-oidc-client-secret",
-      { length: 64, special: false },
-      childOpts,
-    );
-
-    this.netbirdOidcClientId = netbirdOidcClientId.result;
-    this.netbirdOidcClientSecret = netbirdOidcClientSecret.result;
 
     const adminPasswordHash = new random.RandomPassword(
       "authelia-admin-password",
@@ -101,8 +95,7 @@ users:
       storageEncryptionKey: storageEncryptionKey.result,
       oidcHmacSecret: oidcHmacSecret.result,
       oidcIssuerPrivateKey: oidcIssuerKey.privateKeyPem,
-      netbirdOidcClientId: this.netbirdOidcClientId,
-      netbirdOidcClientSecret: this.netbirdOidcClientSecret,
+      oidcClients: args.oidcClients,
     });
 
     const configSecret = new k8s.core.v1.Secret(

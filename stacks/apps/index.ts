@@ -4,9 +4,9 @@ import { HomeAutomation } from "./home-automation";
 import { Joplin } from "./joplin";
 import { DnsRegistrar } from "./dns";
 import { AppCtx } from "./app";
+import { DOMAIN } from "homelab-lib";
 
 const config = new pulumi.Config();
-const domain = config.require("domain");
 const platformStack = new pulumi.StackReference(
   config.require("platformStackRef"),
 );
@@ -41,7 +41,7 @@ const forwardAuthSpec = platformStack
   );
 
 const dns = new DnsRegistrar({
-  domain,
+  domain: DOMAIN,
   managementUrl: platformStack
     .requireOutput("netbirdManagementUrl")
     .apply((v) => v as string),

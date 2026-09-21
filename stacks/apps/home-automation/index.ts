@@ -1,5 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import { DOMAIN } from "homelab-lib";
 import { AppCtx } from "../app";
 import { deployMosquitto } from "./mosquitto";
 import { deployZigbee2mqtt } from "./zigbee2mqtt";
@@ -14,9 +15,6 @@ export class HomeAutomation extends pulumi.ComponentResource {
         providers: { kubernetes: ctx.provider },
       },
     );
-
-    const config = new pulumi.Config();
-    const domain = config.require("domain");
 
     const ns = new k8s.core.v1.Namespace(
       "home-automation",
@@ -46,7 +44,7 @@ export class HomeAutomation extends pulumi.ComponentResource {
       parent: this,
       storageClassName: ctx.storageClassName,
       dns: ctx.dns,
-      host: `z2m.internal.${domain}`,
+      host: `z2m.internal.${DOMAIN}`,
     });
   }
 }
