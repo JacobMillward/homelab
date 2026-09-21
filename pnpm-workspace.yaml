@@ -2,6 +2,11 @@ packages:
   - lib
   - stacks/*
 
+# The generated @pulumi/netbird SDK pins an old typescript from Pulumi's
+# own codegen default. This keeps one version resolved workspace-wide.
+overrides:
+  typescript: 6.0.3
+
 allowBuilds:
   '@pulumi/command': true
   '@pulumi/kubernetes': true
