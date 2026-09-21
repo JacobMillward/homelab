@@ -68,10 +68,10 @@ for i in $(seq 1 30); do
   sleep 2
 done
 buildah login -u "$REGISTRY_USER" -p "$REGISTRY_PASS" "\${PUSH_HOST}" >&2
-if ! buildah --storage-driver vfs manifest inspect "docker://$IMAGE" >/dev/null 2>&1; then
+# Pulling doubles as the does-it-already-exist check, and leaves the image in
+# local storage for the push either way.
+if ! buildah --storage-driver vfs pull "docker://$IMAGE" >&2; then
   buildah bud --storage-driver vfs --isolation chroot -t "$IMAGE" "${args.contextDir}" >&2
-else
-  buildah --storage-driver vfs pull "docker://$IMAGE" >&2
 fi
 buildah push --storage-driver vfs --digestfile /tmp/${args.name}-${tag}-digest "$IMAGE" "docker://$IMAGE" >&2
 cat /tmp/${args.name}-${tag}-digest
@@ -83,7 +83,14 @@ cat /tmp/${args.name}-${tag}-digest
         REGISTRY_PASS: args.registry.password,
       },
     },
-    { parent, additionalSecretOutputs: ["stdout"], dependsOn: args.registry.dependsOn },
+    {
+      parent,
+      additionalSecretOutputs: ["stdout"],
+      dependsOn: args.registry.dependsOn,
+      // Where the repo sits on disk isn't part of the image, and it differs
+      // between a checkout, a worktree and PKO's workspace.
+      ignoreChanges: ["dir"],
+    },
   );
 
   return pulumi
