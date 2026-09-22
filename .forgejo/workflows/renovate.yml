@@ -16,6 +16,9 @@ jobs:
       RENOVATE_AUTODISCOVER: "false"
       RENOVATE_REPOSITORIES: jacob/homelab
       RENOVATE_ONBOARDING: "false"
+      # Admin-only option, so renovate.json can't carry it. Keep in step with
+      # the CronJob's copy in stacks/platform/renovate.ts.
+      RENOVATE_ALLOWED_COMMANDS: '["^bash scripts/generate-netbird-sdk\\.sh$"]'
     steps:
       - run: renovate
         env:
