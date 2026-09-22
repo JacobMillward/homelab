@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "main": "index.ts",
   "devDependencies": {
-    "@types/node": "^24.0.0",
-    "@types/ws": "^8.18.1",
-    "typescript": "^6.0.0"
+    "@types/node": "24.13.6",
+    "@types/ws": "8.18.1",
+    "typescript": "6.0.3"
   },
   "dependencies": {
     "@kubernetes/client-node": "^2.0.0",

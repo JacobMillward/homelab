@@ -11,7 +11,7 @@ jobs:
     # buildah needs SYS_ADMIN, which only this runner has.
     runs-on: image-builder
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       # buildah overlay-mounts the build context, and an upperdir on the
       # container's own overlayfs is rejected. /data is an emptyDir.
       - run: mkdir -p "$TMPDIR" && bash scripts/build-images.sh

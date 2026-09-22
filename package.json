@@ -3,6 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
-    "jsonata": "^2.2.2"
+    "jsonata": "2.2.2"
   }
 }
