@@ -1,7 +1,7 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
-import { dockerImage, buildAndPushImage, RegistryTarget } from "homelab-lib";
+import { dockerImage, selfBuiltImage, RegistryTarget } from "homelab-lib";
 import { PlatformCtx } from "../context";
 import { OidcClientSpec } from "../authelia";
 import { CrowdsecPluginSpec, PublicDnsSpec, createPublicDnsRecord } from "../traefik";
@@ -16,7 +16,12 @@ import {
 import { createBootstrapJob } from "./bootstrap-job";
 
 export { AUTH_SOURCE_NAME as FORGEJO_AUTH_SOURCE_NAME } from "./bootstrap-job";
-import { ForgejoAdminToken, ForgejoPushMirror, ForgejoRepository } from "./api-client";
+import {
+  ForgejoActionSecret,
+  ForgejoAdminToken,
+  ForgejoPushMirror,
+  ForgejoRepository,
+} from "./api-client";
 import { createRunner } from "./runner";
 
 const SSH_PORT = 22;
@@ -127,7 +132,7 @@ export class Forgejo extends pulumi.ComponentResource {
       childOpts,
     );
 
-    const firewallBouncerImage = buildAndPushImage(this, {
+    const firewallBouncerImage = selfBuiltImage(this, {
       name: "crowdsec-firewall-bouncer",
       contextDir: "images/crowdsec-firewall-bouncer",
       registry: args.registry,
@@ -272,6 +277,11 @@ export class Forgejo extends pulumi.ComponentResource {
 
     // 40 hex chars: Forgejo requires exactly that for a runner's shared secret.
     const runnerSecret = new random.RandomBytes("forgejo-runner-secret", { length: 20 }, childOpts);
+    const imageBuilderSecret = new random.RandomBytes(
+      "forgejo-runner-image-builder-secret",
+      { length: 20 },
+      childOpts,
+    );
 
     const bootstrap = createBootstrapJob(this, {
       namespace: this.namespace.metadata.name,
@@ -279,6 +289,7 @@ export class Forgejo extends pulumi.ComponentResource {
       configSecretName: configSecret.metadata.name,
       dbSecretName,
       runnerSecret: runnerSecret.hex,
+      imageBuilderSecret: imageBuilderSecret.hex,
       domain: args.domain,
       oidcClient: args.oidcClient,
     });
@@ -288,6 +299,7 @@ export class Forgejo extends pulumi.ComponentResource {
       namespace: this.namespace.metadata.name,
       endpoint: this.endpoint,
       secret: runnerSecret.hex,
+      imageBuilderSecret: imageBuilderSecret.hex,
       registry: args.registry,
       dependsOn: [bootstrap.job],
     });
@@ -330,6 +342,19 @@ export class Forgejo extends pulumi.ComponentResource {
       },
       { parent: this, dependsOn: [repo] },
     );
+
+    // Credentials for .forgejo/workflows/images.yml, which builds and pushes
+    // the images the Pulumi programs then only resolve.
+    for (const [secretName, data] of [
+      ["REGISTRY_USER", args.registry.username],
+      ["REGISTRY_PASS", args.registry.password],
+    ] as const) {
+      new ForgejoActionSecret(
+        `registry-${secretName.toLowerCase()}-action-secret`,
+        { client, owner: "jacob", repo: "homelab", secretName, data },
+        { parent: this, dependsOn: [repo] },
+      );
+    }
 
     this.repoOwner = "jacob";
     this.repoName = "homelab";
