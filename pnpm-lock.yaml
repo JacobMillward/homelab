@@ -12,7 +12,7 @@ importers:
   .:
     devDependencies:
       jsonata:
-        specifier: ^2.2.2
+        specifier: 2.2.2
         version: 2.2.2
 
   lib:
@@ -25,7 +25,7 @@ importers:
         version: 3.263.0(typescript@6.0.3)
     devDependencies:
       '@types/node':
-        specifier: ^24.0.0
+        specifier: 24.13.6
         version: 24.13.6
       typescript:
         specifier: 6.0.3
@@ -53,7 +53,7 @@ importers:
         version: link:../../lib
     devDependencies:
       '@types/node':
-        specifier: ^24.0.0
+        specifier: 24.13.6
         version: 24.13.6
       typescript:
         specifier: 6.0.3
@@ -96,10 +96,10 @@ importers:
         version: link:../../lib
     devDependencies:
       '@types/node':
-        specifier: ^24.0.0
+        specifier: 24.13.6
         version: 24.13.6
       '@types/ws':
-        specifier: ^8.18.1
+        specifier: 8.18.1
         version: 8.18.1
       typescript:
         specifier: 6.0.3
@@ -1972,11 +1972,11 @@ snapshots:
 
   '@types/stream-buffers@3.0.8':
     dependencies:
-      '@types/node': 24.13.5
+      '@types/node': 24.13.6
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 24.13.5
+      '@types/node': 24.13.6
 
   abbrev@4.0.0: {}
 
