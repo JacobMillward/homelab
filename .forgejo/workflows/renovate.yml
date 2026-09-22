@@ -1,0 +1,22 @@
+name: renovate
+
+on:
+  push:
+    branches: [main]
+  issue_comment:
+    types: [created, edited]
+  workflow_dispatch:
+
+jobs:
+  renovate:
+    runs-on: self-hosted
+    env:
+      RENOVATE_PLATFORM: forgejo
+      RENOVATE_ENDPOINT: https://git.millward-yuan.net/api/v1
+      RENOVATE_AUTODISCOVER: "false"
+      RENOVATE_REPOSITORIES: jacob/homelab
+      RENOVATE_ONBOARDING: "false"
+    steps:
+      - run: renovate
+        env:
+          RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
