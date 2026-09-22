@@ -24,6 +24,12 @@
       "automerge": true
     },
     {
+      "groupName": "self-built image updates",
+      "matchFileNames": ["images/**"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
       "matchDepTypes": ["platform"],
       "matchUpdateTypes": ["patch", "minor"],
       "automerge": true
