@@ -20,13 +20,6 @@ import { DOMAIN } from "homelab-lib";
 const config = new pulumi.Config();
 const cloudflareApiToken = config.requireSecret("cloudflareApiToken");
 const cloudflareDnsEditApiToken = config.requireSecret("cloudflareDnsEditApiToken");
-const renovateGithubAppId = config.requireSecret("renovateGithubAppId");
-const renovateGithubAppInstallationId = config.requireSecret(
-  "renovateGithubAppInstallationId",
-);
-const renovateGithubAppPrivateKey = config.requireSecret(
-  "renovateGithubAppPrivateKey",
-);
 
 // No explicit kubeconfig — resolves in-cluster or via ~/.kube/config,
 // since talos's kubeconfig is encrypted under a different passphrase.
@@ -65,13 +58,6 @@ new PulumiOperator(ctx, { operatorNamespace: eso.operatorNamespace });
 const longhorn = new Longhorn(ctx);
 new MetalLB(ctx);
 new CertManager(ctx, { cloudflareDnsEditApiToken });
-new Renovate(ctx, {
-  githubAppId: renovateGithubAppId,
-  githubAppInstallationId: renovateGithubAppInstallationId,
-  githubAppPrivateKey: renovateGithubAppPrivateKey,
-  dockerhubUsername: config.requireSecret("dockerhubUsername"),
-  dockerhubToken: config.requireSecret("dockerhubToken"),
-});
 const crowdsec = new CrowdSec(ctx, { storageClassName: longhorn.storageClassName });
 const traefik = new Traefik(ctx, {
   crowdsecBouncerApiKey: crowdsec.bouncerApiKey,
@@ -127,6 +113,17 @@ const forgejo = new Forgejo(ctx, {
     dependsOn: [netbird.registryDns, registry.deployment],
   },
   publicDns: traefik.publicDns,
+});
+
+new Renovate(ctx, {
+  forgejo: {
+    endpoint: forgejo.endpoint,
+    adminApiToken: forgejo.adminApiToken,
+    repoOwner: forgejo.repoOwner,
+    repoName: forgejo.repoName,
+  },
+  dockerhubUsername: config.requireSecret("dockerhubUsername"),
+  dockerhubToken: config.requireSecret("dockerhubToken"),
 });
 
 export { storageClassName } from "./longhorn";

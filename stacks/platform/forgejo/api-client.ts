@@ -143,6 +143,7 @@ export interface ForgejoUserInputs {
   username: string;
   email: string;
   password: pulumi.Input<string>;
+  fullName?: string;
   mustChangePassword?: boolean;
 }
 
@@ -161,6 +162,7 @@ export const userProvider = {
       username: string;
       email: string;
       password: string;
+      fullName?: string;
       mustChangePassword?: boolean;
     },
     fetchImpl: typeof fetch = fetch,
@@ -173,6 +175,7 @@ export const userProvider = {
         username: inputs.username,
         email: inputs.email,
         password: inputs.password,
+        full_name: inputs.fullName ?? inputs.username,
         must_change_password: inputs.mustChangePassword ?? false,
       },
       fetchImpl,
@@ -205,7 +208,8 @@ export class ForgejoUser extends pulumi.dynamic.Resource {
   public readonly username!: pulumi.Output<string>;
 
   constructor(name: string, args: ForgejoUserInputs, opts?: pulumi.CustomResourceOptions) {
-    super(new ForgejoUserProvider(), name, { ...args, userId: undefined, username: undefined }, opts);
+    // username is an input as well as an output, so it must not be blanked here.
+    super(new ForgejoUserProvider(), name, { ...args, userId: undefined }, opts);
   }
 }
 
@@ -292,6 +296,81 @@ interface ForgejoDeployKeyOutputs {
   owner: string;
   repo: string;
   client: ResolvedClient;
+}
+
+export interface ForgejoCollaboratorInputs {
+  client: ForgejoClientArgs;
+  owner: string;
+  repo: string;
+  collaborator: pulumi.Input<string>;
+  permission: "read" | "write" | "admin";
+}
+
+interface ForgejoCollaboratorOutputs {
+  client: ResolvedClient;
+  owner: string;
+  repo: string;
+  collaborator: string;
+}
+
+export const collaboratorProvider = {
+  async create(
+    inputs: {
+      client: ResolvedClient;
+      owner: string;
+      repo: string;
+      collaborator: string;
+      permission: string;
+    },
+    fetchImpl: typeof fetch = fetch,
+  ): Promise<{ id: string; outs: ForgejoCollaboratorOutputs }> {
+    await forgejoRequest(
+      inputs.client,
+      "PUT",
+      `/repos/${inputs.owner}/${inputs.repo}/collaborators/${inputs.collaborator}`,
+      { permission: inputs.permission },
+      fetchImpl,
+    );
+    return {
+      id: `${inputs.owner}/${inputs.repo}/${inputs.collaborator}`,
+      outs: {
+        client: inputs.client,
+        owner: inputs.owner,
+        repo: inputs.repo,
+        collaborator: inputs.collaborator,
+      },
+    };
+  },
+
+  async delete(id: string, outs: ForgejoCollaboratorOutputs, fetchImpl: typeof fetch = fetch): Promise<void> {
+    await forgejoRequest(
+      outs.client,
+      "DELETE",
+      `/repos/${outs.owner}/${outs.repo}/collaborators/${outs.collaborator}`,
+      undefined,
+      fetchImpl,
+    );
+    void id;
+  },
+};
+
+class ForgejoCollaboratorProvider
+  implements
+    pulumi.dynamic.ResourceProvider<Parameters<typeof collaboratorProvider.create>[0], ForgejoCollaboratorOutputs>
+{
+  async create(inputs: Parameters<typeof collaboratorProvider.create>[0]) {
+    return collaboratorProvider.create(inputs);
+  }
+
+  async delete(id: string, outs: ForgejoCollaboratorOutputs) {
+    return collaboratorProvider.delete(id, outs);
+  }
+}
+
+export class ForgejoCollaborator extends pulumi.dynamic.Resource {
+  constructor(name: string, args: ForgejoCollaboratorInputs, opts?: pulumi.CustomResourceOptions) {
+    super(new ForgejoCollaboratorProvider(), name, args, opts);
+  }
 }
 
 export const deployKeyProvider = {

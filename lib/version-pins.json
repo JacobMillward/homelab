@@ -56,7 +56,6 @@
     "joplin": { "image": "joplin/server", "tag": "3.7.1", "digest": "sha256:0877bfba41a943017c42c58e90db9d8d548bfe699b5e410248b5b879371734f9" },
     "authelia": { "image": "authelia/authelia", "tag": "4.38", "digest": "sha256:46021dc20efdcc5cdc38a29e3050b8835429a155ae6215388ed3b793a02eb0ab", "tier": "core-infra" },
     "renovate": { "image": "renovate/renovate", "tag": "44.101.2", "digest": "sha256:f8fa576e7775e87495eb2a457b3614dc37662bc3b8f22da04e2d47d638ae4d97" },
-    "githubAppInstallationToken": { "image": "ghcr.io/mshekow/github-app-installation-token", "tag": "2026.07.26", "digest": "sha256:9c818c32d25be97ff940b8ee0ee5a85b620ef618dfcbe73ad5b64fda81a0a541" },
     "onePasswordConnectApi": { "image": "1password/connect-api", "tag": "1.8.2", "digest": "sha256:e915c0c843972f02b0e7e2de502bda8bd4a092288b3f1866098a857bd715a281" },
     "onePasswordConnectSync": { "image": "1password/connect-sync", "tag": "1.8.2", "digest": "sha256:6297ca6136c0f0fb096bc64c49e1bc8df2aab35282ebff8c7bb60745ef176d0d" },
     "pulumiCli": { "image": "pulumi/pulumi", "tag": "3.263.0-nonroot", "digest": "sha256:470b9e17d7544af3fd643fb5675849ff912639d0e7caa1a92852d7649ca0dad0" },
