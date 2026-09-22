@@ -12,8 +12,11 @@ jobs:
     runs-on: image-builder
     steps:
       - uses: actions/checkout@v7
-      - run: bash scripts/build-images.sh
+      # buildah overlay-mounts the build context, and an upperdir on the
+      # container's own overlayfs is rejected. /data is an emptyDir.
+      - run: mkdir -p "$TMPDIR" && bash scripts/build-images.sh
         env:
+          TMPDIR: /data/tmp
           PUSH_HOST: registry.internal.millward-yuan.net
           REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
           REGISTRY_PASS: ${{ secrets.REGISTRY_PASS }}
