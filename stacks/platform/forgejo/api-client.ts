@@ -10,16 +10,15 @@ interface ResolvedClient {
   adminToken: string;
 }
 
-// Rotating the admin token changes `client` on every resource below. Without an
-// update they'd all fail, and ignoring the diff would leave a revoked token in
-// state for delete() to use. Anything else is rejected rather than replaced,
-// because replacing a repository would delete it.
+// A rotated admin token changes `client` everywhere; ignoring that diff would
+// leave delete() holding a revoked one. Other changes throw, because replacing
+// a repository would delete it.
 function refreshedClient<T extends { client: ResolvedClient }>(
   olds: T,
   news: Record<string, unknown> & { client: ResolvedClient },
 ): { outs: T } {
   for (const [key, value] of Object.entries(news)) {
-    if (key === "client") continue;
+    if (key === "client" || key.startsWith("__")) continue;
     if (key in olds && JSON.stringify((olds as Record<string, unknown>)[key]) !== JSON.stringify(value)) {
       throw new Error(`forgejo: ${key} can't change in place; recreate the resource instead`);
     }
@@ -56,105 +55,6 @@ export async function forgejoRequest<T = unknown>(
 
 // Minting the first token is the one call that can't use a token, so it goes
 // through basic auth instead (the API requires it for this route specifically).
-export async function forgejoBasicRequest<T = unknown>(
-  endpoint: string,
-  username: string,
-  password: string,
-  method: string,
-  path: string,
-  body?: unknown,
-  fetchImpl: typeof fetch = fetch,
-): Promise<T> {
-  const url = `${endpoint.replace(/\/$/, "")}/api/v1${path}`;
-  const res = await fetchImpl(url, {
-    method,
-    headers: {
-      Authorization: `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`,
-      "Content-Type": "application/json",
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Forgejo API ${method} ${path} failed: ${res.status} ${text}`);
-  }
-
-  if (res.status === 204) return undefined as T;
-  const text = await res.text();
-  return text ? (JSON.parse(text) as T) : (undefined as T);
-}
-
-// NOTE: ResourceProvider.create/delete receive fully-resolved plain values,
-// not Input/Output. delete() only gets create()'s outs, never the original
-// inputs, so "<X>Outputs" below carries whatever delete() needs.
-
-export interface ForgejoAdminTokenInputs {
-  endpoint: pulumi.Input<string>;
-  username: pulumi.Input<string>;
-  password: pulumi.Input<string>;
-  tokenName: pulumi.Input<string>;
-}
-
-interface ForgejoAdminTokenOutputs {
-  endpoint: string;
-  username: string;
-  password: string;
-  tokenId: number;
-  token: string;
-}
-
-export const adminTokenProvider = {
-  async create(
-    inputs: { endpoint: string; username: string; password: string; tokenName: string },
-    fetchImpl: typeof fetch = fetch,
-  ): Promise<{ id: string; outs: ForgejoAdminTokenOutputs }> {
-    const created = await forgejoBasicRequest<{ id: number; sha1: string }>(
-      inputs.endpoint,
-      inputs.username,
-      inputs.password,
-      "POST",
-      `/users/${inputs.username}/tokens`,
-      { name: inputs.tokenName, scopes: ["all"] },
-      fetchImpl,
-    );
-    return {
-      id: String(created.id),
-      outs: { ...inputs, tokenId: created.id, token: created.sha1 },
-    };
-  },
-
-  async delete(
-    _id: string,
-    outs: ForgejoAdminTokenOutputs,
-    fetchImpl: typeof fetch = fetch,
-  ): Promise<void> {
-    await forgejoBasicRequest(
-      outs.endpoint,
-      outs.username,
-      outs.password,
-      "DELETE",
-      `/users/${outs.username}/tokens/${outs.tokenId}`,
-      undefined,
-      fetchImpl,
-    );
-  },
-};
-
-export class ForgejoAdminToken extends pulumi.dynamic.Resource {
-  readonly token!: pulumi.Output<string>;
-
-  constructor(name: string, args: ForgejoAdminTokenInputs, opts?: pulumi.CustomResourceOptions) {
-    super(
-      adminTokenProvider as pulumi.dynamic.ResourceProvider,
-      name,
-      { ...args, tokenId: undefined, token: undefined },
-      { ...opts, additionalSecretOutputs: ["token", "password"] },
-    );
-  }
-}
-
-
 export interface ForgejoUserInputs {
   client: ForgejoClientArgs;
   username: string;
@@ -387,7 +287,6 @@ class ForgejoCollaboratorProvider
     return collaboratorProvider.create(inputs);
   }
 
-  // The create is an idempotent PUT, so it doubles as the update.
   async update(_id: string, _olds: ForgejoCollaboratorOutputs, news: Parameters<typeof collaboratorProvider.create>[0]) {
     const { outs } = await collaboratorProvider.create(news);
     return { outs };
@@ -462,7 +361,6 @@ class ForgejoActionSecretProvider
     return actionSecretProvider.create(inputs);
   }
 
-  // The create is an idempotent PUT, so it doubles as the update.
   async update(_id: string, _olds: ForgejoActionSecretOutputs, news: Parameters<typeof actionSecretProvider.create>[0]) {
     const { outs } = await actionSecretProvider.create(news);
     return { outs };

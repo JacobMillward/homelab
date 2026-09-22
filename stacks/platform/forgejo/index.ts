@@ -16,12 +16,8 @@ import {
 import { createBootstrapJob } from "./bootstrap-job";
 
 export { AUTH_SOURCE_NAME as FORGEJO_AUTH_SOURCE_NAME } from "./bootstrap-job";
-import {
-  ForgejoActionSecret,
-  ForgejoAdminToken,
-  ForgejoPushMirror,
-  ForgejoRepository,
-} from "./api-client";
+import { ForgejoActionSecret, ForgejoPushMirror, ForgejoRepository } from "./api-client";
+import { ForgejoAdminToken } from "./admin-token";
 import { createRunner } from "./runner";
 
 const SSH_PORT = 22;
@@ -307,10 +303,8 @@ export class Forgejo extends pulumi.ComponentResource {
     const adminToken = new ForgejoAdminToken(
       "forgejo-admin-token",
       {
-        endpoint: this.endpoint,
-        username: "jacob",
-        password: bootstrap.adminPassword,
-        tokenName: "pulumi",
+        namespace: this.namespace.metadata.name,
+        secretName: bootstrap.adminTokenSecretName,
       },
       { parent: this, dependsOn: [bootstrap.job] },
     );

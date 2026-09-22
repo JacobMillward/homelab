@@ -22,11 +22,15 @@ export interface BootstrapJobArgs {
 
 export interface BootstrapResult {
   adminPassword: pulumi.Output<string>;
+  adminTokenSecretName: string;
   job: k8s.batch.v1.Job;
 }
 
-// Covers only what has no API before an admin exists: the admin account itself and
-// the OIDC auth source. Tokens are minted over the API from the password below.
+// Fixed, because the Job creates it outside Pulumi's ownership.
+const ADMIN_TOKEN_SECRET = "forgejo-admin-token";
+
+// Covers what has no API before an admin exists: the admin account, the OIDC
+// auth source, the runners, and Pulumi's own token.
 export function createBootstrapJob(
   parent: pulumi.Resource,
   args: BootstrapJobArgs,
@@ -66,7 +70,59 @@ forgejo forgejo-cli actions register --secret '${args.runnerSecret}' \\
   --name forgejo-runner --labels self-hosted
 forgejo forgejo-cli actions register --secret '${args.imageBuilderSecret}' \\
   --name forgejo-runner-image-builder --labels image-builder
+
+# Delete the Secret to rotate; forgejo won't reuse a token name.
+SA=/var/run/secrets/kubernetes.io/serviceaccount
+API="https://kubernetes.default.svc/api/v1/namespaces/$(cat $SA/namespace)/secrets"
+kube() { curl -sS --cacert $SA/ca.crt -H "Authorization: Bearer $(cat $SA/token)" "$@"; }
+
+if kube -f -o /dev/null "$API/${ADMIN_TOKEN_SECRET}" 2>/dev/null; then
+  echo "admin token secret already present"
+else
+  VALUE=$(forgejo admin user generate-access-token -u jacob \\
+    -t "pulumi-$(date +%s)" --scopes all --raw)
+  kube -f -o /dev/null -X POST -H 'Content-Type: application/json' -d "{
+    \\"apiVersion\\": \\"v1\\", \\"kind\\": \\"Secret\\",
+    \\"metadata\\": {\\"name\\": \\"${ADMIN_TOKEN_SECRET}\\"},
+    \\"data\\": {\\"token\\": \\"$(printf '%s' "$VALUE" | base64 -w0)\\"}
+  }" "$API"
+  echo "admin token secret created"
+fi
 `;
+
+  const sa = new k8s.core.v1.ServiceAccount(
+    "forgejo-bootstrap",
+    { metadata: { namespace: args.namespace } },
+    childOpts,
+  );
+
+  const role = new k8s.rbac.v1.Role(
+    "forgejo-bootstrap",
+    {
+      metadata: { namespace: args.namespace },
+      rules: [
+        {
+          apiGroups: [""],
+          resources: ["secrets"],
+          resourceNames: [ADMIN_TOKEN_SECRET],
+          verbs: ["get"],
+        },
+        // create can't be limited by resourceName, since the object doesn't exist yet.
+        { apiGroups: [""], resources: ["secrets"], verbs: ["create"] },
+      ],
+    },
+    childOpts,
+  );
+
+  const roleBinding = new k8s.rbac.v1.RoleBinding(
+    "forgejo-bootstrap",
+    {
+      metadata: { namespace: args.namespace },
+      subjects: [{ kind: "ServiceAccount", name: sa.metadata.name, namespace: args.namespace }],
+      roleRef: { kind: "Role", name: role.metadata.name, apiGroup: "rbac.authorization.k8s.io" },
+    },
+    childOpts,
+  );
 
   const job = new k8s.batch.v1.Job(
     "forgejo-bootstrap",
@@ -77,6 +133,7 @@ forgejo forgejo-cli actions register --secret '${args.imageBuilderSecret}' \\
         template: {
           spec: {
             restartPolicy: "Never",
+            serviceAccountName: sa.metadata.name,
             // The CLI refuses to run as root, which is what the image defaults to.
             securityContext: { runAsUser: GIT_UID, runAsGroup: GIT_UID, fsGroup: GIT_UID },
             volumes: [configVolume(args.configSecretName)],
@@ -97,12 +154,12 @@ forgejo forgejo-cli actions register --secret '${args.imageBuilderSecret}' \\
     },
     {
       ...childOpts,
-      dependsOn: [args.deployment],
+      dependsOn: [args.deployment, roleBinding],
       // Job specs are immutable, so a template change needs a fresh Job.
       replaceOnChanges: ["spec.template"],
       deleteBeforeReplace: true,
     },
   );
 
-  return { adminPassword: adminPassword.result, job };
+  return { adminPassword: adminPassword.result, adminTokenSecretName: ADMIN_TOKEN_SECRET, job };
 }

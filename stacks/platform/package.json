@@ -4,9 +4,11 @@
   "main": "index.ts",
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "@types/ws": "^8.18.1",
     "typescript": "^6.0.0"
   },
   "dependencies": {
+    "@kubernetes/client-node": "^2.0.0",
     "@node-rs/argon2": "^2.2.1",
     "@pulumi/cloudflare": "^6.21.0",
     "@pulumi/command": "^1.2.1",
