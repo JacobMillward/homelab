@@ -46,6 +46,8 @@ for entry in "${stale[@]}"; do
   IFS=: read -r name tag dir <<<"$entry"
   image="${PUSH_HOST}/${name}:${tag}"
   echo "building $name:$tag"
-  buildah bud --storage-driver vfs --isolation chroot -t "$image" "$dir"
+  # --timestamp makes a rebuild of an unchanged context produce the same
+  # digest, so a re-push is a no-op rather than a spurious Pulumi diff.
+  buildah bud --storage-driver vfs --isolation chroot --timestamp 0 -t "$image" "$dir"
   buildah push --storage-driver vfs "$image" "docker://$image"
 done
