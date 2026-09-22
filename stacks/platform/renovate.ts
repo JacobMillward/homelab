@@ -1,7 +1,5 @@
 import * as pulumi from "@pulumi/pulumi";
-import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
-import { dockerImage } from "homelab-lib";
 import { PlatformCtx } from "./context";
 import {
   ForgejoAccessToken,
@@ -34,12 +32,6 @@ export class Renovate extends pulumi.ComponentResource {
       providers: { kubernetes: ctx.k8sProvider },
     });
     const childOpts = { parent: this };
-
-    const ns = new k8s.core.v1.Namespace(
-      "renovate",
-      { metadata: { name: "renovate" } },
-      childOpts,
-    );
 
     const forgejoClient: ForgejoClientArgs = {
       endpoint: args.forgejo.endpoint,
@@ -116,6 +108,7 @@ export class Renovate extends pulumi.ComponentResource {
       childOpts,
     );
 
+    // Docker Hub credentials, so the docker datasource isn't rate limited.
     const hostRulesJson = pulumi
       .all([args.dockerhubUsername, args.dockerhubToken])
       .apply(([username, password]) =>
@@ -125,84 +118,14 @@ export class Renovate extends pulumi.ComponentResource {
         ]),
       );
 
-    const creds = new k8s.core.v1.Secret(
-      "renovate-creds",
+    new ForgejoActionSecret(
+      "renovate-host-rules-action-secret",
       {
-        metadata: { namespace: ns.metadata.name },
-        stringData: {
-          token: botToken.token,
-          "host-rules.json": hostRulesJson,
-          "github-com-token": args.githubComToken,
-        },
-      },
-      childOpts,
-    );
-
-    new k8s.batch.v1.CronJob(
-      "renovate",
-      {
-        metadata: { name: "renovate", namespace: ns.metadata.name },
-        spec: {
-          schedule: "0 6 * * *",
-          concurrencyPolicy: "Forbid",
-          jobTemplate: {
-            spec: {
-              backoffLimit: 1,
-              template: {
-                spec: {
-                  restartPolicy: "Never",
-                  securityContext: {
-                    runAsNonRoot: true,
-                    seccompProfile: { type: "RuntimeDefault" },
-                  },
-                  containers: [
-                    {
-                      name: "renovate",
-                      image: dockerImage("renovate"),
-                      securityContext: {
-                        allowPrivilegeEscalation: false,
-                        capabilities: { drop: ["ALL"] },
-                      },
-                      env: [
-                        // The SDK script's pnpm install only needs a lockfile
-                        // here, and this pod holds a repo-write token.
-                        { name: "npm_config_ignore_scripts", value: "true" },
-                        { name: "RENOVATE_PLATFORM", value: "forgejo" },
-                        { name: "RENOVATE_ENDPOINT", value: pulumi.interpolate`${args.forgejo.endpoint}/api/v1` },
-                        { name: "RENOVATE_AUTODISCOVER", value: "false" },
-                        {
-                          name: "RENOVATE_REPOSITORIES",
-                          value: `${args.forgejo.repoOwner}/${args.forgejo.repoName}`,
-                        },
-                        { name: "RENOVATE_ONBOARDING", value: "false" },
-                        {
-                          name: "RENOVATE_ALLOWED_COMMANDS",
-                          value: JSON.stringify(["^bash scripts/generate-netbird-sdk\\.sh$"]),
-                        },
-                        {
-                          name: "RENOVATE_TOKEN",
-                          valueFrom: { secretKeyRef: { name: creds.metadata.name, key: "token" } },
-                        },
-                        {
-                          name: "RENOVATE_GITHUB_COM_TOKEN",
-                          valueFrom: {
-                            secretKeyRef: { name: creds.metadata.name, key: "github-com-token" },
-                          },
-                        },
-                        {
-                          name: "RENOVATE_HOST_RULES",
-                          valueFrom: {
-                            secretKeyRef: { name: creds.metadata.name, key: "host-rules.json" },
-                          },
-                        },
-                      ],
-                    },
-                  ],
-                },
-              },
-            },
-          },
-        },
+        client: forgejoClient,
+        owner: args.forgejo.repoOwner,
+        repo: args.forgejo.repoName,
+        secretName: "RENOVATE_HOST_RULES",
+        data: hostRulesJson,
       },
       childOpts,
     );
