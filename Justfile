@@ -86,15 +86,6 @@ kubeconfig:
 talosconfig:
     just pulumi talos stack output talosconfigRaw --show-secrets > ~/.talos/config
 
-# Manually trigger the Renovate CronJob to run now and tail its logs
-renovate:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    job="renovate-manual-$(date +%s)"
-    kubectl create job "$job" --from=cronjob/renovate -n renovate
-    kubectl wait --for=condition=ready pod -l job-name="$job" -n renovate --timeout=60s
-    kubectl logs -f -l job-name="$job" -n renovate
-
 # Show latest Flatcar versions by channel
 flatcar-versions:
     @echo "stable:"; curl -s https://stable.release.flatcar-linux.net/amd64-usr/current/version.txt | grep FLATCAR_VERSION
