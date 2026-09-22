@@ -20,6 +20,8 @@ export interface RenovateArgs {
   };
   dockerhubUsername: pulumi.Input<string>;
   dockerhubToken: pulumi.Input<string>;
+  // Unscoped PAT, only to lift github.com's anonymous API rate limit.
+  githubComToken: pulumi.Input<string>;
 }
 
 // Scopes per Renovate's forgejo platform docs: repo and issue write, user and
@@ -101,6 +103,19 @@ export class Renovate extends pulumi.ComponentResource {
       childOpts,
     );
 
+    new ForgejoActionSecret(
+      "github-com-token-action-secret",
+      {
+        client: forgejoClient,
+        owner: args.forgejo.repoOwner,
+        repo: args.forgejo.repoName,
+        // Forgejo reserves the GITHUB_ prefix for its own Actions secrets.
+        secretName: "RENOVATE_GITHUB_COM_TOKEN",
+        data: args.githubComToken,
+      },
+      childOpts,
+    );
+
     const hostRulesJson = pulumi
       .all([args.dockerhubUsername, args.dockerhubToken])
       .apply(([username, password]) =>
@@ -117,6 +132,7 @@ export class Renovate extends pulumi.ComponentResource {
         stringData: {
           token: botToken.token,
           "host-rules.json": hostRulesJson,
+          "github-com-token": args.githubComToken,
         },
       },
       childOpts,
@@ -166,6 +182,12 @@ export class Renovate extends pulumi.ComponentResource {
                         {
                           name: "RENOVATE_TOKEN",
                           valueFrom: { secretKeyRef: { name: creds.metadata.name, key: "token" } },
+                        },
+                        {
+                          name: "RENOVATE_GITHUB_COM_TOKEN",
+                          valueFrom: {
+                            secretKeyRef: { name: creds.metadata.name, key: "github-com-token" },
+                          },
                         },
                         {
                           name: "RENOVATE_HOST_RULES",
