@@ -15,6 +15,7 @@ export interface BootstrapJobArgs {
   configSecretName: pulumi.Output<string>;
   dbSecretName: pulumi.Output<string>;
   runnerSecret: pulumi.Output<string>;
+  imageBuilderSecret: pulumi.Output<string>;
   domain: string;
   oidcClient: OidcClientSpec;
 }
@@ -63,6 +64,8 @@ fi
 
 forgejo forgejo-cli actions register --secret '${args.runnerSecret}' \\
   --name forgejo-runner --labels self-hosted
+forgejo forgejo-cli actions register --secret '${args.imageBuilderSecret}' \\
+  --name forgejo-runner-image-builder --labels image-builder
 `;
 
   const job = new k8s.batch.v1.Job(

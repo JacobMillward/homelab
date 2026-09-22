@@ -9,5 +9,6 @@ export { POD_CIDR } from "./cluster";
 export { DOMAIN, TRAEFIK_IP } from "./network";
 export { helmChart, dockerImage, dockerImageRef, goModule } from "./versions";
 export type { HelmChartRef, DockerImageRef, GoModuleRef } from "./versions";
-export { buildAndPushImage } from "./build-and-push-image";
-export type { RegistryTarget, BuildAndPushImageArgs } from "./build-and-push-image";
+export { imageTag } from "./image-tag";
+export { selfBuiltImage } from "./self-built-image";
+export type { RegistryTarget, SelfBuiltImageArgs } from "./self-built-image";
