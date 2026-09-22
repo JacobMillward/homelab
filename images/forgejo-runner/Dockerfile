@@ -11,5 +11,6 @@ USER root
 # netavark: buildah looks for it before every build, even with --network=host.
 RUN apk add --no-cache nodejs npm curl buildah netavark \
  && npm install -g "pnpm@${PNPM_VERSION}" "renovate@${RENOVATE_VERSION}" \
- && npm cache clean --force
+ && npm cache clean --force \
+ && rm -rf "$HOME/.npm" /tmp/node-compile-cache /var/log/apk.log
 USER 1000
