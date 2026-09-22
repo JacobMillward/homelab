@@ -10,6 +10,23 @@ interface ResolvedClient {
   adminToken: string;
 }
 
+// Rotating the admin token changes `client` on every resource below. Without an
+// update they'd all fail, and ignoring the diff would leave a revoked token in
+// state for delete() to use. Anything else is rejected rather than replaced,
+// because replacing a repository would delete it.
+function refreshedClient<T extends { client: ResolvedClient }>(
+  olds: T,
+  news: Record<string, unknown> & { client: ResolvedClient },
+): { outs: T } {
+  for (const [key, value] of Object.entries(news)) {
+    if (key === "client") continue;
+    if (key in olds && JSON.stringify((olds as Record<string, unknown>)[key]) !== JSON.stringify(value)) {
+      throw new Error(`forgejo: ${key} can't change in place; recreate the resource instead`);
+    }
+  }
+  return { outs: { ...olds, client: news.client } };
+}
+
 export async function forgejoRequest<T = unknown>(
   client: ResolvedClient,
   method: string,
@@ -198,6 +215,10 @@ class ForgejoUserProvider
     return userProvider.create(inputs);
   }
 
+  async update(_id: string, olds: ForgejoUserOutputs, news: Record<string, unknown> & { client: ResolvedClient }) {
+    return refreshedClient(olds, news);
+  }
+
   async delete(id: string, outs: ForgejoUserOutputs) {
     return userProvider.delete(id, outs);
   }
@@ -261,6 +282,10 @@ class ForgejoAccessTokenProvider
 {
   async create(inputs: Parameters<typeof accessTokenProvider.create>[0]) {
     return accessTokenProvider.create(inputs);
+  }
+
+  async update(_id: string, olds: ForgejoAccessTokenOutputs, news: Record<string, unknown> & { client: ResolvedClient }) {
+    return refreshedClient(olds, news);
   }
 
   async delete(id: string, outs: ForgejoAccessTokenOutputs) {
@@ -362,6 +387,12 @@ class ForgejoCollaboratorProvider
     return collaboratorProvider.create(inputs);
   }
 
+  // The create is an idempotent PUT, so it doubles as the update.
+  async update(_id: string, _olds: ForgejoCollaboratorOutputs, news: Parameters<typeof collaboratorProvider.create>[0]) {
+    const { outs } = await collaboratorProvider.create(news);
+    return { outs };
+  }
+
   async delete(id: string, outs: ForgejoCollaboratorOutputs) {
     return collaboratorProvider.delete(id, outs);
   }
@@ -431,6 +462,12 @@ class ForgejoActionSecretProvider
     return actionSecretProvider.create(inputs);
   }
 
+  // The create is an idempotent PUT, so it doubles as the update.
+  async update(_id: string, _olds: ForgejoActionSecretOutputs, news: Parameters<typeof actionSecretProvider.create>[0]) {
+    const { outs } = await actionSecretProvider.create(news);
+    return { outs };
+  }
+
   async delete(id: string, outs: ForgejoActionSecretOutputs) {
     return actionSecretProvider.delete(id, outs);
   }
@@ -482,6 +519,10 @@ class ForgejoDeployKeyProvider
 {
   async create(inputs: Parameters<typeof deployKeyProvider.create>[0]) {
     return deployKeyProvider.create(inputs);
+  }
+
+  async update(_id: string, olds: ForgejoDeployKeyOutputs, news: Record<string, unknown> & { client: ResolvedClient }) {
+    return refreshedClient(olds, news);
   }
 
   async delete(id: string, outs: ForgejoDeployKeyOutputs) {
@@ -562,6 +603,10 @@ class ForgejoRepositoryProvider
 {
   async create(inputs: Parameters<typeof repositoryProvider.create>[0]) {
     return repositoryProvider.create(inputs);
+  }
+
+  async update(_id: string, olds: ForgejoRepositoryOutputs, news: Record<string, unknown> & { client: ResolvedClient }) {
+    return refreshedClient(olds, news);
   }
 
   async delete(id: string, outs: ForgejoRepositoryOutputs) {
@@ -652,6 +697,10 @@ class ForgejoPushMirrorProvider
 {
   async create(inputs: Parameters<typeof pushMirrorProvider.create>[0]) {
     return pushMirrorProvider.create(inputs);
+  }
+
+  async update(_id: string, olds: ForgejoPushMirrorOutputs, news: Record<string, unknown> & { client: ResolvedClient }) {
+    return refreshedClient(olds, news);
   }
 
   async delete(id: string, outs: ForgejoPushMirrorOutputs) {
