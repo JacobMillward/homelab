@@ -81,7 +81,7 @@
     }
   ],
   "postUpgradeTasks": {
-    "installTools": { "npm": {} },
+    "installTools": { "node": {}, "npm": {}, "pnpm": {} },
     "commands": ["bash scripts/generate-netbird-sdk.sh"],
     "fileFilters": [
       "stacks/apps/Pulumi.yaml",
