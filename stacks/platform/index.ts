@@ -148,6 +148,10 @@ export const netbirdOidcClientSecret = netbirdOidc.clientSecret;
 export const forwardAuthSpec = traefik.forwardAuthSpec;
 export const crowdsecPluginSpec = traefik.crowdsecPluginSpec;
 export const vpsIp = vpsConfig.ip;
+// Read by `just images`, which pushes with them when an image needs rebuilding.
+export const registryHost = registry.pushHost;
+export const registryUsername = registry.username;
+export const registryPassword = registry.password;
 export const forgejoServiceName = forgejo.serviceName;
 export const forgejoNamespace = forgejo.namespace.metadata.name;
 
