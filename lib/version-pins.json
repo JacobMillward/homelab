@@ -24,7 +24,7 @@
     },
     "traefik": {
       "chart": "traefik",
-      "version": "41.4.0",
+      "version": "41.5.0",
       "registryUrl": "https://traefik.github.io/charts",
       "tier": "core-infra"
     },
