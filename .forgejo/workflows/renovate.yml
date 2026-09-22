@@ -11,6 +11,9 @@ jobs:
   renovate:
     runs-on: self-hosted
     env:
+      # The SDK script's pnpm install only needs a lockfile here, and this job
+      # holds a repo-write token.
+      npm_config_ignore_scripts: "true"
       RENOVATE_PLATFORM: forgejo
       RENOVATE_ENDPOINT: https://git.millward-yuan.net/api/v1
       RENOVATE_AUTODISCOVER: "false"

@@ -148,6 +148,9 @@ export class Renovate extends pulumi.ComponentResource {
                         capabilities: { drop: ["ALL"] },
                       },
                       env: [
+                        // The SDK script's pnpm install only needs a lockfile
+                        // here, and this pod holds a repo-write token.
+                        { name: "npm_config_ignore_scripts", value: "true" },
                         { name: "RENOVATE_PLATFORM", value: "forgejo" },
                         { name: "RENOVATE_ENDPOINT", value: pulumi.interpolate`${args.forgejo.endpoint}/api/v1` },
                         { name: "RENOVATE_AUTODISCOVER", value: "false" },
