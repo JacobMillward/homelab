@@ -54,8 +54,8 @@ DIGEST=$(curl -sfI -u "$REGISTRY_USER:$REGISTRY_PASS" -H "Accept: $ACCEPT" \
   | tr -d '\\r' | awk -F': ' 'tolower($1) == "docker-content-digest" { print $2 }') || true
 
 if [ -z "$DIGEST" ]; then
-  echo "${args.name}:${tag} is not in the registry. Push it with" >&2
-  echo "scripts/build-images.sh, or merge to main and let CI build it." >&2
+  echo "${args.name}:${tag} is not in the registry. Run 'just images'," >&2
+  echo "or merge to main and let .forgejo/workflows/images.yml build it." >&2
   exit 1
 fi
 printf '%s' "$DIGEST"

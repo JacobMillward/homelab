@@ -50,10 +50,24 @@ preview STACK="":
     if [ -n "{{ STACK }}" ]; then just pulumi "{{ STACK }}" preview
     else for s in {{ stacks }}; do just pulumi "$s" preview; done; fi
 
+# Build and push any images/* the registry doesn't already have
+images:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    export PUSH_HOST=registry.internal.millward-yuan.net
+    export REGISTRY_USER=jacob
+    export REGISTRY_PASS_CMD='just pulumi platform stack output registryPassword --show-secrets'
+    bash scripts/build-images.sh
+
 # Deploy (all stacks in order, or just one)
 up STACK="":
     #!/usr/bin/env bash
     set -euo pipefail
+    # Only platform resolves self-built images, and only against a registry that
+    # platform itself creates, so a first bootstrap has nothing to check yet.
+    if [ -z "{{ STACK }}" ] || [ "{{ STACK }}" = "platform" ]; then
+      just images || echo "warning: image check skipped, pulumi will report if one is missing" >&2
+    fi
     if [ -n "{{ STACK }}" ]; then just pulumi "{{ STACK }}" up --yes
     else for s in {{ stacks }}; do just pulumi "$s" up --yes; done; fi
 
