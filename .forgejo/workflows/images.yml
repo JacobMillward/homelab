@@ -1,0 +1,19 @@
+name: images
+
+on:
+  push:
+    branches: [main]
+    paths: ["images/**", "scripts/build-images.sh", "scripts/image-tag.ts", "lib/image-tag.ts"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    # buildah needs SYS_ADMIN, which only this runner has.
+    runs-on: image-builder
+    steps:
+      - uses: actions/checkout@v7
+      - run: bash scripts/build-images.sh
+        env:
+          PUSH_HOST: registry.internal.millward-yuan.net
+          REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          REGISTRY_PASS: ${{ secrets.REGISTRY_PASS }}
