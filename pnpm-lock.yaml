@@ -121,8 +121,8 @@ importers:
         version: link:../../lib
     devDependencies:
       '@types/node':
-        specifier: 24.13.5
-        version: 24.13.5
+        specifier: 24.13.6
+        version: 24.13.6
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -149,8 +149,8 @@ importers:
         version: link:../../lib
     devDependencies:
       '@types/node':
-        specifier: 24.13.5
-        version: 24.13.5
+        specifier: 24.13.6
+        version: 24.13.6
       typescript:
         specifier: 6.0.3
         version: 6.0.3
