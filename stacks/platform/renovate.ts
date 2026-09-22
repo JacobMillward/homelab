@@ -5,6 +5,7 @@ import { dockerImage } from "homelab-lib";
 import { PlatformCtx } from "./context";
 import {
   ForgejoAccessToken,
+  ForgejoActionSecret,
   ForgejoClientArgs,
   ForgejoCollaborator,
   ForgejoUser,
@@ -82,6 +83,20 @@ export class Renovate extends pulumi.ComponentResource {
         repo: args.forgejo.repoName,
         collaborator: botUser.username,
         permission: "write",
+      },
+      childOpts,
+    );
+
+    // Scoped to the repo rather than mounted into the runner, which would hand
+    // the token to every workflow that runs there.
+    new ForgejoActionSecret(
+      "renovate-token-action-secret",
+      {
+        client: forgejoClient,
+        owner: args.forgejo.repoOwner,
+        repo: args.forgejo.repoName,
+        secretName: "RENOVATE_TOKEN",
+        data: botToken.token,
       },
       childOpts,
     );

@@ -373,6 +373,75 @@ export class ForgejoCollaborator extends pulumi.dynamic.Resource {
   }
 }
 
+export interface ForgejoActionSecretInputs {
+  client: ForgejoClientArgs;
+  owner: string;
+  repo: string;
+  secretName: string;
+  data: pulumi.Input<string>;
+}
+
+interface ForgejoActionSecretOutputs {
+  client: ResolvedClient;
+  owner: string;
+  repo: string;
+  secretName: string;
+}
+
+export const actionSecretProvider = {
+  async create(
+    inputs: { client: ResolvedClient; owner: string; repo: string; secretName: string; data: string },
+    fetchImpl: typeof fetch = fetch,
+  ): Promise<{ id: string; outs: ForgejoActionSecretOutputs }> {
+    await forgejoRequest(
+      inputs.client,
+      "PUT",
+      `/repos/${inputs.owner}/${inputs.repo}/actions/secrets/${inputs.secretName}`,
+      { data: inputs.data },
+      fetchImpl,
+    );
+    return {
+      id: `${inputs.owner}/${inputs.repo}/${inputs.secretName}`,
+      outs: {
+        client: inputs.client,
+        owner: inputs.owner,
+        repo: inputs.repo,
+        secretName: inputs.secretName,
+      },
+    };
+  },
+
+  async delete(id: string, outs: ForgejoActionSecretOutputs, fetchImpl: typeof fetch = fetch): Promise<void> {
+    await forgejoRequest(
+      outs.client,
+      "DELETE",
+      `/repos/${outs.owner}/${outs.repo}/actions/secrets/${outs.secretName}`,
+      undefined,
+      fetchImpl,
+    );
+    void id;
+  },
+};
+
+class ForgejoActionSecretProvider
+  implements
+    pulumi.dynamic.ResourceProvider<Parameters<typeof actionSecretProvider.create>[0], ForgejoActionSecretOutputs>
+{
+  async create(inputs: Parameters<typeof actionSecretProvider.create>[0]) {
+    return actionSecretProvider.create(inputs);
+  }
+
+  async delete(id: string, outs: ForgejoActionSecretOutputs) {
+    return actionSecretProvider.delete(id, outs);
+  }
+}
+
+export class ForgejoActionSecret extends pulumi.dynamic.Resource {
+  constructor(name: string, args: ForgejoActionSecretInputs, opts?: pulumi.CustomResourceOptions) {
+    super(new ForgejoActionSecretProvider(), name, args, opts);
+  }
+}
+
 export const deployKeyProvider = {
   async create(
     inputs: {
