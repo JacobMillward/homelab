@@ -1,23 +1,90 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import * as random from "@pulumi/random";
 import { dockerImage } from "homelab-lib";
 import { PlatformCtx } from "./context";
+import {
+  ForgejoAccessToken,
+  ForgejoClientArgs,
+  ForgejoCollaborator,
+  ForgejoUser,
+} from "./forgejo/api-client";
 
 export interface RenovateArgs {
-  githubAppId: pulumi.Input<string>;
-  githubAppInstallationId: pulumi.Input<string>;
-  githubAppPrivateKey: pulumi.Input<string>;
+  forgejo: {
+    endpoint: pulumi.Output<string>;
+    adminApiToken: pulumi.Output<string>;
+    repoOwner: string;
+    repoName: string;
+  };
   dockerhubUsername: pulumi.Input<string>;
   dockerhubToken: pulumi.Input<string>;
 }
+
+// Scopes per Renovate's forgejo platform docs: repo and issue write, user and
+// organization read.
+const BOT_TOKEN_SCOPES = ["write:repository", "write:issue", "read:user", "read:organization"];
 
 export class Renovate extends pulumi.ComponentResource {
   constructor(ctx: PlatformCtx, args: RenovateArgs) {
     super("platform:Renovate", "renovate", {}, {
       providers: { kubernetes: ctx.k8sProvider },
     });
+    const childOpts = { parent: this };
 
-    const { githubAppId: appId, githubAppInstallationId: installationId, githubAppPrivateKey: privateKey } = args;
+    const ns = new k8s.core.v1.Namespace(
+      "renovate",
+      { metadata: { name: "renovate" } },
+      childOpts,
+    );
+
+    const forgejoClient: ForgejoClientArgs = {
+      endpoint: args.forgejo.endpoint,
+      adminToken: args.forgejo.adminApiToken,
+    };
+
+    const botPassword = new random.RandomPassword(
+      "renovate-bot-password",
+      { length: 32, special: true },
+      childOpts,
+    );
+
+    const botUser = new ForgejoUser(
+      "renovate-bot",
+      {
+        client: forgejoClient,
+        username: "renovate-bot",
+        email: "renovate-bot@localhost.local",
+        fullName: "Renovate Bot",
+        password: botPassword.result,
+        mustChangePassword: false,
+      },
+      childOpts,
+    );
+
+    const botToken = new ForgejoAccessToken(
+      "renovate-bot-token",
+      {
+        client: forgejoClient,
+        username: botUser.username,
+        tokenName: "renovate",
+        scopes: BOT_TOKEN_SCOPES,
+      },
+      { ...childOpts, additionalSecretOutputs: ["token"] },
+    );
+
+    // The repo is private, so the bot needs explicit access to see it at all.
+    new ForgejoCollaborator(
+      "renovate-bot-collaborator",
+      {
+        client: forgejoClient,
+        owner: args.forgejo.repoOwner,
+        repo: args.forgejo.repoName,
+        collaborator: botUser.username,
+        permission: "write",
+      },
+      childOpts,
+    );
 
     const hostRulesJson = pulumi
       .all([args.dockerhubUsername, args.dockerhubToken])
@@ -28,24 +95,16 @@ export class Renovate extends pulumi.ComponentResource {
         ]),
       );
 
-    const ns = new k8s.core.v1.Namespace(
-      "renovate",
-      { metadata: { name: "renovate" } },
-      { parent: this },
-    );
-
-    const appCreds = new k8s.core.v1.Secret(
-      "renovate-github-app",
+    const creds = new k8s.core.v1.Secret(
+      "renovate-creds",
       {
-        metadata: { name: "renovate-github-app", namespace: ns.metadata.name },
+        metadata: { namespace: ns.metadata.name },
         stringData: {
-          "app-id": appId,
-          "installation-id": installationId,
-          "private-key.pem": privateKey,
+          token: botToken.token,
           "host-rules.json": hostRulesJson,
         },
       },
-      { parent: this },
+      childOpts,
     );
 
     new k8s.batch.v1.CronJob(
@@ -65,63 +124,38 @@ export class Renovate extends pulumi.ComponentResource {
                     runAsNonRoot: true,
                     seccompProfile: { type: "RuntimeDefault" },
                   },
-                  volumes: [
-                    { name: "app-creds", secret: { secretName: appCreds.metadata.name } },
-                    { name: "shared", emptyDir: {} },
-                  ],
-                  initContainers: [
-                    {
-                      name: "github-app-token",
-                      image: dockerImage("githubAppInstallationToken"),
-                      command: [
-                        "sh",
-                        "-c",
-                        'node /app/index.js "$(cat /secrets/app-id)" "$(cat /secrets/installation-id)" /secrets/private-key.pem > /shared/renovate-token',
-                      ],
-                      securityContext: {
-                        runAsUser: 1000,
-                        allowPrivilegeEscalation: false,
-                        capabilities: { drop: ["ALL"] },
-                      },
-                      volumeMounts: [
-                        { name: "app-creds", mountPath: "/secrets", readOnly: true },
-                        { name: "shared", mountPath: "/shared" },
-                      ],
-                    },
-                  ],
                   containers: [
                     {
                       name: "renovate",
                       image: dockerImage("renovate"),
-                      command: [
-                        "/bin/sh",
-                        "-c",
-                        "export RENOVATE_TOKEN=$(cat /shared/renovate-token); exec renovate",
-                      ],
                       securityContext: {
                         allowPrivilegeEscalation: false,
                         capabilities: { drop: ["ALL"] },
                       },
                       env: [
-                        { name: "RENOVATE_PLATFORM", value: "github" },
+                        { name: "RENOVATE_PLATFORM", value: "forgejo" },
+                        { name: "RENOVATE_ENDPOINT", value: pulumi.interpolate`${args.forgejo.endpoint}/api/v1` },
                         { name: "RENOVATE_AUTODISCOVER", value: "false" },
-                        { name: "RENOVATE_REPOSITORIES", value: "JacobMillward/homelab" },
+                        {
+                          name: "RENOVATE_REPOSITORIES",
+                          value: `${args.forgejo.repoOwner}/${args.forgejo.repoName}`,
+                        },
                         { name: "RENOVATE_ONBOARDING", value: "false" },
                         {
                           name: "RENOVATE_ALLOWED_COMMANDS",
                           value: JSON.stringify(["^bash scripts/generate-netbird-sdk\\.sh$"]),
                         },
                         {
+                          name: "RENOVATE_TOKEN",
+                          valueFrom: { secretKeyRef: { name: creds.metadata.name, key: "token" } },
+                        },
+                        {
                           name: "RENOVATE_HOST_RULES",
                           valueFrom: {
-                            secretKeyRef: {
-                              name: appCreds.metadata.name,
-                              key: "host-rules.json",
-                            },
+                            secretKeyRef: { name: creds.metadata.name, key: "host-rules.json" },
                           },
                         },
                       ],
-                      volumeMounts: [{ name: "shared", mountPath: "/shared" }],
                     },
                   ],
                 },
@@ -130,7 +164,7 @@ export class Renovate extends pulumi.ComponentResource {
           },
         },
       },
-      { parent: this },
+      childOpts,
     );
   }
 }
