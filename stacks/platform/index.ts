@@ -53,8 +53,6 @@ const eso = new ExternalSecrets(ctx, {
   homelabVaultId: config.require("homelabVaultId"),
 });
 
-new PulumiOperator(ctx, { operatorNamespace: eso.operatorNamespace });
-
 const longhorn = new Longhorn(ctx);
 new MetalLB(ctx);
 new CertManager(ctx, { cloudflareDnsEditApiToken });
@@ -113,6 +111,16 @@ const forgejo = new Forgejo(ctx, {
     dependsOn: [netbird.registryDns, registry.deployment],
   },
   publicDns: traefik.publicDns,
+});
+
+new PulumiOperator(ctx, {
+  operatorNamespace: eso.operatorNamespace,
+  forgejo: {
+    endpoint: forgejo.endpoint,
+    adminApiToken: forgejo.adminApiToken,
+    repoOwner: forgejo.repoOwner,
+    repoName: forgejo.repoName,
+  },
 });
 
 new Renovate(ctx, {

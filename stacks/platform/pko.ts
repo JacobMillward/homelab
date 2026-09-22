@@ -1,12 +1,25 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import * as random from "@pulumi/random";
 import { dockerImage, dockerImageRef } from "homelab-lib";
 import { PlatformCtx } from "./context";
+import {
+  ForgejoAccessToken,
+  ForgejoClientArgs,
+  ForgejoCollaborator,
+  ForgejoUser,
+} from "./forgejo/api-client";
 
 const chart = dockerImageRef("pulumiKubernetesOperator");
 
 export interface PulumiOperatorArgs {
   operatorNamespace: k8s.core.v1.Namespace;
+  forgejo: {
+    endpoint: pulumi.Output<string>;
+    adminApiToken: pulumi.Output<string>;
+    repoOwner: string;
+    repoName: string;
+  };
 }
 
 export class PulumiOperator extends pulumi.ComponentResource {
@@ -52,6 +65,64 @@ export class PulumiOperator extends pulumi.ComponentResource {
       { parent: this },
     );
 
+    const forgejoClient: ForgejoClientArgs = {
+      endpoint: args.forgejo.endpoint,
+      adminToken: args.forgejo.adminApiToken,
+    };
+
+    const botPassword = new random.RandomPassword(
+      "pko-bot-password",
+      { length: 32, special: true },
+      { parent: this },
+    );
+
+    const botUser = new ForgejoUser(
+      "pko-bot",
+      {
+        client: forgejoClient,
+        username: "pko-bot",
+        email: "pko-bot@localhost.local",
+        fullName: "Pulumi Kubernetes Operator",
+        password: botPassword.result,
+        mustChangePassword: false,
+      },
+      { parent: this },
+    );
+
+    // PKO only ever clones, so the account gets read on the one repo and the
+    // token gets the matching scope.
+    new ForgejoCollaborator(
+      "pko-bot-collaborator",
+      {
+        client: forgejoClient,
+        owner: args.forgejo.repoOwner,
+        repo: args.forgejo.repoName,
+        collaborator: botUser.username,
+        permission: "read",
+      },
+      { parent: this },
+    );
+
+    const botToken = new ForgejoAccessToken(
+      "pko-bot-token",
+      {
+        client: forgejoClient,
+        username: botUser.username,
+        tokenName: "pko",
+        scopes: ["read:repository"],
+      },
+      { parent: this, additionalSecretOutputs: ["token"] },
+    );
+
+    const gitCreds = new k8s.core.v1.Secret(
+      "pko-git-token",
+      {
+        metadata: { namespace: ns.metadata.name },
+        stringData: { token: botToken.token },
+      },
+      { parent: this },
+    );
+
     const netbirdSdkInitContainer = (repoDir: string) => ({
       name: "generate-netbird-sdk",
       image: dockerImage("pulumiCli"),
@@ -67,7 +138,13 @@ export class PulumiOperator extends pulumi.ComponentResource {
         AWS_SECRET_ACCESS_KEY: { type: "Secret", secret: { name: "pulumi-platform-apps-creds", key: "AWS_SECRET_ACCESS_KEY" } },
       },
       backend: "s3://pulumi-state?endpoint=192.168.0.40:3900&disableSSL=true&s3ForcePathStyle=true&region=garage",
-      projectRepo: "https://github.com/JacobMillward/homelab",
+      projectRepo: pulumi.interpolate`${args.forgejo.endpoint}/${args.forgejo.repoOwner}/${args.forgejo.repoName}.git`,
+      gitAuth: {
+        accessToken: {
+          type: "Secret",
+          secret: { name: gitCreds.metadata.name, key: "token" },
+        },
+      },
       branch: "refs/heads/main",
       refresh: true,
       continueResyncOnCommitMatch: true,
