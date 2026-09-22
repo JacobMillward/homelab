@@ -24,4 +24,6 @@ config:
     secure: v1:XN+wGUizUd4qDVju:JCHbyWb/oQu+KNbSGCoCHykSDYdhcw/sgTz1fp0x3Alq5mjXpaLgHyfRyZrFM+uLbIXXpUKYYwlM5jbjoHMGPu5WqKUC
   homelab-platform:githubMirrorToken:
     secure: v1:byvSIf17n6PLopj6:BWUgGK2zQ1yBAqateQPWRTRkoYp0ikjkR7Yuykr7zfSOZ153Wa9qTkz9+zAsdHFZMiaXA+5Ak6SW6NoX6XGwZMU6T2NR3p0JxE1nzeOPg35NeCYOhcTr/SH7s1i/4mvUWbNtvbMl/S5+D6IxbA==
+  homelab-platform:githubComToken:
+    secure: v1:EvQstQW94D9tjAzp:mZJosgYyQQaAKWhdjFHljHp8jJICxxJysrX0J4KlxuA73EKSFF81SJs3qzPS5Ywlk+4ZYNTqf64=
 encryptionsalt: v1:zuwLocg5nwY=:v1:GUxM8jvZ90oTEg2C:61g7+zcmz5qv+OrO7QFqCIBW8y5AXg==

@@ -132,6 +132,7 @@ new Renovate(ctx, {
   },
   dockerhubUsername: config.requireSecret("dockerhubUsername"),
   dockerhubToken: config.requireSecret("dockerhubToken"),
+  githubComToken: config.requireSecret("githubComToken"),
 });
 
 export { storageClassName } from "./longhorn";
