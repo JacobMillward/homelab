@@ -13,9 +13,11 @@ cd "$(dirname "$0")/.."
 TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT
 
-# Pulumi.yaml's file://~ needs user.Current(), which fails in a container with
-# no $USER. This backend is throwaway, so any absolute path will do.
+# Pulumi calls user.Current() for its backend and plugin cache, which needs cgo
+# or $USER when the uid isn't in /etc/passwd, as in a container. The backend is
+# throwaway, so any absolute path will do.
 export PULUMI_BACKEND_URL="file://$TMPDIR"
+export USER="${USER:-pulumi}"
 
 (cd "$TMPDIR" && npm init -y >/dev/null && npm install @pulumi/pulumi --no-audit --no-fund --ignore-scripts >/dev/null)
 
