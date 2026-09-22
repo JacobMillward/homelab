@@ -25,4 +25,5 @@ PULUMI="$TMPDIR/.pulumi/bin/pulumi"
 "$PULUMI" install --no-dependencies --cwd stacks/platform
 rm -f stacks/apps/pnpm-workspace.yaml stacks/platform/pnpm-workspace.yaml
 
-pnpm install
+# Only the lockfile matters, and Renovate runs this holding a repo-write token.
+pnpm install --ignore-scripts
