@@ -22,7 +22,7 @@ importers:
         version: 1.2.1(typescript@6.0.3)
       '@pulumi/pulumi':
         specifier: ^3.226.0
-        version: 3.263.0(typescript@6.0.3)
+        version: 3.264.0(typescript@6.0.3)
     devDependencies:
       '@types/node':
         specifier: 24.13.6
@@ -44,7 +44,7 @@ importers:
         version: file:stacks/apps/sdks/netbird
       '@pulumi/pulumi':
         specifier: ^3.263.0
-        version: 3.263.0(typescript@6.0.3)
+        version: 3.264.0(typescript@6.0.3)
       '@pulumi/random':
         specifier: ^4.21.2
         version: 4.21.2(typescript@6.0.3)
@@ -81,7 +81,7 @@ importers:
         version: file:stacks/platform/sdks/netbird
       '@pulumi/pulumi':
         specifier: ^3.263.0
-        version: 3.263.0(typescript@6.0.3)
+        version: 3.264.0(typescript@6.0.3)
       '@pulumi/random':
         specifier: ^4.21.2
         version: 4.21.2(typescript@6.0.3)
@@ -112,7 +112,7 @@ importers:
         version: 1.2.1(typescript@6.0.3)
       '@pulumi/pulumi':
         specifier: ^3.226.0
-        version: 3.263.0(typescript@6.0.3)
+        version: 3.264.0(typescript@6.0.3)
       '@pulumiverse/talos':
         specifier: ^0.8.0
         version: 0.8.1(typescript@6.0.3)
@@ -140,7 +140,7 @@ importers:
         version: 1.42.0(typescript@6.0.3)
       '@pulumi/pulumi':
         specifier: ^3.226.0
-        version: 3.263.0(typescript@6.0.3)
+        version: 3.264.0(typescript@6.0.3)
       '@pulumi/random':
         specifier: ^4.19.1
         version: 4.21.2(typescript@6.0.3)
@@ -512,8 +512,8 @@ packages:
   '@pulumi/netbird@file:stacks/platform/sdks/netbird':
     resolution: {directory: stacks/platform/sdks/netbird, type: directory}
 
-  '@pulumi/pulumi@3.263.0':
-    resolution: {integrity: sha512-ZIWdlwKCSRFkUxRmISu3FT7db7Ac+Hfjh1ta3cyau+QupneuzZ+OFzezM6Var9PeNRaHNyWtSPg7Qjq8CHNzww==}
+  '@pulumi/pulumi@3.264.0':
+    resolution: {integrity: sha512-XU9xl05RwO8J7UobJXKxGcmE063GNescXjKrQnUSdvAgbKXxdnSVqcglUPwyDyRFRlGdJ6HkuN26gdR9cEzfTA==}
     engines: {node: '>=22'}
     peerDependencies:
       ts-node: '>= 7.0.1 < 12'
@@ -573,9 +573,6 @@ packages:
 
   '@types/node@20.19.43':
     resolution: {integrity: sha512-6oYBAi5ikg4Pl+kGsoYtawUMBT2zZMCvPNF7pVLnHZfd1zf38DRiWn/gT01RYCdUqkv7Fhr+C9ot4/tb+2sVvA==}
-
-  '@types/node@24.13.5':
-    resolution: {integrity: sha512-TXyindR+lBr22aJIdMQzCFHPHR6cR4js838mRDCSz5hOKWZvZwsXSSiXDmjRj4iJmgl+sR9O+1mkoVBSMadNug==}
 
   '@types/node@24.13.6':
     resolution: {integrity: sha512-SGrw/h3KPFshy3OE6ZL53LMBG5vGQQ8/gIpiqz/kRZhPJ7HgwCEs8LBuNtWLa8dvGZVpSF7+Bf+c11HUrCb/yg==}
@@ -1803,7 +1800,7 @@ snapshots:
 
   '@pulumi/cloudflare@6.21.0(typescript@6.0.3)':
     dependencies:
-      '@pulumi/pulumi': 3.263.0(typescript@6.0.3)
+      '@pulumi/pulumi': 3.264.0(typescript@6.0.3)
     transitivePeerDependencies:
       - supports-color
       - ts-node
@@ -1811,7 +1808,7 @@ snapshots:
 
   '@pulumi/command@1.2.1(typescript@6.0.3)':
     dependencies:
-      '@pulumi/pulumi': 3.263.0(typescript@6.0.3)
+      '@pulumi/pulumi': 3.264.0(typescript@6.0.3)
     transitivePeerDependencies:
       - supports-color
       - ts-node
@@ -1819,7 +1816,7 @@ snapshots:
 
   '@pulumi/hcloud@1.42.0(typescript@6.0.3)':
     dependencies:
-      '@pulumi/pulumi': 3.263.0(typescript@6.0.3)
+      '@pulumi/pulumi': 3.264.0(typescript@6.0.3)
     transitivePeerDependencies:
       - supports-color
       - ts-node
@@ -1827,7 +1824,7 @@ snapshots:
 
   '@pulumi/kubernetes@4.34.2(typescript@6.0.3)':
     dependencies:
-      '@pulumi/pulumi': 3.263.0(typescript@6.0.3)
+      '@pulumi/pulumi': 3.264.0(typescript@6.0.3)
       glob: 12.0.0
       shell-quote: 1.10.0
     transitivePeerDependencies:
@@ -1837,7 +1834,7 @@ snapshots:
 
   '@pulumi/netbird@file:stacks/apps/sdks/netbird':
     dependencies:
-      '@pulumi/pulumi': 3.263.0(typescript@6.0.3)
+      '@pulumi/pulumi': 3.264.0(typescript@6.0.3)
       '@types/node': 20.19.43
       typescript: 6.0.3
     transitivePeerDependencies:
@@ -1846,14 +1843,14 @@ snapshots:
 
   '@pulumi/netbird@file:stacks/platform/sdks/netbird':
     dependencies:
-      '@pulumi/pulumi': 3.263.0(typescript@6.0.3)
+      '@pulumi/pulumi': 3.264.0(typescript@6.0.3)
       '@types/node': 20.19.43
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
       - ts-node
 
-  '@pulumi/pulumi@3.263.0(typescript@6.0.3)':
+  '@pulumi/pulumi@3.264.0(typescript@6.0.3)':
     dependencies:
       '@grpc/grpc-js': 1.14.5
       '@logdna/tail-file': 2.2.0
@@ -1887,7 +1884,7 @@ snapshots:
 
   '@pulumi/random@4.21.2(typescript@6.0.3)':
     dependencies:
-      '@pulumi/pulumi': 3.263.0(typescript@6.0.3)
+      '@pulumi/pulumi': 3.264.0(typescript@6.0.3)
     transitivePeerDependencies:
       - supports-color
       - ts-node
@@ -1895,7 +1892,7 @@ snapshots:
 
   '@pulumi/tls@5.6.1(typescript@6.0.3)':
     dependencies:
-      '@pulumi/pulumi': 3.263.0(typescript@6.0.3)
+      '@pulumi/pulumi': 3.264.0(typescript@6.0.3)
     transitivePeerDependencies:
       - supports-color
       - ts-node
@@ -1903,7 +1900,7 @@ snapshots:
 
   '@pulumiverse/talos@0.8.1(typescript@6.0.3)':
     dependencies:
-      '@pulumi/pulumi': 3.263.0(typescript@6.0.3)
+      '@pulumi/pulumi': 3.264.0(typescript@6.0.3)
     transitivePeerDependencies:
       - supports-color
       - ts-node
@@ -1955,10 +1952,6 @@ snapshots:
   '@types/node@20.19.43':
     dependencies:
       undici-types: 6.21.0
-
-  '@types/node@24.13.5':
-    dependencies:
-      undici-types: 7.18.2
 
   '@types/node@24.13.6':
     dependencies:
@@ -2561,7 +2554,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.2
-      '@types/node': 24.13.5
+      '@types/node': 24.13.6
       long: 5.3.2
 
   pump@3.0.4:
