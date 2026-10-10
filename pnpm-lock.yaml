@@ -121,8 +121,8 @@ importers:
         version: link:../../lib
     devDependencies:
       '@types/node':
-        specifier: 24.13.6
-        version: 24.13.6
+        specifier: 24.19.1
+        version: 24.19.1
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -137,7 +137,7 @@ importers:
         version: 1.2.1(typescript@6.0.3)
       '@pulumi/hcloud':
         specifier: ^1.32.1
-        version: 1.42.0(typescript@6.0.3)
+        version: 1.43.0(typescript@6.0.3)
       '@pulumi/pulumi':
         specifier: ^3.226.0
         version: 3.267.0(typescript@6.0.3)
@@ -149,8 +149,8 @@ importers:
         version: link:../../lib
     devDependencies:
       '@types/node':
-        specifier: 24.13.6
-        version: 24.13.6
+        specifier: 24.19.1
+        version: 24.19.1
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -500,8 +500,8 @@ packages:
   '@pulumi/command@1.2.1':
     resolution: {integrity: sha512-mutNDIUYP67yCBYOVIidQyxuTwZDY9v/sx9EGbgIv4PXfyfolOKGgGLeoHEbI1lxRwaw2wbTZ3VNIynDnA5VKA==}
 
-  '@pulumi/hcloud@1.42.0':
-    resolution: {integrity: sha512-vy/GJSVADB+q+rSLDeFM0dDM59r8wz6VeJr5Da1N7CRt4qYa2WeITQywkzqLbEZJfrJ8ghV7kYSSkeFSIKbKkA==}
+  '@pulumi/hcloud@1.43.0':
+    resolution: {integrity: sha512-DNOSZCha8455lPKIvIcRuRY5FM0XcgTuRONZOCABEJa6ByEv+IAfhBwIgznynr2Fl9DFA4W4HUt/b41pZbfyUg==}
 
   '@pulumi/kubernetes@4.34.2':
     resolution: {integrity: sha512-OcIe8OUwivkEngmjinrmke54INbJ0L6u/CWm8mLh6F7pmIDXyHGTM8PzcZsg5QbSm24HnNUHLl2tEUoOBxDo3w==}
@@ -1819,7 +1819,7 @@ snapshots:
       - ts-node
       - typescript
 
-  '@pulumi/hcloud@1.42.0(typescript@6.0.3)':
+  '@pulumi/hcloud@1.43.0(typescript@6.0.3)':
     dependencies:
       '@pulumi/pulumi': 3.267.0(typescript@6.0.3)
     transitivePeerDependencies:
