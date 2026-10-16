@@ -4,6 +4,7 @@ import * as random from "@pulumi/random";
 import { helmChart } from "homelab-lib";
 import { PlatformCtx } from "../context";
 import { BlocklistCronJob } from "./blocklist-cronjob";
+import { collectionsEnv } from "./collections";
 
 const chart = helmChart("crowdsec");
 
@@ -88,7 +89,7 @@ export class CrowdSec extends pulumi.ComponentResource {
           container_runtime: "containerd",
           agent: {
             env: [
-              { name: "COLLECTIONS", value: "crowdsecurity/traefik,LePresidente/gitea" },
+              { name: "COLLECTIONS", value: collectionsEnv(["crowdsecurity/traefik", "LePresidente/gitea"]) },
               { name: "PARSERS", value: "crowdsecurity/geoip-enrich" },
             ],
             acquisition: [
