@@ -73,6 +73,7 @@ export class VpsServer extends pulumi.ComponentResource {
       domain: `netbird.${DOMAIN}`,
       relayPort,
       cloudflareApiToken,
+      otlpApiKey: config.requireSecret("otlpApiKey"),
     });
 
     // ---------------------------------------------------------------------------

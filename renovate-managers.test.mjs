@@ -107,3 +107,10 @@ test("ntfy image pin is extracted by renovate with a digest", async () => {
   assert.ok(ntfy, "docker pin binwiederhier/ntfy missing");
   assert.match(ntfy.currentDigest, /^sha256:[0-9a-f]{64}$/);
 });
+
+test("node-exporter image pin is extracted by renovate with a digest", async () => {
+  const docker = await extract("docker");
+  const m = docker.find((d) => d.depName === "prom/node-exporter");
+  assert.ok(m, "docker pin prom/node-exporter missing");
+  assert.match(m.currentDigest, /^sha256:[0-9a-f]{64}$/);
+});

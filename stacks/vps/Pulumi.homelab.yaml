@@ -8,4 +8,6 @@ config:
     secure: v1:F/ob+Fir3UWtGheH:KRa2O5v40Kzzx/kpiSu27LrGGSA2ljkhhPC3LUppqxRFA+LRWHwJlgbPlkRan+tj/FvgiQxS0fDg/vBiIEOKpfxXFavXYbr9KNwEDMqzQPE=
   homelab-vps:cloudflareDnsEditApiToken:
     secure: v1:7s8my/PJPRnsNq73:ut8/Cppg/GkKnMVSZ+WABk1xJ9X1cJPpMGymsxkYyT1KsChVxAi3WzPdl7P19ca086GOBgKNCL5u+f7G0fOjM12504Bb
+  homelab-vps:otlpApiKey:
+    secure: v1:RMRhydXqJ40Y1UHO:eyBdW85OAnVVJSConoaE3cMasHRBqf+b2K8n5I8/8xwalg+XwnotwSWKBYhVn2w4Z9A=
 encryptionsalt: v1:t7pQQ7Ai16I=:v1:gvLUfxPX/dYm6UOb:M9AY6RUxkHJcyXwuhM2YrliMLr8iQg==
