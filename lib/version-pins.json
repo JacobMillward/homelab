@@ -36,7 +36,7 @@
     },
     "zigbee2mqtt": {
       "chart": "zigbee2mqtt",
-      "version": "2.14.1",
+      "version": "2.14.2",
       "registryUrl": "https://charts.zigbee2mqtt.io"
     },
     "externalSecrets": {
