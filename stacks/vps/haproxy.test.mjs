@@ -36,3 +36,15 @@ test("refuses a metrics bind that is not loopback", () => {
     /loopback/,
   );
 });
+
+test("tcplog applies to the passthrough frontends only, not the HTTP metrics frontend", () => {
+  const c = cfg();
+  const metrics = c.slice(c.indexOf("frontend metrics"));
+  assert.ok(!metrics.includes("tcplog"));
+  assert.ok(!/^\s+log global$/m.test(c.slice(0, c.indexOf("frontend app_publish"))), "log global must not sit in defaults");
+  for (const name of ["app_publish", "forgejo_ssh"]) {
+    const block = c.slice(c.indexOf(`frontend ${name}`)).split("\n\n")[0];
+    assert.match(block, /option tcplog/);
+    assert.match(block, /log global/);
+  }
+});

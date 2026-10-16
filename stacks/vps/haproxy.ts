@@ -16,14 +16,14 @@ export function buildHaproxyConfig({ homeTunnelIp, metricsBind }: HaproxyConfigA
 
 defaults
     mode tcp
-    log global
-    option tcplog
     timeout connect 5s
     timeout client 1h
     timeout server 1h
 
 frontend app_publish
     bind *:443
+    log global
+    option tcplog
     default_backend home_traefik
 
 backend home_traefik
@@ -31,6 +31,8 @@ backend home_traefik
 
 frontend forgejo_ssh
     bind *:22
+    log global
+    option tcplog
     default_backend home_forgejo_ssh
 
 backend home_forgejo_ssh
@@ -40,6 +42,5 @@ frontend metrics
     mode http
     bind ${metricsBind}
     http-request use-service prometheus-exporter if { path /metrics }
-    no log
 `;
 }
