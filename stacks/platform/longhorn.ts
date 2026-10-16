@@ -39,7 +39,10 @@ export class Longhorn extends pulumi.ComponentResource {
           repo: chart.registryUrl,
         },
         values: {
+          // One node: a replica count above 1 can never be scheduled, so every volume stays degraded.
+          persistence: { defaultClassReplicaCount: 1 },
           defaultSettings: {
+            defaultReplicaCount: '{"v1":"1","v2":"1"}',
             backupTarget: "nfs://192.168.0.40:/volume1/Backup/longhorn",
             nodeDrainPolicy: "always-allow",
           },
