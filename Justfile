@@ -3,6 +3,9 @@
 
 stacks := "talos vps platform apps"
 
+# 1Password vault holding the Homelab item. Set HOMELAB_OP_VAULT to use a service-account vault.
+op_vault := env("HOMELAB_OP_VAULT", "Private")
+
 [private]
 default:
     @just --list
@@ -13,18 +16,18 @@ pulumi STACK *args:
     set -euo pipefail
     case "{{ STACK }}" in
       platform|apps)
-        export PULUMI_CONFIG_PASSPHRASE=$(op read "op://Private/Homelab/Pulumi Passphrase - platform and apps")
+        export PULUMI_CONFIG_PASSPHRASE=$(op read "op://{{ op_vault }}/Homelab/Pulumi Passphrase - platform and apps")
         ;;
       talos|vps)
-        export PULUMI_CONFIG_PASSPHRASE=$(op read "op://Private/Homelab/Pulumi Passphrase")
+        export PULUMI_CONFIG_PASSPHRASE=$(op read "op://{{ op_vault }}/Homelab/Pulumi Passphrase")
         ;;
       *)
         echo "Unknown stack: {{ STACK }}" >&2
         exit 1
         ;;
     esac
-    export AWS_ACCESS_KEY_ID=$(op read "op://Private/Homelab/API Tokens/Garage Access Key ID")
-    export AWS_SECRET_ACCESS_KEY=$(op read "op://Private/Homelab/API Tokens/Garage Secret Access Key")
+    export AWS_ACCESS_KEY_ID=$(op read "op://{{ op_vault }}/Homelab/API Tokens/Garage Access Key ID")
+    export AWS_SECRET_ACCESS_KEY=$(op read "op://{{ op_vault }}/Homelab/API Tokens/Garage Secret Access Key")
     export PULUMI_BACKEND_URL="s3://pulumi-state?endpoint=192.168.0.40:3900&disableSSL=true&s3ForcePathStyle=true&region=garage"
     cd stacks/{{ STACK }} && pulumi {{ args }}
 
