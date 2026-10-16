@@ -62,7 +62,7 @@ test("go customManager extracts the known module correctly", async () => {
 test("every helm/docker/go entry in lib/version-pins.json is actually referenced by some .ts file", () => {
   const grepPattern = '(helmChart|dockerImage|dockerImageRef|goModule)\\("[a-zA-Z0-9]+"\\)';
   const output = execSync(
-    `grep -rhoE '${grepPattern}' stacks/platform stacks/apps --include="*.ts" | grep -v node_modules | grep -v /sdks/`,
+    `grep -rhoE '${grepPattern}' stacks/platform stacks/apps stacks/vps --include="*.ts" | grep -v node_modules | grep -v /sdks/`,
     { encoding: "utf8" },
   );
   const referencedKeys = new Set(
