@@ -4,7 +4,7 @@ import * as random from "@pulumi/random";
 import { helmChart } from "homelab-lib";
 import { PlatformCtx } from "../context";
 import { ForwardAuthSpec } from "../traefik";
-import { Agent, AGENT_OTLP_ENDPOINT } from "./agent";
+import { Agent } from "./agent";
 import { SCRAPE_TARGETS } from "./targets";
 
 const operatorsChart = helmChart("clickstackOperators");
@@ -40,11 +40,11 @@ export class Observability extends pulumi.ComponentResource {
       {
         metadata: {
           name: "observability",
-          // The node collector mounts hostPath volumes (container logs, host metrics).
+          // Everything here passes baseline; the node collector, which needs hostPath, has its own namespace.
           labels: {
-            "pod-security.kubernetes.io/enforce": "privileged",
-            "pod-security.kubernetes.io/audit": "privileged",
-            "pod-security.kubernetes.io/warn": "privileged",
+            "pod-security.kubernetes.io/enforce": "baseline",
+            "pod-security.kubernetes.io/audit": "baseline",
+            "pod-security.kubernetes.io/warn": "baseline",
           },
         },
       },
@@ -197,24 +197,14 @@ export class Observability extends pulumi.ComponentResource {
 
     this.release = release;
 
-    const forgejoMetricsSecret = new k8s.core.v1.Secret(
-      "forgejo-metrics-token",
-      {
-        metadata: { name: "forgejo-metrics-token", namespace },
-        stringData: { token: args.forgejoMetricsToken },
-      },
-      childOpts,
-    );
-
     new Agent(
       "agent",
       {
-        namespace,
         gatewayEndpoint: pulumi.interpolate`http://${this.gatewayHost}:4318`,
         apiKey: this.ingestApiKey,
         scrapeTargets: SCRAPE_TARGETS,
         excludeLogNamespaces: ["observability"],
-        secretEnv: [{ name: "FORGEJO_METRICS_TOKEN", secretName: forgejoMetricsSecret.metadata.name, key: "token" }],
+        secretEnv: [{ name: "FORGEJO_METRICS_TOKEN", value: args.forgejoMetricsToken }],
       },
       { ...childOpts, dependsOn: [release] },
     );

@@ -3,7 +3,7 @@ import * as k8s from "@pulumi/kubernetes";
 import * as cloudflare from "@pulumi/cloudflare";
 import { POD_CIDR, helmChart, goModule, DOMAIN, TRAEFIK_IP } from "homelab-lib";
 import { PlatformCtx } from "./context";
-import { AGENT_OTLP_ENDPOINT } from "./observability/agent";
+import { AGENT_OTLP_ENDPOINT } from "./observability/agent-endpoint";
 
 const chart = helmChart("traefik");
 const crowdsecPlugin = goModule("traefikCrowdsecPlugin");

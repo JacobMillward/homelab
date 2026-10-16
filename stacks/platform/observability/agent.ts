@@ -2,34 +2,50 @@ import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import { helmChart, dockerImageRef } from "homelab-lib";
 import { buildAgentCollectorConfig, ScrapeTarget } from "./agent-config";
+import { AGENT_NAMESPACE, AGENT_SERVICE } from "./agent-endpoint";
 
 const chart = helmChart("otelCollector");
 const image = dockerImageRef("otelCollectorContrib");
 
 export interface AgentArgs {
-  namespace: pulumi.Input<string>;
   gatewayEndpoint: pulumi.Input<string>;
   apiKey: pulumi.Input<string>;
   scrapeTargets: ScrapeTarget[];
   excludeLogNamespaces: string[];
-  // Extra env vars read from existing Secrets (scrape bearer tokens).
-  secretEnv?: { name: string; secretName: pulumi.Input<string>; key: string }[];
+  // Extra env vars from Secrets this component creates (scrape bearer tokens).
+  secretEnv?: { name: string; value: pulumi.Input<string> }[];
 }
-
-export const AGENT_SERVICE = "otel-agent";
-// Static so Traefik (created before Observability) can point at it.
-export const AGENT_OTLP_ENDPOINT = `http://${AGENT_SERVICE}.observability.svc.cluster.local:4318`;
 
 export class Agent extends pulumi.ComponentResource {
   constructor(name: string, args: AgentArgs, opts: pulumi.ComponentResourceOptions) {
     super("platform:observability:Agent", name, {}, opts);
     const childOpts = { parent: this };
 
-    const keySecret = new k8s.core.v1.Secret(
-      "otel-agent-api-key",
+    // Own namespace: this is the only workload that needs hostPath, so only it is privileged.
+    const namespace = new k8s.core.v1.Namespace(
+      "otel-agent",
       {
-        metadata: { name: "otel-agent-api-key", namespace: args.namespace },
-        stringData: { HYPERDX_API_KEY: args.apiKey },
+        metadata: {
+          name: AGENT_NAMESPACE,
+          labels: {
+            "pod-security.kubernetes.io/enforce": "privileged",
+            "pod-security.kubernetes.io/audit": "privileged",
+            "pod-security.kubernetes.io/warn": "privileged",
+          },
+        },
+      },
+      childOpts,
+    );
+    const ns = namespace.metadata.name;
+
+    const envSecret = new k8s.core.v1.Secret(
+      "otel-agent-env",
+      {
+        metadata: { name: "otel-agent-env", namespace: ns },
+        stringData: {
+          HYPERDX_API_KEY: args.apiKey,
+          ...Object.fromEntries((args.secretEnv ?? []).map((e) => [e.name, e.value])),
+        },
       },
       childOpts,
     );
@@ -56,7 +72,7 @@ export class Agent extends pulumi.ComponentResource {
         name: "otel-agent",
         chart: chart.chart,
         version: chart.version,
-        namespace: args.namespace,
+        namespace: ns,
         repositoryOpts: { repo: chart.registryUrl },
         values: {
           mode: "daemonset",
@@ -87,8 +103,10 @@ export class Agent extends pulumi.ComponentResource {
           securityContext: { runAsUser: 0, runAsGroup: 0 },
           extraEnvs: [
             { name: "K8S_NODE_IP", valueFrom: { fieldRef: { fieldPath: "status.hostIP" } } },
-            { name: "HYPERDX_API_KEY", valueFrom: { secretKeyRef: { name: keySecret.metadata.name, key: "HYPERDX_API_KEY" } } },
-            ...(args.secretEnv ?? []).map((e) => ({ name: e.name, valueFrom: { secretKeyRef: { name: e.secretName, key: e.key } } })),
+            ...["HYPERDX_API_KEY", ...(args.secretEnv ?? []).map((e) => e.name)].map((name) => ({
+              name,
+              valueFrom: { secretKeyRef: { name: envSecret.metadata.name, key: name } },
+            })),
           ],
           extraVolumes: [
             { name: "varlogpods", hostPath: { path: "/var/log/pods" } },
