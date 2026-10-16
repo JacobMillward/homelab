@@ -7,6 +7,7 @@ const chart = helmChart("longhorn");
 
 export class Longhorn extends pulumi.ComponentResource {
   readonly storageClassName = "longhorn";
+  readonly noBackupStorageClassName = "longhorn-no-backup";
 
   constructor(ctx: PlatformCtx) {
     super("platform:Longhorn", "longhorn", {}, {
@@ -52,6 +53,41 @@ export class Longhorn extends pulumi.ComponentResource {
       ["backup-weekly", "0 3 * * 0", 4],
       ["backup-monthly", "0 4 1 * *", 12],
     ];
+
+    // Joins no group. Its label is what keeps volumes off the "default" group (Longhorn
+    // adds a volume to it only when the volume has no recurring job), so the backups skip them.
+    const noBackupJob = new k8s.apiextensions.CustomResource(
+      "telemetry-snapshot-cleanup",
+      {
+        apiVersion: "longhorn.io/v1beta2",
+        kind: "RecurringJob",
+        metadata: { name: "telemetry-snapshot-cleanup", namespace: ns.metadata.name },
+        spec: { task: "snapshot-cleanup", cron: "0 5 * * *", retain: 0, concurrency: 1, groups: [] },
+      },
+      { parent: this, dependsOn: [release] },
+    );
+
+    new k8s.storage.v1.StorageClass(
+      "longhorn-no-backup",
+      {
+        metadata: { name: this.noBackupStorageClassName },
+        provisioner: "driver.longhorn.io",
+        allowVolumeExpansion: true,
+        reclaimPolicy: "Delete",
+        volumeBindingMode: "Immediate",
+        // One replica: the cluster has a single node, so more would stay unschedulable.
+        parameters: {
+          numberOfReplicas: "1",
+          staleReplicaTimeout: "30",
+          fsType: "ext4",
+          dataEngine: "v1",
+          disableRevisionCounter: "true",
+          backupTargetName: "default",
+          recurringJobSelector: '[{"name":"telemetry-snapshot-cleanup","isGroup":false}]',
+        },
+      },
+      { parent: this, dependsOn: [noBackupJob] },
+    );
 
     for (const [name, cron, retain] of recurringJobs) {
       new k8s.apiextensions.CustomResource(

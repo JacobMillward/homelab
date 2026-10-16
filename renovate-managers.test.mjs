@@ -80,3 +80,23 @@ test("every helm/docker/go entry in lib/version-pins.json is actually referenced
     );
   }
 });
+
+test("clickstack helm pins are extracted by renovate", async () => {
+  const helm = await extract("helm");
+  for (const chart of ["clickstack-operators", "clickstack"]) {
+    const match = helm.find((m) => m.depName === chart);
+    assert.ok(match, `helm pin "${chart}" missing`);
+    assert.equal(match.registryUrl, "https://clickhouse.github.io/ClickStack-helm-charts");
+  }
+});
+
+test("otel collector helm chart and contrib image pins are extracted by renovate", async () => {
+  const helm = await extract("helm");
+  const chart = helm.find((m) => m.depName === "opentelemetry-collector");
+  assert.ok(chart, "helm pin opentelemetry-collector missing");
+  assert.equal(chart.registryUrl, "https://open-telemetry.github.io/opentelemetry-helm-charts");
+  const docker = await extract("docker");
+  const image = docker.find((m) => m.depName === "otel/opentelemetry-collector-contrib");
+  assert.ok(image, "docker pin otel/opentelemetry-collector-contrib missing");
+  assert.match(image.currentDigest, /^sha256:[0-9a-f]{64}$/);
+});

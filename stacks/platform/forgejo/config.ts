@@ -6,14 +6,15 @@ export interface ForgejoConfigArgs {
   internalToken: pulumi.Output<string>;
   jwtSecret: pulumi.Output<string>;
   dbHost: pulumi.Output<string>;
+  metricsToken: pulumi.Input<string>;
 }
 
 // DB user/password aren't here; they come via FORGEJO__database__USER/PASSWD env vars instead.
 export function buildForgejoConfig(args: ForgejoConfigArgs): pulumi.Output<string> {
   return pulumi
-    .all([args.secretKey, args.internalToken, args.jwtSecret, args.dbHost])
+    .all([args.secretKey, args.internalToken, args.jwtSecret, args.dbHost, args.metricsToken])
     .apply(
-      ([secretKey, internalToken, jwtSecret, dbHost]) => `
+      ([secretKey, internalToken, jwtSecret, dbHost, metricsToken]) => `
 APP_NAME = Forgejo
 RUN_MODE = prod
 
@@ -32,6 +33,11 @@ NAME = forgejo
 INSTALL_LOCK = true
 SECRET_KEY = ${secretKey}
 INTERNAL_TOKEN = ${internalToken}
+
+[metrics]
+ENABLED = true
+; /metrics is reachable through Traefik, so it needs the token.
+TOKEN = ${metricsToken}
 
 [oauth2]
 JWT_SECRET = ${jwtSecret}

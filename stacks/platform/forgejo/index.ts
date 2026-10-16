@@ -33,6 +33,7 @@ export interface ForgejoArgs {
   crowdsecFirewallBouncerApiKey: pulumi.Output<string>;
   registry: RegistryTarget;
   publicDns: PublicDnsSpec;
+  metricsToken: pulumi.Input<string>;
 }
 
 export class Forgejo extends pulumi.ComponentResource {
@@ -106,6 +107,7 @@ export class Forgejo extends pulumi.ComponentResource {
       // Forgejo decodes this with base64.RawURLEncoding, not standard base64.
       jwtSecret: jwtSecret.hex.apply((h) => Buffer.from(h, "hex").toString("base64url")),
       dbHost,
+      metricsToken: args.metricsToken,
     });
 
     const configSecret = new k8s.core.v1.Secret(

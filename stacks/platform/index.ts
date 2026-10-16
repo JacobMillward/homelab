@@ -1,5 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import * as random from "@pulumi/random";
 import { makePlatformCtx } from "./context";
 import { Longhorn } from "./longhorn";
 import { MetalLB } from "./metallb";
@@ -15,6 +16,7 @@ import { ExternalSecrets } from "./eso";
 import { PulumiOperator } from "./pko";
 import { Forgejo, FORGEJO_AUTH_SOURCE_NAME } from "./forgejo";
 import { Registry } from "./registry";
+import { Observability } from "./observability";
 import { DOMAIN } from "homelab-lib";
 
 const config = new pulumi.Config();
@@ -62,6 +64,16 @@ const traefik = new Traefik(ctx, {
   cloudflareApiToken,
   vpsIp: vpsConfig.ip,
   vpsIpv6: vpsConfig.ipv6,
+});
+// Shared so Forgejo's /metrics (public through Traefik) is only readable by the collector.
+const forgejoMetricsToken = new random.RandomPassword("forgejo-metrics-token", { length: 32, special: false }).result;
+const observability = new Observability(ctx, {
+  storageClassName: longhorn.storageClassName,
+  noBackupStorageClassName: longhorn.noBackupStorageClassName,
+  domain: DOMAIN,
+  forwardAuthSpec: traefik.forwardAuthSpec,
+  ingestApiKey: config.getSecret("hyperdxIngestKey"),
+  forgejoMetricsToken,
 });
 new PostgreSQL(ctx);
 const synology = new Synology(ctx);
@@ -111,6 +123,7 @@ const forgejo = new Forgejo(ctx, {
     dependsOn: [netbird.registryDns, registry.deployment],
   },
   publicDns: traefik.publicDns,
+  metricsToken: forgejoMetricsToken,
 });
 
 new PulumiOperator(ctx, {

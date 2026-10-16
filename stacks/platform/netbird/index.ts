@@ -119,6 +119,19 @@ export function setupNetbird(args: NetbirdArgs) {
     { provider: nbProvider },
   );
 
+  // HyperDX is mesh-only too, same target IP as the dashboard.
+  new netbird.DnsRecord(
+    "hyperdx-internal-dns",
+    {
+      name: `hyperdx.internal.${DOMAIN}`,
+      zoneId: nbConfig.dnsZoneId,
+      type: "A",
+      content: traefikInternalIp,
+      ttl: 300,
+    },
+    { provider: nbProvider },
+  );
+
   // 3. Deploy the routing peer using the Pulumi-managed setup key
   new NetbirdRouter(ctx, {
     namespace: server.namespace,

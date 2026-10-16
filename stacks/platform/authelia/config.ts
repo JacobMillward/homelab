@@ -80,6 +80,11 @@ server:
 log:
   level: "info"
 
+telemetry:
+  metrics:
+    enabled: true
+    address: "tcp://0.0.0.0:9959"
+
 totp:
   issuer: "${args.domain}"
 

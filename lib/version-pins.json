@@ -39,6 +39,21 @@
       "version": "2.14.2",
       "registryUrl": "https://charts.zigbee2mqtt.io"
     },
+    "clickstackOperators": {
+      "chart": "clickstack-operators",
+      "version": "1.1.0",
+      "registryUrl": "https://clickhouse.github.io/ClickStack-helm-charts"
+    },
+    "clickstack": {
+      "chart": "clickstack",
+      "version": "3.4.0",
+      "registryUrl": "https://clickhouse.github.io/ClickStack-helm-charts"
+    },
+    "otelCollector": {
+      "chart": "opentelemetry-collector",
+      "version": "0.174.2",
+      "registryUrl": "https://open-telemetry.github.io/opentelemetry-helm-charts"
+    },
     "externalSecrets": {
       "chart": "external-secrets",
       "version": "2.11.0",
@@ -60,6 +75,7 @@
     "pulumiCli": { "image": "pulumi/pulumi", "tag": "3.263.0-nonroot", "digest": "sha256:470b9e17d7544af3fd643fb5675849ff912639d0e7caa1a92852d7649ca0dad0" },
     "pulumiKubernetesOperator": { "image": "ghcr.io/pulumi/helm-charts/pulumi-kubernetes-operator", "tag": "2.9.1", "digest": "sha256:1454e81ca5d681f85d605e4051c50f7767a229821e1df52fa4cdd2208b3d12b1" },
     "forgejo": { "image": "codeberg.org/forgejo/forgejo", "tag": "16.0.5", "digest": "sha256:cf5f5ae6acf2ababca0ee3d255705b83a47f35b25e07fc931d694d60664053fe", "tier": "core-infra" },
+    "otelCollectorContrib": { "image": "otel/opentelemetry-collector-contrib", "tag": "0.161.0", "digest": "sha256:fd328de2552466ad78385e1b1289c3f2402b1c45f265b252aab1955b42845ac1" },
     "zot": { "image": "ghcr.io/project-zot/zot-linux-amd64", "tag": "v2.1.21", "digest": "sha256:8258443838e95989c13c891f78a02bc1c391b5a00591ffef24cb8c17cde28038", "tier": "core-infra" }
   },
   "go": {
