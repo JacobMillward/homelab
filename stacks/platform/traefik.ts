@@ -3,6 +3,7 @@ import * as k8s from "@pulumi/kubernetes";
 import * as cloudflare from "@pulumi/cloudflare";
 import { POD_CIDR, helmChart, goModule, DOMAIN, TRAEFIK_IP } from "homelab-lib";
 import { PlatformCtx } from "./context";
+import { AGENT_OTLP_ENDPOINT } from "./observability/agent";
 
 const chart = helmChart("traefik");
 const crowdsecPlugin = goModule("traefikCrowdsecPlugin");
@@ -97,6 +98,15 @@ export class Traefik extends pulumi.ComponentResource {
           },
           accessLog: {
             enabled: true,
+            // Parsed fields (client address, status, router) are searchable in HyperDX.
+            format: "json",
+          },
+          tracing: {
+            serviceName: "traefik",
+            otlp: {
+              enabled: true,
+              http: { enabled: true, endpoint: `${AGENT_OTLP_ENDPOINT}/v1/traces` },
+            },
           },
           ports: {
             websecure: {
