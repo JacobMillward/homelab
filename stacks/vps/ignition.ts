@@ -1,5 +1,9 @@
 import * as pulumi from "@pulumi/pulumi";
 import { VPS_TUNNEL_ADDRESS, HOME_TUNNEL_IP } from "homelab-lib";
+import { buildHaproxyConfig } from "./haproxy";
+
+// Scraped by the VPS collector (Task 10); loopback only.
+export const HAPROXY_METRICS_BIND = "127.0.0.1:8404";
 
 export interface IgnitionArgs {
   vpsPrivateKey: pulumi.Output<string>;
@@ -59,29 +63,7 @@ AllowedIPs = ${HOME_TUNNEL_IP}/32
               path: "/etc/haproxy.cfg",
               mode: 0o644,
               contents: {
-                source: dataUrl(`global
-    maxconn 4096
-
-defaults
-    mode tcp
-    timeout connect 5s
-    timeout client 1h
-    timeout server 1h
-
-frontend app_publish
-    bind *:443
-    default_backend home_traefik
-
-backend home_traefik
-    server home ${HOME_TUNNEL_IP}:443 send-proxy
-
-frontend forgejo_ssh
-    bind *:22
-    default_backend home_forgejo_ssh
-
-backend home_forgejo_ssh
-    server home ${HOME_TUNNEL_IP}:22
-`),
+                source: dataUrl(buildHaproxyConfig({ homeTunnelIp: HOME_TUNNEL_IP, metricsBind: HAPROXY_METRICS_BIND })),
               },
             },
             {
