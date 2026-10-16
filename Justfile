@@ -91,8 +91,8 @@ talosconfig:
 
 # Show latest Flatcar versions by channel
 flatcar-versions:
-    @echo "stable:"; curl -s https://stable.release.flatcar-linux.net/amd64-usr/current/version.txt | grep FLATCAR_VERSION
-    @echo "beta:";   curl -s https://beta.release.flatcar-linux.net/amd64-usr/current/version.txt | grep FLATCAR_VERSION
+    @echo "stable:"; curl -sL https://stable.release.flatcar-linux.net/amd64-usr/current/version.txt | grep FLATCAR_VERSION
+    @echo "beta:";   curl -sL https://beta.release.flatcar-linux.net/amd64-usr/current/version.txt | grep FLATCAR_VERSION
 
 # Resolve an image's digest and write/update its entry in lib/version-pins.json (e.g. `just define-image netbirdRouter netbirdio/netbird:0.67.4`)
 define-image key imageTag:
