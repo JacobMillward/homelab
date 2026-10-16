@@ -16,6 +16,10 @@ scripts/       Helpers for the Justfile and CI
 .forgejo/      Forgejo Actions workflows: typecheck, image builds, Renovate
 ```
 
+## Observability
+
+ClickStack (HyperDX), OpenTelemetry collectors on the node and the VPS, and ntfy for alerts. See [docs/observability.md](docs/observability.md).
+
 ## Network
 
 ```mermaid
