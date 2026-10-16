@@ -17,6 +17,7 @@ import { PulumiOperator } from "./pko";
 import { Forgejo, FORGEJO_AUTH_SOURCE_NAME } from "./forgejo";
 import { Registry } from "./registry";
 import { Observability } from "./observability";
+import { Ntfy } from "./ntfy";
 import { DOMAIN } from "homelab-lib";
 
 const config = new pulumi.Config();
@@ -75,6 +76,12 @@ const observability = new Observability(ctx, {
   ingestApiKey: config.getSecret("hyperdxIngestKey"),
   forgejoMetricsToken,
 });
+const ntfy = new Ntfy(ctx, {
+  domain: DOMAIN,
+  storageClassName: longhorn.storageClassName,
+  crowdsecPluginSpec: traefik.crowdsecPluginSpec,
+  publicDns: traefik.publicDns,
+});
 new PostgreSQL(ctx);
 const synology = new Synology(ctx);
 const registry = new Registry(ctx, { domain: DOMAIN, storageClassName: longhorn.storageClassName });
@@ -101,6 +108,7 @@ const netbird = setupNetbird({
   traefikClusterIp: traefik.clusterIp,
   traefikInternalIp: traefik.internalIp,
   forgejoSshIp: config.require("forgejoSshIp"),
+  otlpGatewayHost: observability.gatewayHost,
   forwardAuthSpec: traefik.forwardAuthSpec,
   vps: vpsConfig,
   secretStoreName: eso.secretStoreName,
@@ -148,6 +156,7 @@ new Renovate(ctx, {
   githubComToken: config.requireSecret("githubComToken"),
 });
 
+export const ntfyPhonePassword = pulumi.secret(ntfy.phonePassword);
 export { storageClassName } from "./longhorn";
 export const netbirdDnsZoneId = netbird.dnsZoneId;
 export const netbirdManagementUrl = netbird.managementUrl;

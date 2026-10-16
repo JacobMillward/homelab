@@ -100,3 +100,10 @@ test("otel collector helm chart and contrib image pins are extracted by renovate
   assert.ok(image, "docker pin otel/opentelemetry-collector-contrib missing");
   assert.match(image.currentDigest, /^sha256:[0-9a-f]{64}$/);
 });
+
+test("ntfy image pin is extracted by renovate with a digest", async () => {
+  const docker = await extract("docker");
+  const ntfy = docker.find((m) => m.depName === "binwiederhier/ntfy");
+  assert.ok(ntfy, "docker pin binwiederhier/ntfy missing");
+  assert.match(ntfy.currentDigest, /^sha256:[0-9a-f]{64}$/);
+});

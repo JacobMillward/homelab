@@ -17,6 +17,7 @@ interface NetbirdArgs {
   traefikClusterIp: pulumi.Input<string>;
   traefikInternalIp: pulumi.Input<string>;
   forgejoSshIp: pulumi.Input<string>;
+  otlpGatewayHost: pulumi.Input<string>;
   forwardAuthSpec: ForwardAuthSpec;
   netbirdOidcClientId: pulumi.Input<string>;
   netbirdOidcClientSecret: pulumi.Input<string>;
@@ -146,6 +147,7 @@ export function setupNetbird(args: NetbirdArgs) {
       vpsWgPublicKey: vps.wgPublicKey,
       traefikIp: traefikClusterIp,
       forgejoSshIp: args.forgejoSshIp,
+      otlpGatewayHost: args.otlpGatewayHost,
     });
   }
 

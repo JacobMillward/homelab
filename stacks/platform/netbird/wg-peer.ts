@@ -1,7 +1,9 @@
+import * as crypto from "crypto";
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import { HOME_TUNNEL_ADDRESS, VPS_TUNNEL_IP, dockerImage } from "homelab-lib";
 import { PlatformCtx } from "../context";
+import { buildForwardRules } from "./forward-rules";
 
 export interface VpsTunnelArgs {
   namespace: k8s.core.v1.Namespace;
@@ -9,6 +11,8 @@ export interface VpsTunnelArgs {
   vpsWgPublicKey: pulumi.Input<string>;
   traefikIp: pulumi.Input<string>;
   forgejoSshIp: pulumi.Input<string>;
+  // Cluster DNS name of the telemetry gateway. The VPS pushes OTLP/HTTP (4318) to it over the tunnel.
+  otlpGatewayHost: pulumi.Input<string>;
 }
 
 export class VpsTunnel extends pulumi.ComponentResource {
@@ -17,17 +21,20 @@ export class VpsTunnel extends pulumi.ComponentResource {
       providers: { kubernetes: ctx.k8sProvider },
     });
 
-    const { namespace, vpsIp, vpsWgPublicKey, traefikIp, forgejoSshIp } = args;
+    const { namespace, vpsIp, vpsWgPublicKey, traefikIp, forgejoSshIp, otlpGatewayHost } = args;
 
-    const forward = (port: number, dest: pulumi.Input<string>) =>
-      pulumi.interpolate`iptables -t nat -%OP% PREROUTING -p tcp --dport ${port} -j DNAT --to-destination ${dest}:${port}; iptables -%OP% FORWARD -p tcp -d ${dest} --dport ${port} -j ACCEPT; iptables -t nat -%OP% POSTROUTING -p tcp -d ${dest} --dport ${port} -j MASQUERADE`;
-
-    const rules = pulumi
-      .all([forward(443, traefikIp), forward(22, forgejoSshIp)])
-      .apply(([https, ssh]) => ({
-        up: [https, ssh].join("; ").replace(/%OP%/g, "A"),
-        down: [https, ssh].join("; ").replace(/%OP%/g, "D"),
-      }));
+    const core = pulumi
+      .all([traefikIp, forgejoSshIp])
+      .apply(([https, ssh]) => buildForwardRules([{ port: 443, dest: https }, { port: 22, dest: ssh }]));
+    // The gateway has no fixed IP, so wg-quick resolves its Service name when the tunnel comes up.
+    // Separate and non-fatal: a DNS hiccup must not take the public tunnel down with it.
+    const otlp = pulumi.output(otlpGatewayHost).apply((gateway) =>
+      buildForwardRules([{ port: 4318, dest: `$(getent hosts ${gateway} | awk '{print $1; exit}')` }]),
+    );
+    // Rules only run at tunnel start, so a rule change has to roll the pod.
+    const rulesHash = pulumi
+      .all([core, otlp])
+      .apply(([c, o]) => crypto.createHash("sha256").update(c.up + o.up).digest("hex"));
 
     const privateKeyPlaceholder = "__HOME_WG_PRIVATE_KEY__";
 
@@ -39,8 +46,10 @@ export class VpsTunnel extends pulumi.ComponentResource {
           "wg0.conf": pulumi.interpolate`[Interface]
 Address = ${HOME_TUNNEL_ADDRESS}
 PrivateKey = ${privateKeyPlaceholder}
-PostUp = sysctl -w net.ipv4.ip_forward=1; ${rules.up}
-PostDown = ${rules.down}
+PostUp = sysctl -w net.ipv4.ip_forward=1; ${core.up}
+PostUp = ${otlp.up} || true
+PostDown = ${core.down}
+PostDown = ${otlp.down} || true
 
 [Peer]
 PublicKey = ${vpsWgPublicKey}
@@ -64,7 +73,7 @@ PersistentKeepalive = 25
           progressDeadlineSeconds: 120,
           selector: { matchLabels: { app: "wg-home-peer" } },
           template: {
-            metadata: { labels: { app: "wg-home-peer" } },
+            metadata: { labels: { app: "wg-home-peer" }, annotations: { "homelab.internal/wg-rules-hash": rulesHash } },
             spec: {
               containers: [
                 {
