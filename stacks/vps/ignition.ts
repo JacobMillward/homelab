@@ -199,7 +199,8 @@ ExecStart=/usr/bin/docker run --rm --name otel-collector \\
   -v /etc/otel-collector.yaml:/etc/otelcol-contrib/config.yaml:ro \\
   -v /var/lib/otelcol:/var/lib/otelcol \\
   -v /var/lib/docker/containers:/var/lib/docker/containers:ro \\
-  -v /:/hostfs:ro,rslave \\
+  -v /proc:/hostfs/proc:ro \\
+  -v /sys:/hostfs/sys:ro \\
   ${dockerImage("otelCollectorContrib")}
 ExecStop=/usr/bin/docker stop otel-collector
 

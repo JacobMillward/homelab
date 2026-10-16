@@ -32,7 +32,7 @@ export function buildVpsCollectorConfig(args: VpsCollectorArgs): string {
         hostmetrics: {
           collection_interval: "30s",
           root_path: "/hostfs",
-          scrapers: { cpu: {}, load: {}, memory: {}, disk: {}, filesystem: {}, network: {} },
+          scrapers: { cpu: {}, load: {}, memory: {}, disk: {}, network: {} },
         },
         prometheus: {
           config: {

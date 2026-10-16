@@ -49,3 +49,9 @@ test("reads Docker json-file container logs and host metrics from the mounted ro
   assert.equal(c.receivers.hostmetrics.root_path, "/hostfs");
   assert.ok(c.service.pipelines.logs.receivers.includes("filelog"));
 });
+
+test("host metrics skip the filesystem scraper, which would need the host root mounted", () => {
+  const scrapers = Object.keys(cfg().receivers.hostmetrics.scrapers);
+  assert.ok(!scrapers.includes("filesystem"));
+  assert.ok(scrapers.includes("cpu") && scrapers.includes("memory") && scrapers.includes("network"));
+});

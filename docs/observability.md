@@ -56,6 +56,8 @@ HyperDX alert checks run as a CronJob (`hyperdx.tasks.enabled`). Create the webh
 - No linked HAProxy to Traefik traces (TCP passthrough). Correlate by client IP and time.
 - Container logs on the VPS come from the Docker `json-file` driver (haproxy, relay). `journalctl` no longer shows those two; use `docker logs`.
 
+- The collectors mount only `/proc` and `/sys`, not the host root, so a compromised collector cannot read node or VPS secrets. The cost: no filesystem-usage metrics from `hostmetrics`. Node disk comes from kubelet stats; the VPS has no disk-usage metric.
+
 ## Adding a scrape target
 
 Add an entry to `SCRAPE_TARGETS` in `stacks/platform/observability/targets.ts` (namespace or empty for all, label selector, port, path; `bearerTokenEnvVar` for token-protected endpoints), then apply the platform stack.

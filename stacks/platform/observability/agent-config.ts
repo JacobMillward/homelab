@@ -65,7 +65,7 @@ export function buildAgentCollectorConfig(args: AgentConfigArgs): string {
         hostmetrics: {
           collection_interval: interval,
           root_path: "/hostfs",
-          scrapers: { cpu: {}, load: {}, memory: {}, disk: {}, filesystem: {}, network: {} },
+          scrapers: { cpu: {}, load: {}, memory: {}, disk: {}, network: {} },
         },
         k8s_cluster: { collection_interval: interval },
         k8sobjects: { objects: [{ name: "events", mode: "watch" }] },

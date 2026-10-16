@@ -80,3 +80,9 @@ test("a scrape target can authenticate with a bearer token from the environment"
   }));
   assert.equal(c.receivers.prometheus.config.scrape_configs[0].authorization.credentials, "${env:FORGEJO_METRICS_TOKEN}");
 });
+
+test("host metrics skip the filesystem scraper, which would need the host root mounted", () => {
+  const scrapers = Object.keys(cfg().receivers.hostmetrics.scrapers);
+  assert.ok(!scrapers.includes("filesystem"));
+  assert.ok(scrapers.includes("cpu") && scrapers.includes("memory") && scrapers.includes("network"));
+});

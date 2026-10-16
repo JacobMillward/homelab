@@ -92,11 +92,14 @@ export class Agent extends pulumi.ComponentResource {
           ],
           extraVolumes: [
             { name: "varlogpods", hostPath: { path: "/var/log/pods" } },
-            { name: "hostfs", hostPath: { path: "/" } },
+            { name: "hostproc", hostPath: { path: "/proc" } },
+            { name: "hostsys", hostPath: { path: "/sys" } },
           ],
           extraVolumeMounts: [
             { name: "varlogpods", mountPath: "/var/log/pods", readOnly: true },
-            { name: "hostfs", mountPath: "/hostfs", readOnly: true, mountPropagation: "HostToContainer" },
+            // Only /proc and /sys, not the host root: a compromised collector could read node secrets.
+            { name: "hostproc", mountPath: "/hostfs/proc", readOnly: true },
+            { name: "hostsys", mountPath: "/hostfs/sys", readOnly: true },
           ],
           resources: {
             requests: { cpu: "100m", memory: "256Mi" },
