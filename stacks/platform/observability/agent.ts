@@ -125,7 +125,8 @@ export class Agent extends pulumi.ComponentResource {
           },
         },
       },
-      childOpts,
+      // The old release owns the cluster-scoped ClusterRole, so it must be deleted first.
+      { ...childOpts, deleteBeforeReplace: true },
     );
   }
 }
