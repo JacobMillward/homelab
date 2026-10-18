@@ -15,18 +15,18 @@ const DAY = 86400;
 export const ALERTS: AlertDef[] = [
   {
     id: "pod-restarts",
-    title: "{{group}} restarted ({{value}} times in 5 minutes)",
+    title: "Restarting: {{group}} ({{value}} times in 5 minutes)",
     note: "This container crashed or ran out of memory. Open Logs in HyperDX and search for its name to see why. If it began right after an update, revert that update in Git.",
-    sql: `SELECT ts, who, sum(d) AS restarts
+    sql: `SELECT ts, pod, sum(d) AS restarts
 FROM (
   SELECT $__timeInterval(TimeUnix) AS ts,
-    concat(ResourceAttributes['k8s.namespace.name'], '/', ResourceAttributes['k8s.pod.name']) AS who,
+    concat(ResourceAttributes['k8s.namespace.name'], '/', ResourceAttributes['k8s.pod.name']) AS pod,
     max(Value) - min(Value) AS d
   FROM ${gauge}
   WHERE MetricName = 'k8s.container.restarts' AND $__timeFilter(TimeUnix)
-  GROUP BY ts, who, ResourceAttributes['k8s.container.name']
+  GROUP BY ts, pod, ResourceAttributes['k8s.container.name']
 )
-GROUP BY ts, who`,
+GROUP BY ts, pod`,
     threshold: 1,
     interval: "5m",
   },
@@ -44,9 +44,9 @@ GROUP BY ts`,
   },
   {
     id: "volume-full",
-    title: "Volume {{group}} is {{value}}% full",
+    title: "Volume nearly full: {{group}} ({{value}}%)",
     note: "An app has nearly filled its storage. Free up data inside that app, or raise the volume size in the homelab code and apply it.",
-    sql: `SELECT $__timeInterval(TimeUnix) AS ts, pvc, round(max(100 - avail / cap * 100)) AS pct
+    sql: `SELECT $__timeInterval(TimeUnix) AS ts, pvc AS volume, round(max(100 - avail / cap * 100)) AS pct
 FROM (
   SELECT TimeUnix, ResourceAttributes['k8s.persistentvolumeclaim.name'] AS pvc,
     maxIf(Value, MetricName = 'k8s.volume.available') AS avail,
@@ -75,7 +75,7 @@ GROUP BY ts`,
   {
     // longhorn_volume_robustness: 1 healthy, 2 degraded, 3 faulted.
     id: "longhorn-volume",
-    title: "Storage volume {{group}} is unhealthy",
+    title: "Storage volume unhealthy: {{group}}",
     note: "Longhorn says a copy of this volume's data is missing or broken. Open Logs in HyperDX and search for the namespace longhorn-system to see why.",
     sql: `SELECT $__timeInterval(TimeUnix) AS ts, concat(Attributes['pvc_namespace'], '/', Attributes['pvc']) AS volume, max(Value) AS robustness
 FROM ${gauge}
@@ -86,13 +86,13 @@ GROUP BY ts, volume`,
   },
   {
     id: "certificate-expiry",
-    title: "Certificate {{group}} expires within 14 days",
+    title: "Certificate expiring within 14 days: {{group}}",
     note: "Automatic renewal is failing, so sites using it will break when it expires. Open Logs in HyperDX and search for cert-manager; the error says why.",
-    sql: `SELECT $__timeInterval(TimeUnix) AS ts, Attributes['name'] AS cert,
+    sql: `SELECT $__timeInterval(TimeUnix) AS ts, Attributes['name'] AS certificate,
   greatest(0, ${14 * DAY} - (min(Value) - toUnixTimestamp(now()))) AS seconds_short
 FROM ${gauge}
 WHERE MetricName = 'certmanager_certificate_expiration_timestamp_seconds' AND $__timeFilter(TimeUnix)
-GROUP BY ts, cert`,
+GROUP BY ts, certificate`,
     threshold: 1,
     interval: "1h",
   },
@@ -109,12 +109,12 @@ GROUP BY ts`,
   },
   {
     id: "database-down",
-    title: "Database {{group}} is down",
+    title: "Database down: {{group}}",
     note: "Apps that use it will fail. Open Logs in HyperDX and search for the database name to see why. If a storage alert fired recently, a full disk is the likely cause.",
-    sql: `SELECT $__timeInterval(TimeUnix) AS ts, Attributes['cluster'] AS db, 1 - min(Value) AS down
+    sql: `SELECT $__timeInterval(TimeUnix) AS ts, Attributes['cluster'] AS database, 1 - min(Value) AS down
 FROM ${gauge}
 WHERE MetricName = 'cnpg_collector_up' AND $__timeFilter(TimeUnix)
-GROUP BY ts, db`,
+GROUP BY ts, database`,
     threshold: 1,
     interval: "5m",
   },
