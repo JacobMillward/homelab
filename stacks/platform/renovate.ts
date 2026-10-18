@@ -20,6 +20,7 @@ export interface RenovateArgs {
   dockerhubToken: pulumi.Input<string>;
   // Unscoped PAT, only to lift github.com's anonymous API rate limit.
   githubComToken: pulumi.Input<string>;
+  ntfyToken: pulumi.Input<string>;
 }
 
 // Scopes per Renovate's forgejo platform docs: repo and issue write, user and
@@ -104,6 +105,18 @@ export class Renovate extends pulumi.ComponentResource {
         // Forgejo reserves the GITHUB_ prefix for its own Actions secrets.
         secretName: "RENOVATE_GITHUB_COM_TOKEN",
         data: args.githubComToken,
+      },
+      childOpts,
+    );
+
+    new ForgejoActionSecret(
+      "ntfy-token-action-secret",
+      {
+        client: forgejoClient,
+        owner: args.forgejo.repoOwner,
+        repo: args.forgejo.repoName,
+        secretName: "NTFY_TOKEN",
+        data: args.ntfyToken,
       },
       childOpts,
     );

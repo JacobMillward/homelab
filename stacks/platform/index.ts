@@ -166,6 +166,7 @@ new Renovate(ctx, {
   dockerhubUsername: config.requireSecret("dockerhubUsername"),
   dockerhubToken: config.requireSecret("dockerhubToken"),
   githubComToken: config.requireSecret("githubComToken"),
+  ntfyToken: ntfy.renovatePublisherToken,
 });
 
 export const ntfyPhonePassword = pulumi.secret(ntfy.phonePassword);

@@ -1,0 +1,28 @@
+name: notify-manual-prs
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  notify:
+    runs-on: self-hosted
+    if: github.event.pull_request.user.login == 'renovate-bot'
+    steps:
+      - name: Push to ntfy when Renovate will not automerge
+        env:
+          NTFY_TOKEN: ${{ secrets.NTFY_TOKEN }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          case "$PR_BODY" in
+            *"Automerge**: Disabled"*) ;;
+            *) echo "automerge is on, no notification"; exit 0 ;;
+          esac
+          curl -fsS \
+            -H "Authorization: Bearer $NTFY_TOKEN" \
+            -H "Title: Renovate PR needs a manual merge" \
+            -H "Click: $PR_URL" \
+            -d "$PR_TITLE" \
+            http://ntfy.ntfy.svc.cluster.local/renovate

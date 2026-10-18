@@ -15,11 +15,13 @@ export interface NtfyArgs {
 }
 
 export const ALERTS_TOPIC = "alerts";
+export const RENOVATE_TOPIC = "renovate";
 const PORT = 8080;
 
 export class Ntfy extends pulumi.ComponentResource {
   readonly serviceUrl: string;
   readonly publisherToken: pulumi.Output<string>;
+  readonly renovatePublisherToken: pulumi.Output<string>;
   readonly phonePassword: pulumi.Output<string>;
 
   constructor(ctx: PlatformCtx, args: NtfyArgs) {
@@ -43,6 +45,7 @@ export class Ntfy extends pulumi.ComponentResource {
     };
     const phone = user("phone");
     const hyperdx = user("hyperdx");
+    const forgejoCi = user("forgejo-ci");
     this.phonePassword = phone.password;
 
     const tokenSuffix = new random.RandomString(
@@ -52,19 +55,32 @@ export class Ntfy extends pulumi.ComponentResource {
     );
     this.publisherToken = pulumi.secret(tokenSuffix.result.apply((s) => `tk_${s}`));
 
+    const renovateTokenSuffix = new random.RandomString(
+      "ntfy-forgejo-ci-token",
+      { length: 29, special: false, upper: false },
+      childOpts,
+    );
+    this.renovatePublisherToken = pulumi.secret(renovateTokenSuffix.result.apply((s) => `tk_${s}`));
+
     const config = pulumi
-      .all([phone.hash, hyperdx.hash, this.publisherToken])
-      .apply(([phoneHash, hyperdxHash, token]) =>
+      .all([phone.hash, hyperdx.hash, forgejoCi.hash, this.publisherToken, this.renovatePublisherToken])
+      .apply(([phoneHash, hyperdxHash, forgejoCiHash, token, renovateToken]) =>
         buildNtfyServerConfig({
           baseUrl: `https://ntfy.${args.domain}`,
           users: [
             { name: "phone", passwordHash: phoneHash, role: "user" },
             { name: "hyperdx", passwordHash: hyperdxHash, role: "user" },
+            { name: "forgejo-ci", passwordHash: forgejoCiHash, role: "user" },
           ],
-          tokens: [{ user: "hyperdx", token, label: "HyperDX alerts" }],
+          tokens: [
+            { user: "hyperdx", token, label: "HyperDX alerts" },
+            { user: "forgejo-ci", token: renovateToken, label: "Forgejo manual-merge PRs" },
+          ],
           access: [
             { user: "phone", topic: ALERTS_TOPIC, permission: "read-only" },
             { user: "hyperdx", topic: ALERTS_TOPIC, permission: "write-only" },
+            { user: "phone", topic: RENOVATE_TOPIC, permission: "read-only" },
+            { user: "forgejo-ci", topic: RENOVATE_TOPIC, permission: "write-only" },
           ],
         }),
       );
