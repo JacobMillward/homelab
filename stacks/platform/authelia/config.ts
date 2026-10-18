@@ -102,6 +102,10 @@ authentication_backend:
 access_control:
   default_policy: "one_factor"
   rules:
+    - domain: "git.${args.domain}"
+      resources:
+        - "^/-/admin(/.*)?$"
+      policy: "two_factor"
     - domain: "*.${args.domain}"
       policy: "one_factor"
 
