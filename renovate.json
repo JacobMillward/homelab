@@ -5,6 +5,7 @@
     ":enableVulnerabilityAlertsWithLabel(\"security\")"
   ],
   "dependencyDashboard": true,
+  "rebaseWhen": "behind-base-branch",
   "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
     "enabled": true
