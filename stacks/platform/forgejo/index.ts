@@ -168,6 +168,11 @@ export class Forgejo extends pulumi.ComponentResource {
                   name: "seed-config",
                   image: dockerImage("forgejo"),
                   command: seedConfigCommand,
+                  securityContext: {
+                    allowPrivilegeEscalation: false,
+                    seccompProfile: { type: "RuntimeDefault" },
+                    capabilities: { drop: ["ALL"], add: ["CHOWN", "DAC_OVERRIDE", "FOWNER"] },
+                  },
                   volumeMounts: [configVolumeMount, dataVolumeMount],
                 },
               ],
@@ -180,6 +185,19 @@ export class Forgejo extends pulumi.ComponentResource {
                     { name: "ssh", containerPort: SSH_PORT },
                   ],
                   env: dbEnv(dbSecretName),
+                  // The image starts s6 and sshd as root, then drops to git, so it can't run non-root.
+                  securityContext: {
+                    allowPrivilegeEscalation: false,
+                    seccompProfile: { type: "RuntimeDefault" },
+                    capabilities: {
+                      drop: ["ALL"],
+                      add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETUID", "SETGID", "SYS_CHROOT", "KILL", "NET_BIND_SERVICE"],
+                    },
+                  },
+                  resources: {
+                    requests: { cpu: "100m", memory: "384Mi" },
+                    limits: { memory: "1Gi" },
+                  },
                   volumeMounts: [dataVolumeMount],
                   readinessProbe: {
                     httpGet: { path: "/api/healthz", port: "http" },
@@ -192,7 +210,13 @@ export class Forgejo extends pulumi.ComponentResource {
                   name: "crowdsec-bouncer",
                   image: firewallBouncerImage,
                   securityContext: {
-                    capabilities: { add: ["NET_ADMIN", "NET_RAW"] },
+                    allowPrivilegeEscalation: false,
+                    seccompProfile: { type: "RuntimeDefault" },
+                    capabilities: { drop: ["ALL"], add: ["NET_ADMIN", "NET_RAW"] },
+                  },
+                  resources: {
+                    requests: { cpu: "10m", memory: "32Mi" },
+                    limits: { memory: "128Mi" },
                   },
                   args: ["-c", BOUNCER_CONFIG_PATH],
                   volumeMounts: [
