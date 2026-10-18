@@ -26,6 +26,10 @@ test("sends the crowdsec-tcp message as a group, never as an event", () => {
   assert.doesNotMatch(c, /^\s+event /m);
 });
 
+test("prefixes SPOE variables with crowdsec, which the reject rule reads", () => {
+  assert.match(buildSpoeConfig(), /option\s+var-prefix\s+crowdsec$/m);
+});
+
 test("the bouncer listens on loopback only and logs to stdout", () => {
   const c = buildSpoaBouncerConfig("http://lapi:8080/", "k");
   assert.match(c, /^listen_tcp: 127\.0\.0\.1:9000$/m);

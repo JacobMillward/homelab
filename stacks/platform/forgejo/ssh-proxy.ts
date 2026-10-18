@@ -45,6 +45,8 @@ export function buildSpoeConfig(): string {
   return `[crowdsec]
 spoe-agent crowdsec-agent
     groups      crowdsec-tcp-group
+    option      var-prefix  crowdsec
+    option      set-on-error error
     timeout     hello       200ms
     timeout     idle        55s
     timeout     processing  500ms
