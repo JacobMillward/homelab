@@ -97,3 +97,7 @@ flatcar-versions:
 # Resolve an image's digest and write/update its entry in lib/version-pins.json (e.g. `just define-image netbirdRouter netbirdio/netbird:0.67.4`)
 define-image key imageTag:
     @bash scripts/define-image.sh {{ key }} {{ imageTag }}
+
+# Run the unit tests. The flag hides Node's warning about typeless package.json; the stacks compile to CommonJS, so they cannot declare a type.
+test:
+    @node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test $(git ls-files '*.test.mjs')
