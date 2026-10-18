@@ -55,21 +55,23 @@ export function buildAgentCollectorConfig(args: AgentConfigArgs): string {
           include_file_path: true,
           operators: [{ type: "container", id: "container-parser" }],
         },
-        kubeletstats: {
+        kubelet_stats: {
           collection_interval: interval,
           auth_type: "serviceAccount",
           metric_groups: ["node", "pod", "container", "volume"],
+          extra_metadata_labels: ["k8s.volume.type"],
+          k8s_api_config: { auth_type: "serviceAccount" },
           // Talos kubelet serves a self-signed certificate.
           endpoint: "https://${env:K8S_NODE_IP}:10250",
           insecure_skip_verify: true,
         },
-        hostmetrics: {
+        host_metrics: {
           collection_interval: interval,
           root_path: "/hostfs",
           scrapers: { cpu: {}, load: {}, memory: {}, disk: {}, network: {} },
         },
         k8s_cluster: { collection_interval: interval },
-        k8sobjects: { objects: [{ name: "events", mode: "watch" }] },
+        k8s_objects: { objects: [{ name: "events", mode: "watch" }] },
         // The receiver refuses to start with no scrape_configs.
         ...(scrapeConfigs.length ? { prometheus: { config: { scrape_configs: scrapeConfigs } } } : {}),
         otlp: { protocols: { grpc: { endpoint: "0.0.0.0:4317" }, http: { endpoint: "0.0.0.0:4318" } } },
@@ -88,9 +90,9 @@ export function buildAgentCollectorConfig(args: AgentConfigArgs): string {
       },
       service: {
         pipelines: {
-          logs: { receivers: ["filelog", "k8sobjects", "otlp"], processors, exporters: ["otlphttp"] },
+          logs: { receivers: ["filelog", "k8s_objects", "otlp"], processors, exporters: ["otlphttp"] },
           metrics: {
-            receivers: ["kubeletstats", "hostmetrics", "k8s_cluster", ...(scrapeConfigs.length ? ["prometheus"] : []), "otlp"],
+            receivers: ["kubelet_stats", "host_metrics", "k8s_cluster", ...(scrapeConfigs.length ? ["prometheus"] : []), "otlp"],
             processors,
             exporters: ["otlphttp"],
           },

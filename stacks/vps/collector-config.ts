@@ -28,7 +28,7 @@ export function buildVpsCollectorConfig(args: VpsCollectorArgs): string {
           start_at: "end",
           operators: [{ type: "container", id: "container-parser" }],
         },
-        hostmetrics: {
+        host_metrics: {
           collection_interval: "30s",
           root_path: "/hostfs",
           scrapers: { cpu: {}, load: {}, memory: {}, disk: {}, network: {} },
@@ -61,7 +61,7 @@ export function buildVpsCollectorConfig(args: VpsCollectorArgs): string {
         extensions: [QUEUE],
         pipelines: {
           logs: { receivers: ["filelog"], processors, exporters: ["otlphttp"] },
-          metrics: { receivers: ["hostmetrics", "prometheus", "tlscheck"], processors, exporters: ["otlphttp"] },
+          metrics: { receivers: ["host_metrics", "prometheus", "tlscheck"], processors, exporters: ["otlphttp"] },
         },
       },
     },

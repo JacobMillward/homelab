@@ -55,7 +55,7 @@ Not covered: OOMKilled, failed Renovate or CI jobs.
 - No linked HAProxy to Traefik traces (TCP passthrough). Correlate by client IP and time.
 - Container logs on the VPS come from the Docker `json-file` driver (haproxy, relay). `journalctl` does not show those two; use `docker logs`.
 
-- The collectors mount only `/proc` and `/sys`, not the host root, so a compromised collector cannot read node or VPS secrets. The cost: no filesystem-usage metrics from `hostmetrics`. Node disk comes from kubelet stats; the VPS has no disk-usage metric.
+- The collectors mount only `/proc` and `/sys`, not the host root, so a compromised collector cannot read node or VPS secrets. The cost: no filesystem-usage metrics from `host_metrics`. Node disk comes from kubelet stats; the VPS has no disk-usage metric.
 
 ## Adding a scrape target
 

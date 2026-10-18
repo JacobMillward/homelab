@@ -46,12 +46,12 @@ test("scrapes HAProxy and node_exporter and checks the relay certificate", () =>
 test("reads Docker json-file container logs and host metrics from the mounted root", () => {
   const c = cfg();
   assert.deepEqual(c.receivers.filelog.include, ["/var/lib/docker/containers/*/*-json.log"]);
-  assert.equal(c.receivers.hostmetrics.root_path, "/hostfs");
+  assert.equal(c.receivers.host_metrics.root_path, "/hostfs");
   assert.ok(c.service.pipelines.logs.receivers.includes("filelog"));
 });
 
 test("host metrics skip the filesystem scraper, which would need the host root mounted", () => {
-  const scrapers = Object.keys(cfg().receivers.hostmetrics.scrapers);
+  const scrapers = Object.keys(cfg().receivers.host_metrics.scrapers);
   assert.ok(!scrapers.includes("filesystem"));
   assert.ok(scrapers.includes("cpu") && scrapers.includes("memory") && scrapers.includes("network"));
 });

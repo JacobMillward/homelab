@@ -24,7 +24,7 @@ test("memory_limiter is the first processor of every pipeline", () => {
 
 test("collects node, pod, cluster, event and log signals", () => {
   const receivers = Object.keys(cfg().receivers);
-  for (const r of ["filelog", "kubeletstats", "hostmetrics", "k8s_cluster", "k8sobjects", "prometheus", "otlp"]) {
+  for (const r of ["filelog", "kubelet_stats", "host_metrics", "k8s_cluster", "k8s_objects", "prometheus", "otlp"]) {
     assert.ok(receivers.includes(r), `receiver ${r}`);
   }
 });
@@ -51,10 +51,10 @@ test("exports OTLP/HTTP to the gateway with the API key from the environment", (
   assert.equal(ex.headers.authorization, "${env:HYPERDX_API_KEY}");
 });
 
-test("prometheus and kubeletstats feed metrics only, never logs", () => {
+test("prometheus and kubelet_stats feed metrics only, never logs", () => {
   const { logs, metrics } = cfg().service.pipelines;
   assert.ok(!logs.receivers.includes("prometheus"));
-  assert.ok(!logs.receivers.includes("kubeletstats"));
+  assert.ok(!logs.receivers.includes("kubelet_stats"));
   assert.ok(metrics.receivers.includes("prometheus"));
 });
 
@@ -82,12 +82,18 @@ test("a scrape target can authenticate with a bearer token from the environment"
 });
 
 test("host metrics skip the filesystem scraper, which would need the host root mounted", () => {
-  const scrapers = Object.keys(cfg().receivers.hostmetrics.scrapers);
+  const scrapers = Object.keys(cfg().receivers.host_metrics.scrapers);
   assert.ok(!scrapers.includes("filesystem"));
   assert.ok(scrapers.includes("cpu") && scrapers.includes("memory") && scrapers.includes("network"));
 });
 
-test("kubeletstats collects volume usage for PVC alerts", () => {
-  const groups = cfg().receivers.kubeletstats.metric_groups;
+test("kubelet_stats collects volume usage for PVC alerts", () => {
+  const groups = cfg().receivers.kubelet_stats.metric_groups;
   for (const g of ["node", "pod", "container", "volume"]) assert.ok(groups.includes(g), g);
+});
+
+test("kubelet_stats resolves PVC names through the Kubernetes API", () => {
+  const r = cfg().receivers.kubelet_stats;
+  assert.deepEqual(r.k8s_api_config, { auth_type: "serviceAccount" });
+  assert.ok(r.extra_metadata_labels.includes("k8s.volume.type"));
 });
