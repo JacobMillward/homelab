@@ -96,9 +96,31 @@ export class Traefik extends pulumi.ComponentResource {
               loadBalancerIP: this.loadBalancerIp,
             },
           },
+          experimental: {
+            otlpLogs: true,
+            plugins: {
+              "crowdsec-bouncer": {
+                moduleName: crowdsecPlugin.moduleName,
+                version: crowdsecPlugin.version,
+              },
+            },
+          },
           accessLog: {
             enabled: true,
             format: "json",
+            otlp: {
+              enabled: true,
+              serviceName: "traefik",
+              http: { enabled: true, endpoint: `${AGENT_OTLP_ENDPOINT}/v1/logs` },
+            },
+          },
+          metrics: {
+            prometheus: null,
+            otlp: {
+              enabled: true,
+              serviceName: "traefik",
+              http: { enabled: true, endpoint: `${AGENT_OTLP_ENDPOINT}/v1/metrics` },
+            },
           },
           tracing: {
             serviceName: "traefik",
@@ -111,14 +133,6 @@ export class Traefik extends pulumi.ComponentResource {
             websecure: {
               proxyProtocol: {
                 trustedIPs: [POD_CIDR],
-              },
-            },
-          },
-          experimental: {
-            plugins: {
-              "crowdsec-bouncer": {
-                moduleName: crowdsecPlugin.moduleName,
-                version: crowdsecPlugin.version,
               },
             },
           },

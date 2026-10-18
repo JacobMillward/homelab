@@ -9,7 +9,7 @@ ClickStack (ClickHouse + HyperDX) in the cluster, OpenTelemetry collectors on th
 | HyperDX | `https://hyperdx.internal.millward-yuan.net` | Mesh-only, behind Authelia. HyperDX has its own local accounts (no SSO for the UI), so the first visit creates a user. |
 | ClickHouse, Keeper, MongoDB | namespace `observability` | ClickHouse and Keeper use the `longhorn-no-backup` class, so the NFS backups skip them. MongoDB (dashboards, alert rules) is backed up. |
 | Gateway collector | `clickstack-otel-collector` | Part of the ClickStack chart. Creates the tables and checks the team API key. |
-| Node collector | DaemonSet `otel-agent`, namespace `otel-agent` (the only privileged one; `observability` enforces `baseline`) | Container logs, kubelet and host metrics, cluster state, events, scraped service metrics, OTLP in from Traefik. |
+| Node collector | DaemonSet `otel-agent`, namespace `otel-agent` (the only privileged one; `observability` enforces `baseline`) | Container logs, kubelet and host metrics, cluster state, events, scraped service metrics, OTLP in from Traefik (traces, metrics, access logs). |
 | VPS collector | systemd `otel-collector` on the VPS | Host metrics, HAProxy logs and metrics, relay certificate expiry. Sends over WireGuard to the gateway (`10.99.0.2:4318`) with an on-disk queue. |
 | ntfy | `https://ntfy.millward-yuan.net` | Own auth, deny-all by default, behind the CrowdSec Traefik plugin. Runs in the cluster. |
 
