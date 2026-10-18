@@ -120,6 +120,12 @@ export class Observability extends pulumi.ComponentResource {
                     // 16 merge threads x2 can exceed the 4Gi limit at roughly 150Mi per merge.
                     background_pool_size: 4,
                     mark_cache_size: 536870912,
+                    // These must not exceed pool size x ratio (8), or the server refuses to start.
+                    merge_tree: {
+                      number_of_free_entries_in_pool_to_lower_max_size_of_merge: 4,
+                      number_of_free_entries_in_pool_to_execute_mutation: 4,
+                      number_of_free_entries_in_pool_to_execute_optimize_entire_partition: 4,
+                    },
                   },
                 },
                 containerTemplate: {
