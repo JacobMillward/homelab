@@ -11,6 +11,11 @@
       "version": "1.13.0",
       "registryUrl": "https://charts.longhorn.io"
     },
+    "snapshotController": {
+      "chart": "snapshot-controller",
+      "version": "5.3.0",
+      "registryUrl": "https://piraeus.io/helm-charts/"
+    },
     "metallb": {
       "chart": "metallb",
       "version": "0.16.1",

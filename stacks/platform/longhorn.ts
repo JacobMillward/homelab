@@ -4,6 +4,7 @@ import { helmChart } from "homelab-lib";
 import { PlatformCtx } from "./context";
 
 const chart = helmChart("longhorn");
+const snapshotChart = helmChart("snapshotController");
 
 export class Longhorn extends pulumi.ComponentResource {
   readonly storageClassName = "longhorn";
@@ -51,7 +52,21 @@ export class Longhorn extends pulumi.ComponentResource {
       { parent: this },
     );
 
-    const recurringJobs: [string, string, number][] = [
+    // Longhorn's csi-snapshotter sidecar loops on errors without these CRDs.
+    new k8s.helm.v3.Release(
+      "snapshot-controller",
+      {
+        chart: snapshotChart.chart,
+        version: snapshotChart.version,
+        namespace: ns.metadata.name,
+        repositoryOpts: {
+          repo: snapshotChart.registryUrl,
+        },
+      },
+      { parent: this },
+    );
+
+    const recurringJobs:[string, string, number][] = [
       ["backup-daily", "0 2 * * *", 7],
       ["backup-weekly", "0 3 * * 0", 4],
       ["backup-monthly", "0 4 1 * *", 12],
