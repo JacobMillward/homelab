@@ -43,7 +43,7 @@ export function buildAgentCollectorConfig(args: AgentConfigArgs): string {
   }));
 
   const processors = ["memory_limiter", "k8s_attributes", "batch"];
-  const logProcessors = ["memory_limiter", "k8s_attributes", "filter/empty_logs", "batch"];
+  const logProcessors = ["memory_limiter", "k8s_attributes", "filter/empty_logs", "filter/clickhouse_noise", "batch"];
 
   return JSON.stringify(
     {
@@ -102,6 +102,13 @@ export function buildAgentCollectorConfig(args: AgentConfigArgs): string {
           ],
         },
         "filter/empty_logs": { error_mode: "ignore", logs: { log_record: ['body == ""'] } },
+        // ClickHouse prefixes real problems with <Error>, <Warning>, <Fatal> or <Critical>; the rest is info, debug and stack frames.
+        "filter/clickhouse_noise": {
+          error_mode: "ignore",
+          logs: {
+            log_record: ['resource.attributes["k8s.container.name"] == "clickhouse-server" and not IsMatch(body, "<(Error|Warning|Fatal|Critical)>")'],
+          },
+        },
         batch: {},
       },
       exporters: {

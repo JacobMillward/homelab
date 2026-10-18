@@ -117,3 +117,12 @@ test("empty log lines are dropped from the logs pipeline only", () => {
 test("an explicit service name annotation on a pod wins", () => {
   assert.equal(cfg().processors.k8s_attributes.extract.otel_annotations, true);
 });
+
+test("ClickHouse's own logs keep only warnings and above", () => {
+  const c = cfg();
+  const cond = c.processors["filter/clickhouse_noise"].logs.log_record[0];
+  assert.match(cond, /k8s\.container\.name"\] == "clickhouse-server"/);
+  for (const level of ["Error", "Warning", "Fatal", "Critical"]) assert.match(cond, new RegExp(level));
+  assert.ok(c.service.pipelines.logs.processors.includes("filter/clickhouse_noise"));
+  assert.ok(!c.service.pipelines.metrics.processors.includes("filter/clickhouse_noise"));
+});
