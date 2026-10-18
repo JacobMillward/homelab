@@ -12,7 +12,6 @@ export interface AgentArgs {
   apiKey: pulumi.Input<string>;
   scrapeTargets: ScrapeTarget[];
   excludeLogNamespaces: string[];
-  // Extra env vars from Secrets this component creates (scrape bearer tokens).
   secretEnv?: { name: string; value: pulumi.Input<string> }[];
 }
 
@@ -21,7 +20,7 @@ export class Agent extends pulumi.ComponentResource {
     super("platform:observability:Agent", name, {}, opts);
     const childOpts = { parent: this };
 
-    // Own namespace: this is the only workload that needs hostPath, so only it is privileged.
+    // Own namespace: the only workload that needs hostPath, so the only privileged one.
     const namespace = new k8s.core.v1.Namespace(
       "otel-agent",
       {
@@ -62,8 +61,7 @@ export class Agent extends pulumi.ComponentResource {
       ),
     );
 
-    // Daemonset mode publishes every port on the node by default; nothing here should be
-    // reachable from the LAN, so hostPort is cleared and the unused receivers are dropped.
+    // Daemonset mode publishes every port on the node; nothing here may be reachable from the LAN.
     const noHostPort = { hostPort: null };
 
     new k8s.helm.v3.Release(

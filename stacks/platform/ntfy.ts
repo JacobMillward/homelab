@@ -32,7 +32,6 @@ export class Ntfy extends pulumi.ComponentResource {
     const ns = namespace.metadata.name;
     this.serviceUrl = "http://ntfy.ntfy.svc.cluster.local";
 
-    // Salts are their own resources so the hashes stay stable across runs (same as registry.ts).
     const user = (name: string) => {
       const password = new random.RandomPassword(`ntfy-${name}-password`, { length: 32, special: false }, childOpts);
       const salt = new random.RandomBytes(`ntfy-${name}-salt`, { length: 16 }, childOpts);

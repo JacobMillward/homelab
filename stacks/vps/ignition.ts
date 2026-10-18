@@ -4,7 +4,6 @@ import { buildHaproxyConfig } from "./haproxy";
 import { buildVpsCollectorConfig } from "./collector-config";
 import { buildWgHandshakeScript } from "./wg-handshake";
 
-// Scraped by the VPS collector (Task 10); loopback only.
 export const HAPROXY_METRICS_BIND = "127.0.0.1:8404";
 
 export interface IgnitionArgs {
@@ -14,7 +13,6 @@ export interface IgnitionArgs {
   domain: string;
   relayPort: number;
   cloudflareApiToken: pulumi.Output<string>;
-  // HyperDX team API key. The collector reads it from an env file, not from its config.
   otlpApiKey: pulumi.Output<string>;
 }
 

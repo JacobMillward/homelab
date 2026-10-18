@@ -98,7 +98,6 @@ export class Traefik extends pulumi.ComponentResource {
           },
           accessLog: {
             enabled: true,
-            // Parsed fields (client address, status, router) are searchable in HyperDX.
             format: "json",
           },
           tracing: {

@@ -39,7 +39,7 @@ export class Longhorn extends pulumi.ComponentResource {
           repo: chart.registryUrl,
         },
         values: {
-          // One node: a replica count above 1 can never be scheduled, so every volume stays degraded.
+          // One node: a replica count above 1 can never schedule, so volumes stay degraded.
           persistence: { defaultClassReplicaCount: 1 },
           defaultSettings: {
             defaultReplicaCount: '{"v1":"1","v2":"1"}',
@@ -57,8 +57,7 @@ export class Longhorn extends pulumi.ComponentResource {
       ["backup-monthly", "0 4 1 * *", 12],
     ];
 
-    // Joins no group. Its label is what keeps volumes off the "default" group (Longhorn
-    // adds a volume to it only when the volume has no recurring job), so the backups skip them.
+    // Joins no group: its label keeps volumes out of "default", so backups skip them.
     const noBackupJob = new k8s.apiextensions.CustomResource(
       "telemetry-snapshot-cleanup",
       {
@@ -78,7 +77,6 @@ export class Longhorn extends pulumi.ComponentResource {
         allowVolumeExpansion: true,
         reclaimPolicy: "Delete",
         volumeBindingMode: "Immediate",
-        // One replica: the cluster has a single node, so more would stay unschedulable.
         parameters: {
           numberOfReplicas: "1",
           staleReplicaTimeout: "30",

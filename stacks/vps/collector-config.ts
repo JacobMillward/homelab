@@ -1,6 +1,5 @@
 export interface VpsCollectorArgs {
   gatewayEndpoint: string;
-  // Name of the environment variable holding the key, so the secret stays out of this file.
   apiKeyEnvVar: string;
   relayTlsEndpoint: string;
   haproxyMetricsEndpoint: string;
@@ -42,7 +41,6 @@ export function buildVpsCollectorConfig(args: VpsCollectorArgs): string {
             ],
           },
         },
-        // A failed acme renewal is silent until the certificate expires.
         tlscheck: { collection_interval: "1h", targets: [{ endpoint: args.relayTlsEndpoint }] },
       },
       processors: {
@@ -55,7 +53,6 @@ export function buildVpsCollectorConfig(args: VpsCollectorArgs): string {
           endpoint: args.gatewayEndpoint,
           compression: "gzip",
           headers: { authorization: `\${env:${args.apiKeyEnvVar}}` },
-          // Survives a tunnel outage and a collector restart.
           sending_queue: { enabled: true, storage: QUEUE, queue_size: 5000 },
           retry_on_failure: { enabled: true, max_elapsed_time: 0 },
         },

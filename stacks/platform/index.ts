@@ -66,7 +66,6 @@ const traefik = new Traefik(ctx, {
   vpsIp: vpsConfig.ip,
   vpsIpv6: vpsConfig.ipv6,
 });
-// Shared so Forgejo's /metrics (public through Traefik) is only readable by the collector.
 const forgejoMetricsToken = new random.RandomPassword("forgejo-metrics-token", { length: 32, special: false }).result;
 const observability = new Observability(ctx, {
   storageClassName: longhorn.storageClassName,

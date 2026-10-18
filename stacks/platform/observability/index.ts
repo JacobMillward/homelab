@@ -15,8 +15,7 @@ export interface ObservabilityArgs {
   noBackupStorageClassName: string;
   domain: string;
   forwardAuthSpec: ForwardAuthSpec;
-  // Team API key from HyperDX Settings. It only exists after the first user registers,
-  // so deploys use a placeholder until it is set.
+  // Only exists after the first user registers; deploys use a placeholder until then.
   ingestApiKey?: pulumi.Input<string>;
   forgejoMetricsToken: pulumi.Input<string>;
 }
@@ -40,7 +39,6 @@ export class Observability extends pulumi.ComponentResource {
       {
         metadata: {
           name: "observability",
-          // Everything here passes baseline; the node collector, which needs hostPath, has its own namespace.
           labels: {
             "pod-security.kubernetes.io/enforce": "baseline",
             "pod-security.kubernetes.io/audit": "baseline",
@@ -56,8 +54,7 @@ export class Observability extends pulumi.ComponentResource {
     const password = (name: string) =>
       new random.RandomPassword(name, { length: 32, special: false }, childOpts).result;
 
-    // Release name "clickstack" makes the chart's generated names static:
-    // clickstack-otel-collector (gateway) and clickstack-app (HyperDX).
+    // The release name fixes the generated names: clickstack-otel-collector, clickstack-app.
     const releaseName = "clickstack";
 
     const operators = new k8s.helm.v3.Release(
@@ -159,9 +156,7 @@ export class Observability extends pulumi.ComponentResource {
     this.gatewayService = pulumi.output(`${releaseName}-otel-collector`);
     this.gatewayHost = pulumi.interpolate`${releaseName}-otel-collector.${namespace}.svc.cluster.local`;
     this.ingestApiKey = pulumi.secret(pulumi.output(args.ingestApiKey ?? apiKey.result));
-    // Mesh-only (traefik-internal) with Authelia on top, like the NetBird dashboard.
-    // HyperDX keeps its own local accounts (no OIDC for the UI), so the first visit
-    // creates a user. A same-namespace Middleware, not a cross-namespace ref.
+    // A same-namespace Middleware, not a cross-namespace ref.
     const autheliaMiddleware = new k8s.apiextensions.CustomResource(
       "hyperdx-authelia-middleware",
       {

@@ -11,7 +11,6 @@ export interface VpsTunnelArgs {
   vpsWgPublicKey: pulumi.Input<string>;
   traefikIp: pulumi.Input<string>;
   forgejoSshIp: pulumi.Input<string>;
-  // Cluster DNS name of the telemetry gateway. The VPS pushes OTLP/HTTP (4318) to it over the tunnel.
   otlpGatewayHost: pulumi.Input<string>;
 }
 

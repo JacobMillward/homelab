@@ -120,7 +120,6 @@ export function setupNetbird(args: NetbirdArgs) {
     { provider: nbProvider },
   );
 
-  // HyperDX is mesh-only too, same target IP as the dashboard.
   new netbird.DnsRecord(
     "hyperdx-internal-dns",
     {
