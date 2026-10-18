@@ -158,7 +158,7 @@ new Renovate(ctx, {
 });
 
 export const ntfyPhonePassword = pulumi.secret(ntfy.phonePassword);
-export { storageClassName } from "./longhorn";
+export const storageClassName = longhorn.storageClassName;
 export const netbirdDnsZoneId = netbird.dnsZoneId;
 export const netbirdManagementUrl = netbird.managementUrl;
 export const netbirdPat = netbird.pat;

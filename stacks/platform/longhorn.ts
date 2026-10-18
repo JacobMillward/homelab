@@ -113,6 +113,3 @@ export class Longhorn extends pulumi.ComponentResource {
   }
 }
 
-/** @deprecated Use `new Longhorn(ctx).storageClassName` */
-export const storageClassName = "longhorn";
-

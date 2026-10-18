@@ -140,7 +140,6 @@ export class VpsServer extends pulumi.ComponentResource {
       "edge-vps-ip",
       {
         type: "ipv4",
-        assigneeType: "server",
         autoDelete: false,
         location: config.require("serverLocation"),
       },
