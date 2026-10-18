@@ -51,7 +51,7 @@
     },
     "otelCollector": {
       "chart": "opentelemetry-collector",
-      "version": "0.174.2",
+      "version": "0.175.0",
       "registryUrl": "https://open-telemetry.github.io/opentelemetry-helm-charts"
     },
     "externalSecrets": {
