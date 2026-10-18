@@ -43,7 +43,14 @@ export function buildAgentCollectorConfig(args: AgentConfigArgs): string {
   }));
 
   const processors = ["memory_limiter", "k8s_attributes", "batch"];
-  const logProcessors = ["memory_limiter", "k8s_attributes", "filter/empty_logs", "filter/clickhouse_noise", "batch"];
+  const logProcessors = [
+    "memory_limiter",
+    "k8s_attributes",
+    "transform/event_severity",
+    "filter/empty_logs",
+    "filter/clickhouse_noise",
+    "batch",
+  ];
 
   return JSON.stringify(
     {
@@ -72,7 +79,8 @@ export function buildAgentCollectorConfig(args: AgentConfigArgs): string {
           scrapers: { cpu: {}, load: {}, memory: {}, disk: {}, network: {} },
         },
         k8s_cluster: { collection_interval: interval },
-        k8s_objects: { objects: [{ name: "events", mode: "watch" }] },
+        // DELETED fires when Kubernetes expires an event, an hour later, and reads as a fresh problem.
+        k8s_objects: { objects: [{ name: "events", mode: "watch", exclude_watch_type: ["DELETED"] }] },
         // The receiver refuses to start with no scrape_configs.
         ...(scrapeConfigs.length ? { prometheus: { config: { scrape_configs: scrapeConfigs } } } : {}),
         otlp: { protocols: { grpc: { endpoint: "0.0.0.0:4317" }, http: { endpoint: "0.0.0.0:4318" } } },
@@ -99,6 +107,22 @@ export function buildAgentCollectorConfig(args: AgentConfigArgs): string {
             { sources: [{ from: "resource_attribute", name: "k8s.pod.uid" }] },
             { sources: [{ from: "resource_attribute", name: "k8s.pod.ip" }] },
             { sources: [{ from: "connection" }] },
+          ],
+        },
+        // The gateway guesses severity from the text and reads "alert" in "check-alerts" as fatal.
+        "transform/event_severity": {
+          error_mode: "ignore",
+          log_statements: [
+            {
+              context: "log",
+              conditions: ['IsMap(log.body) and IsMap(log.body["object"])'],
+              statements: [
+                'set(log.severity_number, SEVERITY_NUMBER_WARN) where log.body["object"]["type"] == "Warning"',
+                'set(log.severity_text, "warn") where log.body["object"]["type"] == "Warning"',
+                'set(log.severity_number, SEVERITY_NUMBER_INFO) where log.body["object"]["type"] == "Normal"',
+                'set(log.severity_text, "info") where log.body["object"]["type"] == "Normal"',
+              ],
+            },
           ],
         },
         "filter/empty_logs": { error_mode: "ignore", logs: { log_record: ['body == ""'] } },

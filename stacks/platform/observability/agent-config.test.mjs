@@ -126,3 +126,11 @@ test("ClickHouse's own logs keep only warnings and above", () => {
   assert.ok(c.service.pipelines.logs.processors.includes("filter/clickhouse_noise"));
   assert.ok(!c.service.pipelines.metrics.processors.includes("filter/clickhouse_noise"));
 });
+
+test("expired events are not re-collected and event type sets severity", () => {
+  const c = cfg();
+  assert.deepEqual(c.receivers.k8s_objects.objects[0].exclude_watch_type, ["DELETED"]);
+  assert.ok(c.service.pipelines.logs.processors.includes("transform/event_severity"));
+  const stmts = c.processors["transform/event_severity"].log_statements[0].statements.join("\n");
+  assert.match(stmts, /"Warning"[\s\S]*"warn"/);
+});
