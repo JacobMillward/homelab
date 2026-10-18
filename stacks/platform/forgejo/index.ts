@@ -263,6 +263,36 @@ export class Forgejo extends pulumi.ComponentResource {
       childOpts,
     );
 
+    const headersMiddleware = new k8s.apiextensions.CustomResource(
+      "forgejo-headers-middleware",
+      {
+        apiVersion: "traefik.io/v1alpha1",
+        kind: "Middleware",
+        metadata: { name: "security-headers", namespace: this.namespace.metadata.name },
+        spec: {
+          headers: {
+            stsSeconds: 31536000,
+            contentTypeNosniff: true,
+            customFrameOptionsValue: "SAMEORIGIN",
+            referrerPolicy: "same-origin",
+          },
+        },
+      },
+      childOpts,
+    );
+
+    // CI and PKO share the home IP, so /api gets no limit; only login paths do.
+    const authRateLimitMiddleware = new k8s.apiextensions.CustomResource(
+      "forgejo-auth-ratelimit-middleware",
+      {
+        apiVersion: "traefik.io/v1alpha1",
+        kind: "Middleware",
+        metadata: { name: "auth-ratelimit", namespace: this.namespace.metadata.name },
+        spec: { rateLimit: { average: 10, period: "1s", burst: 20 } },
+      },
+      childOpts,
+    );
+
     // /metrics has no public route; the agent scrapes the pod directly.
     new k8s.apiextensions.CustomResource(
       "forgejo-route",
@@ -277,19 +307,27 @@ export class Forgejo extends pulumi.ComponentResource {
               match: `Host(\`git.${args.domain}\`) && !PathPrefix(\`/metrics\`) && !PathPrefix(\`/-/admin\`)`,
               kind: "Rule",
               services: [{ name: httpSvc.metadata.name, port: 80 }],
-              middlewares: [{ name: "crowdsec-bouncer" }],
+              middlewares: [{ name: "crowdsec-bouncer" }, { name: "security-headers" }],
+            },
+            {
+              // Explicit priority: the main rule's negations make it longer, so it would win.
+              match: `Host(\`git.${args.domain}\`) && (PathPrefix(\`/user/login\`) || PathPrefix(\`/user/oauth2\`))`,
+              kind: "Rule",
+              priority: 1000,
+              services: [{ name: httpSvc.metadata.name, port: 80 }],
+              middlewares: [{ name: "crowdsec-bouncer" }, { name: "auth-ratelimit" }, { name: "security-headers" }],
             },
             {
               match: `Host(\`git.${args.domain}\`) && PathPrefix(\`/-/admin\`)`,
               kind: "Rule",
               services: [{ name: httpSvc.metadata.name, port: 80 }],
-              middlewares: [{ name: "crowdsec-bouncer" }, { name: "authelia" }],
+              middlewares: [{ name: "crowdsec-bouncer" }, { name: "authelia" }, { name: "security-headers" }],
             },
           ],
           tls: {},
         },
       },
-      { ...childOpts, dependsOn: [crowdsecMiddleware, autheliaMiddleware] },
+      { ...childOpts, dependsOn: [crowdsecMiddleware, autheliaMiddleware, headersMiddleware, authRateLimitMiddleware] },
     );
 
     // 40 hex chars: Forgejo requires exactly that for a runner's shared secret.
