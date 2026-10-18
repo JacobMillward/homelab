@@ -27,6 +27,7 @@ export class Observability extends pulumi.ComponentResource {
   readonly ingestApiKey: pulumi.Output<string>;
   readonly hyperdxServiceName: pulumi.Output<string>;
   readonly release: k8s.helm.v3.Release;
+  readonly apiEndpoint: string;
 
   constructor(ctx: PlatformCtx, args: ObservabilityArgs) {
     super("platform:Observability", "observability", {}, {
@@ -190,7 +191,41 @@ export class Observability extends pulumi.ComponentResource {
       { ...childOpts, dependsOn: [autheliaMiddleware, release] },
     );
 
+    const apiService = new k8s.core.v1.Service(
+      "hyperdx-api",
+      {
+        metadata: { name: "hyperdx-api", namespace },
+        spec: {
+          selector: { app: "clickstack", "app.kubernetes.io/instance": "clickstack", "app.kubernetes.io/name": "clickstack" },
+          ports: [{ port: 8000, targetPort: 8000 }],
+        },
+      },
+      { ...childOpts, dependsOn: [release] },
+    );
+
+    new k8s.apiextensions.CustomResource(
+      "hyperdx-api-route",
+      {
+        apiVersion: "traefik.io/v1alpha1",
+        kind: "IngressRoute",
+        metadata: { name: "hyperdx-api", namespace },
+        spec: {
+          entryPoints: ["websecure"],
+          routes: [
+            {
+              match: `Host(\`hyperdx.internal.${args.domain}\`) && PathPrefix(\`/api/v2\`)`,
+              kind: "Rule",
+              services: [{ name: apiService.metadata.name, port: 8000 }],
+            },
+          ],
+          tls: {},
+        },
+      },
+      { ...childOpts, dependsOn: [apiService] },
+    );
+
     this.release = release;
+    this.apiEndpoint = `https://hyperdx.internal.${args.domain}`;
 
     new Agent(
       "agent",

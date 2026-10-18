@@ -33,17 +33,16 @@ The collector only accepts a key that belongs to a HyperDX team, and the team ex
 
 ## Alerts
 
-HyperDX alert checks run as a CronJob (`hyperdx.tasks.enabled`). Create the webhook once, then the alerts:
+The ntfy webhook and the alerts are code (`stacks/platform/observability/hyperdx/`). They are raw SQL alerts over ClickHouse, evaluated by the HyperDX alert CronJob (`hyperdx.tasks.enabled`) and sent to ntfy.
 
-1. Webhook (Team Settings, Integrations): URL `http://ntfy.ntfy.svc.cluster.local/alerts`, header `Authorization: Bearer <token>`. The token is the `hyperdx` token in the `ntfy` namespace: `kubectl -n ntfy get secret -o json | jq -r '.items[].data["server.yml"] // empty' | base64 -d | grep tk_`.
-2. Alerts to create (a starting list; add one only when it should have paged you and did not):
-   - Pod restarts or crash loops; OOMKilled.
-   - Node disk, and the ClickHouse volume, over 85%.
-   - Longhorn disk or a PVC over 85%; a degraded Longhorn volume.
-   - Certificate expiring within 14 days (`certmanager_certificate_expiration_timestamp_seconds`); relay certificate (tlscheck).
-   - PostgreSQL down.
-   - Failed Renovate or CI job.
-   - Stale WireGuard handshake (`wg_latest_handshake_age_seconds` over 300). This fires after recovery, not during an outage.
+1. HyperDX, Team Settings, API Keys: copy the **Personal API Access Key** (not the ingestion key).
+2. `just pulumi platform config set --secret hyperdxApiKey <key>`, preview, then apply in the background.
+
+The API is served at `https://hyperdx.internal.<domain>/api/v2` without Authelia (mesh-only, Bearer key). Without `hyperdxApiKey` the webhook and alerts are skipped.
+
+Alerts: pod restarts, node disk, volume (PVC) usage, Longhorn disk usage, degraded Longhorn volume, certificate expiry (cert-manager and the relay), PostgreSQL down, stale WireGuard handshake (this fires after recovery, not during an outage). Add one only when it should have paged you and did not: add an entry to `ALERTS` in `api.ts`.
+
+Not covered: OOMKilled, failed Renovate or CI jobs.
 
 ## Phone
 

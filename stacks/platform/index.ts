@@ -17,7 +17,8 @@ import { PulumiOperator } from "./pko";
 import { Forgejo, FORGEJO_AUTH_SOURCE_NAME } from "./forgejo";
 import { Registry } from "./registry";
 import { Observability } from "./observability";
-import { Ntfy } from "./ntfy";
+import { Ntfy, ALERTS_TOPIC } from "./ntfy";
+import { HyperdxConfig } from "./observability/hyperdx";
 import { DOMAIN } from "homelab-lib";
 
 const config = new pulumi.Config();
@@ -81,6 +82,16 @@ const ntfy = new Ntfy(ctx, {
   crowdsecPluginSpec: traefik.crowdsecPluginSpec,
   publicDns: traefik.publicDns,
 });
+
+const hyperdxApiKey = config.getSecret("hyperdxApiKey");
+if (hyperdxApiKey) {
+  new HyperdxConfig("hyperdx-config", {
+    endpoint: observability.apiEndpoint,
+    apiKey: hyperdxApiKey,
+    webhookUrl: `${ntfy.serviceUrl}/${ALERTS_TOPIC}`,
+    webhookToken: ntfy.publisherToken,
+  });
+}
 new PostgreSQL(ctx);
 const synology = new Synology(ctx);
 const registry = new Registry(ctx, { domain: DOMAIN, storageClassName: longhorn.storageClassName });
