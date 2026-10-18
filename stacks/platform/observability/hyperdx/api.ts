@@ -2,7 +2,7 @@ export interface AlertDef {
   name: string;
   sql: string;
   threshold: number;
-  thresholdType: "above" | "below";
+  thresholdType: "above";
   interval: "1m" | "5m" | "15m" | "30m" | "1h" | "6h" | "12h" | "1d";
 }
 
@@ -20,7 +20,7 @@ FROM (
   WINDOW w AS (PARTITION BY ResourceAttributes['k8s.pod.name'], ResourceAttributes['k8s.container.name'])
 )
 GROUP BY ts`,
-    threshold: 0,
+    threshold: 1,
     thresholdType: "above",
     interval: "5m",
   },
@@ -65,44 +65,45 @@ GROUP BY ts`,
     interval: "15m",
   },
   {
+    // Every query is 0 when healthy: HyperDX reads an empty window as 0, and `above` means >=.
     // longhorn_volume_robustness: 1 healthy, 2 degraded, 3 faulted.
     name: "Longhorn volume degraded",
     sql: `SELECT $__timeInterval(TimeUnix) AS ts, max(Value) AS robustness
 FROM ${gauge}
 WHERE MetricName = 'longhorn_volume_robustness' AND $__timeFilter(TimeUnix)
 GROUP BY ts`,
-    threshold: 1,
+    threshold: 2,
     thresholdType: "above",
     interval: "15m",
   },
   {
     name: "Certificate expires within 14 days",
-    sql: `SELECT $__timeInterval(TimeUnix) AS ts, min(Value) - toUnixTimestamp(now()) AS seconds_left
+    sql: `SELECT $__timeInterval(TimeUnix) AS ts, greatest(0, ${14 * DAY} - (min(Value) - toUnixTimestamp(now()))) AS seconds_short
 FROM ${gauge}
 WHERE MetricName = 'certmanager_certificate_expiration_timestamp_seconds' AND $__timeFilter(TimeUnix)
 GROUP BY ts`,
-    threshold: 14 * DAY,
-    thresholdType: "below",
+    threshold: 1,
+    thresholdType: "above",
     interval: "1h",
   },
   {
     name: "Relay certificate expires within 14 days",
-    sql: `SELECT $__timeInterval(TimeUnix) AS ts, min(Value) AS seconds_left
+    sql: `SELECT $__timeInterval(TimeUnix) AS ts, greatest(0, ${14 * DAY} - min(Value)) AS seconds_short
 FROM ${gauge}
 WHERE MetricName = 'tlscheck.time_left' AND $__timeFilter(TimeUnix)
 GROUP BY ts`,
-    threshold: 14 * DAY,
-    thresholdType: "below",
+    threshold: 1,
+    thresholdType: "above",
     interval: "1h",
   },
   {
     name: "PostgreSQL down",
-    sql: `SELECT $__timeInterval(TimeUnix) AS ts, min(Value) AS up
+    sql: `SELECT $__timeInterval(TimeUnix) AS ts, 1 - min(Value) AS down
 FROM ${gauge}
 WHERE MetricName = 'cnpg_collector_up' AND $__timeFilter(TimeUnix)
 GROUP BY ts`,
     threshold: 1,
-    thresholdType: "below",
+    thresholdType: "above",
     interval: "5m",
   },
   {

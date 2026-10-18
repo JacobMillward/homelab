@@ -28,4 +28,6 @@ config:
     secure: v1:EvQstQW94D9tjAzp:mZJosgYyQQaAKWhdjFHljHp8jJICxxJysrX0J4KlxuA73EKSFF81SJs3qzPS5Ywlk+4ZYNTqf64=
   homelab-platform:hyperdxIngestKey:
     secure: v1:g32e5Fz4DBEmJNHi:2Zge9W5BN/M8gY58Z7sefe7J+cchuOpvTfd5espTFPf2gCDG6UfZrX6gGsVZdOVki3az4w==
+  homelab-platform:hyperdxApiKey:
+    secure: v1:YbuFAWLXKdqcyes+:FuLY4nLSSkEn6yzLg3AEqHlkEq2FlMvrbMAcKUfcWRxhTwFoVZUij2yzIpfUxO+dvo46ug==
 encryptionsalt: v1:zuwLocg5nwY=:v1:GUxM8jvZ90oTEg2C:61g7+zcmz5qv+OrO7QFqCIBW8y5AXg==

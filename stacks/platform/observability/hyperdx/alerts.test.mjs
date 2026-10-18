@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import { ALERTS, buildAlertBody, buildWebhookBody } from "./api.ts";
 
 const INTERVALS = ["1m", "5m", "15m", "30m", "1h", "6h", "12h", "1d"];
-const THRESHOLD_TYPES = ["above", "below", "above_exclusive", "below_or_equal", "equal", "not_equal"];
 
 test("alert names are unique", () => {
   assert.equal(new Set(ALERTS.map((a) => a.name)).size, ALERTS.length);
@@ -12,7 +11,8 @@ test("alert names are unique", () => {
 test("every alert uses a valid interval and threshold type", () => {
   for (const a of ALERTS) {
     assert.ok(INTERVALS.includes(a.interval), a.name);
-    assert.ok(THRESHOLD_TYPES.includes(a.thresholdType), a.name);
+    assert.equal(a.thresholdType, "above", a.name);
+    assert.ok(a.threshold > 0, a.name);
     assert.equal(typeof a.threshold, "number", a.name);
   }
 });
