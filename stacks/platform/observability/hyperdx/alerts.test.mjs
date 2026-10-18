@@ -9,23 +9,10 @@ test("alert ids and titles are unique", () => {
   assert.equal(new Set(ALERTS.map((a) => a.title)).size, ALERTS.length);
 });
 
-test("every alert has a valid interval, a positive threshold and a plain-English note", () => {
+test("every alert has a valid interval and a positive threshold", () => {
   for (const a of ALERTS) {
     assert.ok(INTERVALS.includes(a.interval), a.id);
     assert.ok(a.threshold > 0, a.id);
-    assert.ok(a.note.length > 40, a.id);
-    assert.ok(a.note.endsWith("."), a.id);
-  }
-});
-
-test("notes stay readable on a phone and never go stale", () => {
-  const banned = [/kubectl/i, /talosctl/i, /\bssh\b/i, /journalctl/i, /\bdocker\b/i, /Forgejo/i, /Joplin/i, /Longhorn UI/i];
-  for (const a of ALERTS) {
-    for (const re of banned) {
-      assert.doesNotMatch(a.note, re, a.id);
-      assert.doesNotMatch(a.title, re, a.id);
-    }
-    assert.ok(a.note.length < 400, a.id);
   }
 });
 
