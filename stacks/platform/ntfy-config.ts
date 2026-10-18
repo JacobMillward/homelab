@@ -41,6 +41,8 @@ export function buildNtfyServerConfig(args: NtfyConfigArgs): string {
     `base-url: ${JSON.stringify(args.baseUrl)}\n` +
     `listen-http: ":8080"\n` +
     `behind-proxy: true\n` +
+    // Own port, so Traefik never routes /metrics.
+    `metrics-listen-http: ":9091"\n` +
     `cache-file: "/var/lib/ntfy/cache.db"\n` +
     `auth-file: "/var/lib/ntfy/user.db"\n` +
     `auth-default-access: "deny-all"\n` +

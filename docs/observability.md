@@ -57,6 +57,13 @@ Not covered: OOMKilled, failed Renovate or CI jobs.
 
 - The collectors mount only `/proc` and `/sys`, not the host root, so a compromised collector cannot read node or VPS secrets. The cost: no filesystem-usage metrics from `host_metrics`. Node disk comes from kubelet stats; the VPS has no disk-usage metric.
 
+## Not scraped
+
+- MetalLB: metrics are HTTPS behind an auth proxy, and the scrape config has no TLS or token support for it.
+- Pulumi operator (`:8383`) and Longhorn CSI sidecars (need `--http-endpoint`): not enabled.
+- Forgejo has no OpenTelemetry. HAProxy 3.4.4's official image is built without the OTel filter (`-OT` in `haproxy -vv`).
+- Renovate sends traces from the CI job (`OTEL_*` in `.forgejo/workflows/renovate.yml`).
+
 ## Adding a scrape target
 
 Add an entry to `SCRAPE_TARGETS` in `stacks/platform/observability/targets.ts` (namespace or empty for all, label selector, port, path; `bearerTokenEnvVar` for token-protected endpoints), then apply the platform stack.

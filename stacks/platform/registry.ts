@@ -78,9 +78,12 @@ export class Registry extends pulumi.ComponentResource {
               defaultPolicy: ["read", "create", "update", "delete"],
             },
           },
+          // Anonymous so the node agent can scrape it; the route is mesh-only.
+          metrics: { anonymousPolicy: ["read"] },
         },
       },
       log: { level: "info" },
+      extensions: { metrics: { enable: true, prometheus: { path: "/metrics" } } },
     });
 
     const configSecret = new k8s.core.v1.Secret(

@@ -23,6 +23,10 @@ jobs:
       RENOVATE_REPOSITORIES: jacob/homelab
       RENOVATE_ONBOARDING: "false"
       RENOVATE_ALLOWED_COMMANDS: '["^bash scripts/generate-netbird-sdk\\.sh$"]'
+      # Traces to the node agent. The runner is a host-mode pod, so cluster DNS resolves it.
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-agent.otel-agent.svc.cluster.local:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_SERVICE_NAME: renovate
     steps:
       - run: renovate
         env:

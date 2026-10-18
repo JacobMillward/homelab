@@ -23,6 +23,10 @@ test("denies anonymous access and trusts the proxy for client IPs", () => {
   assert.match(c, /^base-url: "https:\/\/ntfy\.example\.net"$/m);
 });
 
+test("serves metrics on their own port, off the proxied listener", () => {
+  assert.match(buildNtfyServerConfig(args), /^metrics-listen-http: ":9091"$/m);
+});
+
 test("renders users with their bcrypt hash and role, never a plaintext password", () => {
   const c = buildNtfyServerConfig(args);
   assert.ok(c.includes(`"phone:${args.users[0].passwordHash}:user"`));
