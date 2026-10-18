@@ -11,6 +11,9 @@ export interface AutheliaConfigArgs {
   oidcClients: OidcClientSpec[];
 }
 
+// Dex (NetBird) reads the name claim from the ID token; Authelia only serves it from userinfo by default.
+export const ID_TOKEN_PROFILE_POLICY = "id-token-profile";
+
 function renderOidcClient(client: {
   clientId: string;
   clientSecret: string;
@@ -19,6 +22,7 @@ function renderOidcClient(client: {
   scopes: string[];
   authorizationPolicy: string;
   userinfoSignedResponseAlg?: string;
+  claimsPolicy?: string;
 }): string {
   const redirectUrisYaml = client.redirectUris
     .map((u) => `          - "${u}"`)
@@ -32,7 +36,7 @@ function renderOidcClient(client: {
         redirect_uris:
 ${redirectUrisYaml}
         scopes:
-${scopesYaml}${client.userinfoSignedResponseAlg ? `\n        userinfo_signed_response_alg: "${client.userinfoSignedResponseAlg}"` : ""}`;
+${scopesYaml}${client.userinfoSignedResponseAlg ? `\n        userinfo_signed_response_alg: "${client.userinfoSignedResponseAlg}"` : ""}${client.claimsPolicy ? `\n        claims_policy: "${client.claimsPolicy}"` : ""}`;
 }
 
 // Pure function — no Pulumi resources, just YAML generation.
@@ -49,6 +53,7 @@ export function buildAutheliaConfig(
         scopes: c.scopes,
         authorizationPolicy: c.authorizationPolicy,
         userinfoSignedResponseAlg: c.userinfoSignedResponseAlg,
+        claimsPolicy: c.claimsPolicy,
       }),
     ),
   );
@@ -124,6 +129,12 @@ ${oidcIssuerPrivateKey
   .split("\n")
   .map((l) => "      " + l)
   .join("\n")}
+    claims_policies:
+      ${ID_TOKEN_PROFILE_POLICY}:
+        id_token:
+          - "name"
+          - "email"
+          - "preferred_username"
     clients:
 ${renderedClients.join("\n")}
 

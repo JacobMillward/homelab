@@ -10,6 +10,7 @@ import { buildAutheliaConfig } from "./config";
 import { OidcClientSpec } from "./oidc-client";
 
 export { createOidcClient } from "./oidc-client";
+export { ID_TOKEN_PROFILE_POLICY } from "./config";
 export type { OidcClientSpec } from "./oidc-client";
 
 export interface AutheliaArgs {

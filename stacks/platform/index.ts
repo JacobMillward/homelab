@@ -9,7 +9,7 @@ import { Traefik } from "./traefik";
 import { PostgreSQL } from "./postgresql";
 import { setupNetbird } from "./netbird";
 import { Synology } from "./synology";
-import { Authelia, createOidcClient } from "./authelia";
+import { Authelia, createOidcClient, ID_TOKEN_PROFILE_POLICY } from "./authelia";
 import { CrowdSec } from "./crowdsec";
 import { Renovate } from "./renovate";
 import { ExternalSecrets } from "./eso";
@@ -89,6 +89,7 @@ const registry = new Registry(ctx, { domain: DOMAIN, storageClassName: longhorn.
 const netbirdOidc = createOidcClient("netbird", {
   redirectUris: [`https://netbird.${DOMAIN}/oauth2/callback`],
   userinfoSignedResponseAlg: "none",
+  claimsPolicy: ID_TOKEN_PROFILE_POLICY,
 });
 const forgejoOidc = createOidcClient("forgejo", {
   redirectUris: [`https://git.${DOMAIN}/user/oauth2/${FORGEJO_AUTH_SOURCE_NAME}/callback`],

@@ -6,6 +6,7 @@ export interface OidcClientArgs {
   scopes?: string[];
   authorizationPolicy?: string;
   userinfoSignedResponseAlg?: string;
+  claimsPolicy?: string;
 }
 
 export interface OidcClientSpec {
@@ -16,6 +17,7 @@ export interface OidcClientSpec {
   scopes: string[];
   authorizationPolicy: string;
   userinfoSignedResponseAlg?: string;
+  claimsPolicy?: string;
 }
 
 /**
@@ -44,5 +46,6 @@ export function createOidcClient(
     scopes: args.scopes ?? ["openid", "profile", "email"],
     authorizationPolicy: args.authorizationPolicy ?? "one_factor",
     userinfoSignedResponseAlg: args.userinfoSignedResponseAlg,
+    claimsPolicy: args.claimsPolicy,
   };
 }
