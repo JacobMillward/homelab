@@ -5,7 +5,15 @@ import { dockerImage, RegistryTarget, serviceNameAnnotation } from "homelab-lib"
 import { PlatformCtx } from "../context";
 import { OidcClientSpec } from "../authelia";
 import { CrowdsecPluginSpec, ForwardAuthSpec, PublicDnsSpec, createPublicDnsRecord } from "../traefik";
-import { buildForgejoConfig, SSH_LISTEN_PORT } from "./config";
+import { buildForgejoConfig } from "./config";
+import {
+  PROXY_CONFIG_DIR,
+  SPOA_CONFIG_PATH,
+  SSH_PUBLIC_PORT,
+  buildSpoaBouncerConfig,
+  buildSpoeConfig,
+  buildSshProxyConfig,
+} from "./ssh-proxy";
 import {
   GIT_UID,
   configVolume,
@@ -34,6 +42,7 @@ export interface ForgejoArgs {
   oidcClient: OidcClientSpec;
   sshLoadBalancerIp: string;
   crowdsecPluginSpec: CrowdsecPluginSpec;
+  crowdsecSpoaBouncerApiKey: pulumi.Output<string>;
   forwardAuthSpec: ForwardAuthSpec;
   githubMirrorToken: pulumi.Input<string>;
   registry: RegistryTarget;
@@ -124,6 +133,28 @@ export class Forgejo extends pulumi.ComponentResource {
       childOpts,
     );
 
+    const sshProxyConfig = new k8s.core.v1.ConfigMap(
+      "forgejo-ssh-proxy-config",
+      {
+        metadata: { namespace: this.namespace.metadata.name },
+        data: { "haproxy.cfg": buildSshProxyConfig(), "crowdsec.cfg": buildSpoeConfig() },
+      },
+      childOpts,
+    );
+
+    const spoaBouncerConfig = new k8s.core.v1.Secret(
+      "forgejo-spoa-bouncer-config",
+      {
+        metadata: { namespace: this.namespace.metadata.name },
+        stringData: {
+          "crowdsec-spoa-bouncer.yaml": args.crowdsecSpoaBouncerApiKey.apply((key) =>
+            buildSpoaBouncerConfig("http://crowdsec-service.crowdsec.svc.cluster.local:8080/", key),
+          ),
+        },
+      },
+      childOpts,
+    );
+
     const dataPvc = new k8s.core.v1.PersistentVolumeClaim(
       "forgejo-data",
       {
@@ -171,10 +202,7 @@ export class Forgejo extends pulumi.ComponentResource {
                 {
                   name: "forgejo",
                   image: dockerImage("forgejo"),
-                  ports: [
-                    { name: "http", containerPort: 3000 },
-                    { name: "ssh", containerPort: SSH_LISTEN_PORT },
-                  ],
+                  ports: [{ name: "http", containerPort: 3000 }],
                   env: [...dbEnv(dbSecretName), ...pathEnv],
                   securityContext: containerSecurityContext,
                   resources: {
@@ -189,11 +217,41 @@ export class Forgejo extends pulumi.ComponentResource {
                     failureThreshold: 3,
                   },
                 },
+                {
+                  name: "ssh-proxy",
+                  image: dockerImage("haproxy"),
+                  ports: [{ name: "ssh", containerPort: SSH_PUBLIC_PORT }],
+                  securityContext: containerSecurityContext,
+                  resources: {
+                    requests: { cpu: "10m", memory: "32Mi" },
+                    limits: { memory: "128Mi" },
+                  },
+                  volumeMounts: [{ name: "ssh-proxy-config", mountPath: PROXY_CONFIG_DIR, readOnly: true }],
+                },
+                {
+                  name: "crowdsec-spoa-bouncer",
+                  image: dockerImage("crowdsecSpoaBouncer"),
+                  securityContext: containerSecurityContext,
+                  resources: {
+                    requests: { cpu: "10m", memory: "64Mi" },
+                    limits: { memory: "192Mi" },
+                  },
+                  volumeMounts: [
+                    {
+                      name: "spoa-bouncer-config",
+                      mountPath: SPOA_CONFIG_PATH,
+                      subPath: "crowdsec-spoa-bouncer.yaml",
+                      readOnly: true,
+                    },
+                  ],
+                },
               ],
               volumes: [
                 configVolume(configSecret.metadata.name),
                 { name: "data", persistentVolumeClaim: { claimName: dataPvc.metadata.name } },
                 { name: "tmp", emptyDir: {} },
+                { name: "ssh-proxy-config", configMap: { name: sshProxyConfig.metadata.name } },
+                { name: "spoa-bouncer-config", secret: { secretName: spoaBouncerConfig.metadata.name } },
               ],
             },
           },
@@ -220,7 +278,7 @@ export class Forgejo extends pulumi.ComponentResource {
           type: "LoadBalancer",
           loadBalancerIP: args.sshLoadBalancerIp,
           selector: labels,
-          ports: [{ name: "ssh", port: 22, targetPort: SSH_LISTEN_PORT }],
+          ports: [{ name: "ssh", port: 22, targetPort: SSH_PUBLIC_PORT }],
         },
       },
       childOpts,

@@ -71,7 +71,7 @@ graph TB
 
 **Public traffic** reaches home Traefik through the VPS. Cloudflare points each public hostname at the VPS Primary IP. HAProxy binds :443 in TCP mode and forwards the raw stream over the WireGuard tunnel with the PROXY protocol, so home Traefik terminates the TLS. The `wg-home-peer` pod DNATs :443 to Traefik's ClusterIP. Traefik trusts the PROXY protocol header only from the pod CIDR (10.244.0.0/16), which is the tunnel pod's source address after masquerading.
 
-**Forgejo SSH** uses the same tunnel. HAProxy forwards :22 without the PROXY protocol, and `wg-home-peer` DNATs it to Forgejo's SSH LoadBalancer IP. The VPS masks its own `sshd` so that HAProxy can bind the port.
+**Forgejo SSH** uses the same tunnel. HAProxy forwards :22 with the PROXY protocol, and `wg-home-peer` DNATs it to Forgejo's SSH LoadBalancer IP. An HAProxy sidecar in the Forgejo pod reads the header and asks a CrowdSec SPOA bouncer about the real client IP, then passes banned IPs nowhere and everyone else to Forgejo's built-in SSH server. The VPS masks its own `sshd` so that HAProxy can bind the port.
 
 **Mesh-only apps** live under `*.internal.millward-yuan.net` and are reachable only through NetBird. The [NetBird README](stacks/platform/netbird/README.md) covers the mesh DNS, relay and authentication setup.
 

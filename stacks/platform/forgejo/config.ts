@@ -1,6 +1,5 @@
 import * as pulumi from "@pulumi/pulumi";
-
-export const SSH_LISTEN_PORT = 2222;
+import { SSH_LISTEN_PORT } from "./ssh-proxy";
 
 export interface ForgejoConfigArgs {
   domain: string;
@@ -29,7 +28,10 @@ SSH_DOMAIN = git.${args.domain}
 START_SSH_SERVER = true
 BUILTIN_SSH_SERVER_USER = git
 SSH_PORT = 22
+; Only the sidecar HAProxy reaches this, and it re-sends the PROXY header.
+SSH_LISTEN_HOST = 127.0.0.1
 SSH_LISTEN_PORT = ${SSH_LISTEN_PORT}
+SSH_SERVER_USE_PROXY_PROTOCOL = true
 ; Ed25519 and RSA 3072+ only.
 SSH_MINIMUM_KEY_SIZES = ed25519:256, rsa:3071, ecdsa:-1, dsa:-1
 
