@@ -16,7 +16,7 @@ export interface RegistryTarget {
 
 export interface SelfBuiltImageArgs {
   name: string;
-  // Relative to the repo root (e.g. "images/crowdsec-firewall-bouncer"), not
+  // Relative to the repo root (e.g. "images/forgejo-runner"), not
   // to whatever stack directory `pulumi` happens to be invoked from.
   contextDir: string;
   registry: RegistryTarget;

@@ -36,7 +36,7 @@ frontend forgejo_ssh
     default_backend home_forgejo_ssh
 
 backend home_forgejo_ssh
-    server home ${homeTunnelIp}:22 check inter 30s
+    server home ${homeTunnelIp}:22 send-proxy check check-send-proxy inter 30s
 
 frontend metrics
     mode http

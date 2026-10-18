@@ -135,6 +135,7 @@ const forgejo = new Forgejo(ctx, {
   sshLoadBalancerIp: config.require("forgejoSshIp"),
   crowdsecPluginSpec: traefik.crowdsecPluginSpec,
   forwardAuthSpec: traefik.forwardAuthSpec,
+  crowdsecSpoaBouncerApiKey: crowdsec.spoaBouncerApiKey,
   githubMirrorToken: config.requireSecret("githubMirrorToken"),
   registry: {
     pushHost: registry.pushHost,

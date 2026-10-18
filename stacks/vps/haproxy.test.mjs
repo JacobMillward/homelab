@@ -17,10 +17,10 @@ test("exposes prometheus metrics on the loopback bind only", () => {
   assert.match(c, /http-request use-service prometheus-exporter if \{ path \/metrics \}/);
 });
 
-test("checks both backends, sending PROXY on the HTTPS check, without hammering them", () => {
+test("sends PROXY to both backends and checks them without hammering", () => {
   const c = cfg();
   assert.match(c, /server home 10\.99\.0\.2:443 send-proxy check check-send-proxy inter 30s/);
-  assert.match(c, /server home 10\.99\.0\.2:22 check inter 30s/);
+  assert.match(c, /server home 10\.99\.0\.2:22 send-proxy check check-send-proxy inter 30s/);
 });
 
 test("keeps the passthrough frontends in TCP mode", () => {

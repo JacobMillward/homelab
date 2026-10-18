@@ -14,7 +14,7 @@ export interface CrowdSecArgs {
 
 export class CrowdSec extends pulumi.ComponentResource {
   readonly bouncerApiKey: pulumi.Output<string>;
-  readonly firewallBouncerApiKey: pulumi.Output<string>;
+  readonly spoaBouncerApiKey: pulumi.Output<string>;
   readonly lapiServiceName: pulumi.Output<string>;
 
   constructor(ctx: PlatformCtx, args: CrowdSecArgs) {
@@ -56,18 +56,18 @@ export class CrowdSec extends pulumi.ComponentResource {
       childOpts,
     );
 
-    const firewallBouncerKey = new random.RandomPassword(
-      "crowdsec-firewall-bouncer-key",
+    const spoaBouncerKey = new random.RandomPassword(
+      "crowdsec-spoa-bouncer-key",
       { length: 32, special: false },
       childOpts,
     );
-    this.firewallBouncerApiKey = firewallBouncerKey.result;
+    this.spoaBouncerApiKey = spoaBouncerKey.result;
 
-    const firewallBouncerSecret = new k8s.core.v1.Secret(
-      "crowdsec-firewall-bouncer-key",
+    const spoaBouncerSecret = new k8s.core.v1.Secret(
+      "crowdsec-spoa-bouncer-key",
       {
         metadata: { namespace: ns.metadata.name },
-        stringData: { key: this.firewallBouncerApiKey },
+        stringData: { key: this.spoaBouncerApiKey },
       },
       childOpts,
     );
@@ -114,8 +114,8 @@ export class CrowdSec extends pulumi.ComponentResource {
                 valueFrom: { secretKeyRef: { name: bouncerSecret.metadata.name, key: "key" } },
               },
               {
-                name: "BOUNCER_KEY_firewall",
-                valueFrom: { secretKeyRef: { name: firewallBouncerSecret.metadata.name, key: "key" } },
+                name: "BOUNCER_KEY_spoa",
+                valueFrom: { secretKeyRef: { name: spoaBouncerSecret.metadata.name, key: "key" } },
               },
               { name: "ENROLL_KEY", value: enrollKey },
               { name: "ENROLL_INSTANCE_NAME", value: "homelab" },
