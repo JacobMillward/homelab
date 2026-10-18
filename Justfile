@@ -28,7 +28,7 @@ pulumi STACK *args:
     esac
     export AWS_ACCESS_KEY_ID=$(op read "op://{{ op_vault }}/Homelab/API Tokens/Garage Access Key ID")
     export AWS_SECRET_ACCESS_KEY=$(op read "op://{{ op_vault }}/Homelab/API Tokens/Garage Secret Access Key")
-    export PULUMI_BACKEND_URL="s3://pulumi-state?endpoint=192.168.0.40:3900&disableSSL=true&s3ForcePathStyle=true&region=garage"
+    export PULUMI_BACKEND_URL="s3://pulumi-state?endpoint=192.168.0.40:3900&disableSSL=true&s3ForcePathStyle=true&region=garage&response_checksum_validation=when_required"
     cd stacks/{{ STACK }} && pulumi {{ args }}
 
 # Install dependencies for all stacks
