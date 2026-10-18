@@ -86,3 +86,8 @@ test("host metrics skip the filesystem scraper, which would need the host root m
   assert.ok(!scrapers.includes("filesystem"));
   assert.ok(scrapers.includes("cpu") && scrapers.includes("memory") && scrapers.includes("network"));
 });
+
+test("kubeletstats collects volume usage for PVC alerts", () => {
+  const groups = cfg().receivers.kubeletstats.metric_groups;
+  for (const g of ["node", "pod", "container", "volume"]) assert.ok(groups.includes(g), g);
+});

@@ -58,6 +58,7 @@ export function buildAgentCollectorConfig(args: AgentConfigArgs): string {
         kubeletstats: {
           collection_interval: interval,
           auth_type: "serviceAccount",
+          metric_groups: ["node", "pod", "container", "volume"],
           // Talos kubelet serves a self-signed certificate.
           endpoint: "https://${env:K8S_NODE_IP}:10250",
           insecure_skip_verify: true,
