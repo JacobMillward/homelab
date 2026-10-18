@@ -15,7 +15,7 @@ const DAY = 86400;
 export const ALERTS: AlertDef[] = [
   {
     id: "pod-restarts",
-    title: "Restarting: {{group}} ({{value}} times in 5 minutes)",
+    title: "Restarting: {{group}} ({{value}} in the last 5 minutes)",
     note: "This container crashed or ran out of memory. Open Logs in HyperDX and search for its name to see why. If it began right after an update, revert that update in Git.",
     sql: `SELECT ts, pod, sum(d) AS restarts
 FROM (
@@ -165,8 +165,9 @@ export interface WebhookArgs {
   topic: string;
 }
 
+// HyperDX leaves the alert's note out of webhook variables, so the note is only visible in HyperDX.
 export function buildWebhookBody(args: WebhookArgs) {
-  const message = '{{#if (eq status "firing")}}{{note}}{{else}}This has cleared.{{/if}}';
+  const message = '{{#if (eq status "firing")}}Tap for details in HyperDX.{{else}}This has cleared.{{/if}}';
   const priority = '{{#if (eq status "firing")}}4{{else}}2{{/if}}';
   return {
     name: args.name,
@@ -174,7 +175,7 @@ export function buildWebhookBody(args: WebhookArgs) {
     url: args.url,
     description: "Publishes to the ntfy alerts topic",
     headers: { Authorization: `Bearer ${args.token}`, "Content-Type": "application/json" },
-    body: `{"topic":"${args.topic}","title":"{{title}}","message":"${message}","priority":${priority},"click":"{{hdxLink}}"}`,
+    body: `{"topic":"${args.topic}","title":"{{title}}","message":"${message}","priority":${priority},"click":"{{link}}"}`,
   };
 }
 

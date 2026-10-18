@@ -43,13 +43,13 @@ test("buildAlertBody makes an inline raw SQL alert that pages one webhook", () =
   });
 });
 
-test("buildWebhookBody publishes JSON to the ntfy topic with the note as the message", () => {
+test("buildWebhookBody publishes JSON to the ntfy topic with a link back to HyperDX", () => {
   const body = buildWebhookBody({ name: "ntfy", url: "http://ntfy", token: "tk_x", topic: "alerts" });
   assert.equal(body.service, "generic");
   assert.equal(body.url, "http://ntfy");
   assert.deepEqual(body.headers, { Authorization: "Bearer tk_x", "Content-Type": "application/json" });
   assert.match(body.body, /"topic":"alerts"/);
   assert.match(body.body, /"title":"\{\{title\}\}"/);
-  assert.match(body.body, /\{\{note\}\}/);
-  assert.match(body.body, /"click":"\{\{hdxLink\}\}"/);
+  assert.match(body.body, /"message":"\{\{#if \(eq status "firing"\)\}\}Tap for details/);
+  assert.match(body.body, /"click":"\{\{link\}\}"/);
 });
