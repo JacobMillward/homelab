@@ -47,7 +47,7 @@ importers:
         version: 3.268.0(typescript@6.0.3)
       '@pulumi/random':
         specifier: ^4.21.2
-        version: 4.21.2(typescript@6.0.3)
+        version: 4.21.3(typescript@6.0.3)
       homelab-lib:
         specifier: workspace:*
         version: link:../../lib
@@ -84,7 +84,7 @@ importers:
         version: 3.268.0(typescript@6.0.3)
       '@pulumi/random':
         specifier: ^4.21.2
-        version: 4.21.2(typescript@6.0.3)
+        version: 4.21.3(typescript@6.0.3)
       '@pulumi/tls':
         specifier: ^5.6.1
         version: 5.6.2(typescript@6.0.3)
@@ -143,7 +143,7 @@ importers:
         version: 3.268.0(typescript@6.0.3)
       '@pulumi/random':
         specifier: ^4.19.1
-        version: 4.21.2(typescript@6.0.3)
+        version: 4.21.3(typescript@6.0.3)
       homelab-lib:
         specifier: workspace:*
         version: link:../../lib
@@ -524,8 +524,8 @@ packages:
       typescript:
         optional: true
 
-  '@pulumi/random@4.21.2':
-    resolution: {integrity: sha512-yQVSPeQE55oqL4KHoWwKqTTTjx3jYGaJ3RCXnlUOcqmGW5zT3hmKWqAS+5nBYCtrVPA8J06UqjC1ZOrQP+Q5yg==}
+  '@pulumi/random@4.21.3':
+    resolution: {integrity: sha512-PXOTQwp7wOJfd/JDNTr6qqZ3cM5Ho08nLWSm7e5nDgYsBTqHbhhdNvKIC5jXuuXYIRfM3MiDkqlnVr40dyW3Eg==}
 
   '@pulumi/tls@5.6.2':
     resolution: {integrity: sha512-Id9iwUsVONmXamwrAo1OR+RGjlR1WXqA50v2WQJevZSF+73ZZpZvp5rmd4CinWfvmoYVcBJGNpAzrUjUnUmuZg==}
@@ -1887,7 +1887,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@pulumi/random@4.21.2(typescript@6.0.3)':
+  '@pulumi/random@4.21.3(typescript@6.0.3)':
     dependencies:
       '@pulumi/pulumi': 3.268.0(typescript@6.0.3)
     transitivePeerDependencies:
