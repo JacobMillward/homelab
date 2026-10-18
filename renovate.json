@@ -11,6 +11,7 @@
   },
   "minimumReleaseAge": "14 days",
   "ignorePaths": ["stacks/*/sdks/**"],
+  "lockFileMaintenance": { "enabled": true, "automerge": true },
   "packageRules": [
     {
       "groupName": "talos/vps updates (manual only)",
@@ -42,6 +43,11 @@
     {
       "matchUpdateTypes": ["major"],
       "automerge": false
+    },
+    {
+      "groupName": "lock file maintenance",
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "automerge": true
     },
     {
       "matchPackageNames": ["typescript"],
