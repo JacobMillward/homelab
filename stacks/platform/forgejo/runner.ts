@@ -1,6 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
-import { DOMAIN, TRAEFIK_IP, RegistryTarget, selfBuiltImage } from "homelab-lib";
+import { DOMAIN, TRAEFIK_IP, RegistryTarget, selfBuiltImage, serviceNameAnnotation } from "homelab-lib";
 
 export interface RunnerArgs {
   namespace: pulumi.Output<string>;
@@ -80,7 +80,7 @@ server:
           progressDeadlineSeconds: 180,
           selector: { matchLabels: labels },
           template: {
-            metadata: { labels },
+            metadata: { labels, annotations: serviceNameAnnotation(name) },
             spec: {
               // Pods resolve through CoreDNS, which never sees the node's
               // /etc/hosts, so the talos entry for the registry misses here.

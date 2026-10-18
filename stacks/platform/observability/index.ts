@@ -96,8 +96,6 @@ export class Observability extends pulumi.ComponentResource {
               // Without this the TTLs would only apply to newly created tables.
               HYPERDX_OTEL_EXPORTER_RECONCILE_TABLE_TTL: "true",
             },
-            // Alert checks never run unless this is on.
-            tasks: { enabled: true },
             deployment: {
               resources: {
                 requests: { cpu: "200m", memory: "512Mi" },
@@ -117,6 +115,13 @@ export class Observability extends pulumi.ComponentResource {
             },
             cluster: {
               spec: {
+                settings: {
+                  extraConfig: {
+                    // 16 merge threads x2 can exceed the 4Gi limit at roughly 150Mi per merge.
+                    background_pool_size: 4,
+                    mark_cache_size: 536870912,
+                  },
+                },
                 containerTemplate: {
                   resources: {
                     requests: { cpu: "500m", memory: "4Gi" },
