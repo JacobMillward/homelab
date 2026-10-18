@@ -36,7 +36,7 @@ INTERNAL_TOKEN = ${internalToken}
 
 [metrics]
 ENABLED = true
-; /metrics is reachable through Traefik, so it needs the token.
+; /metrics has no public route, but the token still guards it inside the cluster.
 TOKEN = ${metricsToken}
 
 [oauth2]

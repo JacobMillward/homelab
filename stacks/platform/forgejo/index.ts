@@ -4,7 +4,7 @@ import * as random from "@pulumi/random";
 import { dockerImage, selfBuiltImage, RegistryTarget, serviceNameAnnotation } from "homelab-lib";
 import { PlatformCtx } from "../context";
 import { OidcClientSpec } from "../authelia";
-import { CrowdsecPluginSpec, PublicDnsSpec, createPublicDnsRecord } from "../traefik";
+import { CrowdsecPluginSpec, ForwardAuthSpec, PublicDnsSpec, createPublicDnsRecord } from "../traefik";
 import { buildForgejoConfig, buildFirewallBouncerConfig } from "./config";
 import {
   configVolume,
@@ -29,6 +29,7 @@ export interface ForgejoArgs {
   oidcClient: OidcClientSpec;
   sshLoadBalancerIp: string;
   crowdsecPluginSpec: CrowdsecPluginSpec;
+  forwardAuthSpec: ForwardAuthSpec;
   githubMirrorToken: pulumi.Input<string>;
   crowdsecFirewallBouncerApiKey: pulumi.Output<string>;
   registry: RegistryTarget;
@@ -251,6 +252,18 @@ export class Forgejo extends pulumi.ComponentResource {
       childOpts,
     );
 
+    const autheliaMiddleware = new k8s.apiextensions.CustomResource(
+      "forgejo-authelia-middleware",
+      {
+        apiVersion: "traefik.io/v1alpha1",
+        kind: "Middleware",
+        metadata: { name: "authelia", namespace: this.namespace.metadata.name },
+        spec: { forwardAuth: args.forwardAuthSpec },
+      },
+      childOpts,
+    );
+
+    // /metrics has no public route; the agent scrapes the pod directly.
     new k8s.apiextensions.CustomResource(
       "forgejo-route",
       {
@@ -261,16 +274,22 @@ export class Forgejo extends pulumi.ComponentResource {
           entryPoints: ["websecure"],
           routes: [
             {
-              match: `Host(\`git.${args.domain}\`)`,
+              match: `Host(\`git.${args.domain}\`) && !PathPrefix(\`/metrics\`) && !PathPrefix(\`/-/admin\`)`,
               kind: "Rule",
               services: [{ name: httpSvc.metadata.name, port: 80 }],
               middlewares: [{ name: "crowdsec-bouncer" }],
+            },
+            {
+              match: `Host(\`git.${args.domain}\`) && PathPrefix(\`/-/admin\`)`,
+              kind: "Rule",
+              services: [{ name: httpSvc.metadata.name, port: 80 }],
+              middlewares: [{ name: "crowdsec-bouncer" }, { name: "authelia" }],
             },
           ],
           tls: {},
         },
       },
-      { ...childOpts, dependsOn: [crowdsecMiddleware] },
+      { ...childOpts, dependsOn: [crowdsecMiddleware, autheliaMiddleware] },
     );
 
     // 40 hex chars: Forgejo requires exactly that for a runner's shared secret.
