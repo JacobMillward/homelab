@@ -171,7 +171,7 @@ export class PulumiOperator extends pulumi.ComponentResource {
             spec: {
               image: dockerImage("pulumiCli"),
               podTemplate: {
-                metadata: { annotations: serviceNameAnnotation("pulumi-workspace-platform") },
+                metadata: { annotations: serviceNameAnnotation("pulumi-operator-sync-platform") },
                 spec: workspacePodSpec("stacks/apps"),
               },
             },
@@ -196,7 +196,7 @@ export class PulumiOperator extends pulumi.ComponentResource {
             spec: {
               image: dockerImage("pulumiCli"),
               podTemplate: {
-                metadata: { annotations: serviceNameAnnotation("pulumi-workspace-apps") },
+                metadata: { annotations: serviceNameAnnotation("pulumi-operator-sync-apps") },
                 spec: workspacePodSpec("stacks/platform"),
               },
             },
