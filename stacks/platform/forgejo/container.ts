@@ -32,6 +32,15 @@ export function dbEnv(dbSecretName: pulumi.Input<string>) {
   ];
 }
 
+// The rootless image defaults to /var/lib/gitea; these keep the data where the
+// old root image put it. Its entrypoint rewrites the config at GITEA_APP_INI.
+export const pathEnv = [
+  { name: "GITEA_WORK_DIR", value: "/data/gitea" },
+  { name: "GITEA_CUSTOM", value: "/data/gitea" },
+  { name: "GITEA_APP_INI", value: RUNTIME_CONFIG_PATH },
+  { name: "HOME", value: "/data/gitea/data/home" },
+];
+
 export const seedConfigCommand = [
   "/bin/sh",
   "-c",

@@ -1,5 +1,7 @@
 import * as pulumi from "@pulumi/pulumi";
 
+export const SSH_LISTEN_PORT = 2222;
+
 export interface ForgejoConfigArgs {
   domain: string;
   secretKey: pulumi.Output<string>;
@@ -23,6 +25,11 @@ DOMAIN = git.${args.domain}
 ROOT_URL = https://git.${args.domain}/
 HTTP_PORT = 3000
 SSH_DOMAIN = git.${args.domain}
+; The rootless image has no OpenSSH; the built-in server listens unprivileged.
+START_SSH_SERVER = true
+BUILTIN_SSH_SERVER_USER = git
+SSH_PORT = 22
+SSH_LISTEN_PORT = ${SSH_LISTEN_PORT}
 ; Ed25519 and RSA 3072+ only.
 SSH_MINIMUM_KEY_SIZES = ed25519:256, rsa:3071, ecdsa:-1, dsa:-1
 
@@ -68,37 +75,4 @@ ENABLE_AUTO_REGISTRATION = true
 ACCOUNT_LINKING = auto
 `,
     );
-}
-
-// Config keys verified against cs-firewall-bouncer's own default template.
-export function buildFirewallBouncerConfig(apiKey: pulumi.Output<string>): pulumi.Output<string> {
-  return apiKey.apply((key) => `
-mode: nftables
-update_frequency: 10s
-log_mode: stdout
-log_level: info
-api_url: http://crowdsec-service.crowdsec.svc.cluster.local:8080/
-api_key: ${key}
-disable_ipv6: false
-deny_action: DROP
-supported_decisions_types:
-  - ban
-iptables_chains:
-  - INPUT
-nftables:
-  ipv4:
-    enabled: true
-    set-only: false
-    table: crowdsec
-    chain: crowdsec-chain
-    priority: -10
-  ipv6:
-    enabled: true
-    set-only: false
-    table: crowdsec6
-    chain: crowdsec6-chain
-    priority: -10
-nftables_hooks:
-  - input
-`);
 }
