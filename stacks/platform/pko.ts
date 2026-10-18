@@ -131,7 +131,7 @@ export class PulumiOperator extends pulumi.ComponentResource {
         AWS_ACCESS_KEY_ID: { type: "Secret", secret: { name: "pulumi-platform-apps-creds", key: "AWS_ACCESS_KEY_ID" } },
         AWS_SECRET_ACCESS_KEY: { type: "Secret", secret: { name: "pulumi-platform-apps-creds", key: "AWS_SECRET_ACCESS_KEY" } },
       },
-      backend: "s3://pulumi-state?endpoint=192.168.0.40:3900&disableSSL=true&s3ForcePathStyle=true&region=garage",
+      backend: "s3://pulumi-state?endpoint=192.168.0.40:3900&disableSSL=true&s3ForcePathStyle=true&region=garage&response_checksum_validation=when_required",
       projectRepo: pulumi.interpolate`${args.forgejo.endpoint}/${args.forgejo.repoOwner}/${args.forgejo.repoName}.git`,
       gitAuth: {
         accessToken: {
