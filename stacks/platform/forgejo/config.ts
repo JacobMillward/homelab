@@ -23,6 +23,8 @@ DOMAIN = git.${args.domain}
 ROOT_URL = https://git.${args.domain}/
 HTTP_PORT = 3000
 SSH_DOMAIN = git.${args.domain}
+; Ed25519 and RSA 3072+ only.
+SSH_MINIMUM_KEY_SIZES = ed25519:256, rsa:3071, ecdsa:-1, dsa:-1
 
 [database]
 DB_TYPE = postgres
@@ -31,6 +33,7 @@ NAME = forgejo
 
 [security]
 INSTALL_LOCK = true
+LOGIN_REMEMBER_DAYS = 7
 SECRET_KEY = ${secretKey}
 INTERNAL_TOKEN = ${internalToken}
 
@@ -42,7 +45,19 @@ TOKEN = ${metricsToken}
 [oauth2]
 JWT_SECRET = ${jwtSecret}
 
+[session]
+COOKIE_SECURE = true
+SESSION_LIFE_TIME = 86400
+
+[api]
+ENABLE_SWAGGER = false
+
+[repository]
+DEFAULT_PRIVATE = private
+
 [service]
+REQUIRE_SIGNIN_VIEW = true
+DEFAULT_KEEP_EMAIL_PRIVATE = true
 DISABLE_REGISTRATION = true
 ENABLE_INTERNAL_SIGNIN = false
 ALLOW_ONLY_EXTERNAL_REGISTRATION = true
