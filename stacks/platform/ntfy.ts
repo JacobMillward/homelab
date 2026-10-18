@@ -2,7 +2,7 @@ import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
 import * as bcrypt from "bcryptjs";
-import { dockerImage } from "homelab-lib";
+import { dockerImage, serviceNameAnnotation } from "homelab-lib";
 import { PlatformCtx } from "./context";
 import { CrowdsecPluginSpec, PublicDnsSpec, createPublicDnsRecord } from "./traefik";
 import { buildNtfyServerConfig } from "./ntfy-config";
@@ -98,7 +98,7 @@ export class Ntfy extends pulumi.ComponentResource {
           strategy: { type: "Recreate" },
           selector: { matchLabels: labels },
           template: {
-            metadata: { labels },
+            metadata: { labels, annotations: serviceNameAnnotation("ntfy") },
             spec: {
               securityContext: { runAsUser: 1000, runAsGroup: 1000, fsGroup: 1000 },
               containers: [

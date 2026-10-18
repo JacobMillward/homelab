@@ -1,6 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
-import { helmChart, dockerImage } from "homelab-lib";
+import { helmChart, dockerImage, serviceNameAnnotation } from "homelab-lib";
 import { PlatformCtx } from "./context";
 
 const chart = helmChart("externalSecrets");
@@ -33,7 +33,12 @@ export class ExternalSecrets extends pulumi.ComponentResource {
         version: chart.version,
         namespace: esoNs.metadata.name,
         repositoryOpts: { repo: chart.registryUrl },
-        values: { installCRDs: true },
+        values: {
+          installCRDs: true,
+          podAnnotations: serviceNameAnnotation("external-secrets"),
+          webhook: { podAnnotations: serviceNameAnnotation("external-secrets") },
+          certController: { podAnnotations: serviceNameAnnotation("external-secrets") },
+        },
       },
       { parent: this },
     );

@@ -1,6 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
-import { helmChart } from "homelab-lib";
+import { helmChart, serviceNameAnnotation } from "homelab-lib";
 import { DnsRegistrar } from "../dns";
 import { MqttCredentials } from "./mosquitto";
 
@@ -43,6 +43,7 @@ export function deployZigbee2mqtt(args: Zigbee2mqttArgs) {
           type: "ClusterIP",
         },
         statefulset: {
+          podAnnotations: serviceNameAnnotation("zigbee2mqtt"),
           storage: {
             enabled: true,
             size: "2Gi",

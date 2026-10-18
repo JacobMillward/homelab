@@ -10,5 +10,6 @@ export { DOMAIN, TRAEFIK_IP } from "./network";
 export { helmChart, dockerImage, dockerImageRef, goModule } from "./versions";
 export type { HelmChartRef, DockerImageRef, GoModuleRef } from "./versions";
 export { imageTag } from "./image-tag";
+export { serviceNameAnnotation } from "./service-name";
 export { selfBuiltImage } from "./self-built-image";
 export type { RegistryTarget, SelfBuiltImageArgs } from "./self-built-image";

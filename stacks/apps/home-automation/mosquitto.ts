@@ -1,7 +1,7 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
-import { dockerImage } from "homelab-lib";
+import { dockerImage, serviceNameAnnotation } from "homelab-lib";
 
 const mosquittoImage = dockerImage("mosquitto");
 
@@ -99,7 +99,7 @@ export function deployMosquitto<const T extends readonly string[]>(
         replicas: 1,
         selector: { matchLabels: labels },
         template: {
-          metadata: { labels },
+          metadata: { labels, annotations: serviceNameAnnotation("mosquitto") },
           spec: {
             initContainers: [
               {

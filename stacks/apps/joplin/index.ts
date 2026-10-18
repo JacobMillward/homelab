@@ -1,6 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
-import { dockerImage, DOMAIN } from "homelab-lib";
+import { dockerImage, DOMAIN, serviceNameAnnotation } from "homelab-lib";
 import { AppCtx } from "../app";
 
 export class Joplin extends pulumi.ComponentResource {
@@ -71,7 +71,7 @@ export class Joplin extends pulumi.ComponentResource {
           replicas: 1,
           selector: { matchLabels: labels },
           template: {
-            metadata: { labels },
+            metadata: { labels, annotations: serviceNameAnnotation("joplin-server") },
             spec: {
               containers: [
                 {

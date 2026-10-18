@@ -2,7 +2,7 @@ import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
 import * as bcrypt from "bcryptjs";
-import { dockerImage } from "homelab-lib";
+import { dockerImage, serviceNameAnnotation } from "homelab-lib";
 import { PlatformCtx } from "./context";
 
 export interface RegistryArgs {
@@ -116,7 +116,7 @@ export class Registry extends pulumi.ComponentResource {
           progressDeadlineSeconds: 120,
           selector: { matchLabels: labels },
           template: {
-            metadata: { labels },
+            metadata: { labels, annotations: serviceNameAnnotation("registry") },
             spec: {
               containers: [
                 {

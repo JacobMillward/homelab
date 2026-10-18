@@ -113,3 +113,7 @@ test("empty log lines are dropped from the logs pipeline only", () => {
   assert.deepEqual(c.processors["filter/empty_logs"].logs.log_record, ['body == ""']);
   assert.ok(c.service.pipelines.logs.processors.indexOf("filter/empty_logs") < c.service.pipelines.logs.processors.indexOf("batch"));
 });
+
+test("an explicit service name annotation on a pod wins", () => {
+  assert.equal(cfg().processors.k8s_attributes.extract.otel_annotations, true);
+});

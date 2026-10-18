@@ -1,6 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
-import { helmChart } from "homelab-lib";
+import { helmChart, serviceNameAnnotation } from "homelab-lib";
 import { PlatformCtx } from "./context";
 
 const chart = helmChart("metallb");
@@ -40,9 +40,11 @@ export class MetalLB extends pulumi.ComponentResource {
         },
         values: {
           controller: {
+            podAnnotations: serviceNameAnnotation("metallb"),
             strategy: { type: "RollingUpdate", rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } },
           },
           speaker: {
+            podAnnotations: serviceNameAnnotation("metallb"),
             // Talos labels control plane nodes with
             // node.kubernetes.io/exclude-from-external-load-balancers
             // which makes the speaker skip them. This flag overrides that.

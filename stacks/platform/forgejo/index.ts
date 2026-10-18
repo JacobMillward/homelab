@@ -1,7 +1,7 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
-import { dockerImage, selfBuiltImage, RegistryTarget } from "homelab-lib";
+import { dockerImage, selfBuiltImage, RegistryTarget, serviceNameAnnotation } from "homelab-lib";
 import { PlatformCtx } from "../context";
 import { OidcClientSpec } from "../authelia";
 import { CrowdsecPluginSpec, PublicDnsSpec, createPublicDnsRecord } from "../traefik";
@@ -160,7 +160,7 @@ export class Forgejo extends pulumi.ComponentResource {
           progressDeadlineSeconds: 180,
           selector: { matchLabels: labels },
           template: {
-            metadata: { labels },
+            metadata: { labels, annotations: serviceNameAnnotation("forgejo") },
             spec: {
               initContainers: [
                 {

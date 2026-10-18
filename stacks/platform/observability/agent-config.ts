@@ -82,6 +82,7 @@ export function buildAgentCollectorConfig(args: AgentConfigArgs): string {
         k8s_attributes: {
           passthrough: false,
           extract: {
+            otel_annotations: true,
             metadata: [
               "k8s.namespace.name",
               "k8s.pod.name",
