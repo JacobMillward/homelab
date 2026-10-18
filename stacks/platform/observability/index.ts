@@ -5,6 +5,7 @@ import { helmChart, serviceNameAnnotation } from "homelab-lib";
 import { PlatformCtx } from "../context";
 import { ForwardAuthSpec } from "../traefik";
 import { Agent } from "./agent";
+import { buildGatewayCustomConfig } from "./gateway-config";
 import { SCRAPE_TARGETS } from "./targets";
 
 const operatorsChart = helmChart("clickstackOperators");
@@ -86,6 +87,7 @@ export class Observability extends pulumi.ComponentResource {
         repositoryOpts: { repo: clickstackChart.registryUrl },
         timeout: 900,
         values: {
+          global: { otelCollector: { customConfig: buildGatewayCustomConfig() } },
           hyperdx: {
             secrets: {
               HYPERDX_API_KEY: apiKey.result,
