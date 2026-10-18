@@ -42,7 +42,8 @@ export function buildAgentCollectorConfig(args: AgentConfigArgs): string {
     ],
   }));
 
-  const processors = ["memory_limiter", "k8sattributes", "batch"];
+  const processors = ["memory_limiter", "k8s_attributes", "batch"];
+  const logProcessors = ["memory_limiter", "k8s_attributes", "filter/empty_logs", "batch"];
 
   return JSON.stringify(
     {
@@ -78,7 +79,28 @@ export function buildAgentCollectorConfig(args: AgentConfigArgs): string {
       },
       processors: {
         memory_limiter: { check_interval: "5s", limit_percentage: 80, spike_limit_percentage: 25 },
-        k8sattributes: { passthrough: false, extract: { metadata: ["k8s.namespace.name", "k8s.pod.name", "k8s.node.name", "k8s.deployment.name"] } },
+        k8s_attributes: {
+          passthrough: false,
+          extract: {
+            metadata: [
+              "k8s.namespace.name",
+              "k8s.pod.name",
+              "k8s.node.name",
+              "k8s.deployment.name",
+              "k8s.statefulset.name",
+              "k8s.daemonset.name",
+              "k8s.cronjob.name",
+              "k8s.job.name",
+              "service.name",
+            ],
+          },
+          pod_association: [
+            { sources: [{ from: "resource_attribute", name: "k8s.pod.uid" }] },
+            { sources: [{ from: "resource_attribute", name: "k8s.pod.ip" }] },
+            { sources: [{ from: "connection" }] },
+          ],
+        },
+        "filter/empty_logs": { error_mode: "ignore", logs: { log_record: ['body == ""'] } },
         batch: {},
       },
       exporters: {
@@ -90,7 +112,7 @@ export function buildAgentCollectorConfig(args: AgentConfigArgs): string {
       },
       service: {
         pipelines: {
-          logs: { receivers: ["filelog", "k8s_objects", "otlp"], processors, exporters: ["otlphttp"] },
+          logs: { receivers: ["filelog", "k8s_objects", "otlp"], processors: logProcessors, exporters: ["otlphttp"] },
           metrics: {
             receivers: ["kubelet_stats", "host_metrics", "k8s_cluster", ...(scrapeConfigs.length ? ["prometheus"] : []), "otlp"],
             processors,

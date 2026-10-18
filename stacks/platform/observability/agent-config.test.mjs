@@ -97,3 +97,19 @@ test("kubelet_stats resolves PVC names through the Kubernetes API", () => {
   assert.deepEqual(r.k8s_api_config, { auth_type: "serviceAccount" });
   assert.ok(r.extra_metadata_labels.includes("k8s.volume.type"));
 });
+
+test("log records get service.name and workload names from their pod", () => {
+  const p = cfg().processors.k8s_attributes;
+  for (const m of ["service.name", "k8s.deployment.name", "k8s.statefulset.name", "k8s.daemonset.name", "k8s.node.name"]) {
+    assert.ok(p.extract.metadata.includes(m), m);
+  }
+  assert.deepEqual(p.pod_association[0], { sources: [{ from: "resource_attribute", name: "k8s.pod.uid" }] });
+});
+
+test("empty log lines are dropped from the logs pipeline only", () => {
+  const c = cfg();
+  assert.ok(c.service.pipelines.logs.processors.includes("filter/empty_logs"));
+  assert.ok(!c.service.pipelines.metrics.processors.includes("filter/empty_logs"));
+  assert.deepEqual(c.processors["filter/empty_logs"].logs.log_record, ['body == ""']);
+  assert.ok(c.service.pipelines.logs.processors.indexOf("filter/empty_logs") < c.service.pipelines.logs.processors.indexOf("batch"));
+});
