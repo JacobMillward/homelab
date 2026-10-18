@@ -1,7 +1,7 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
-import { helmChart } from "homelab-lib";
+import { helmChart, serviceNameAnnotation } from "homelab-lib";
 import { PlatformCtx } from "../context";
 import { ForwardAuthSpec } from "../traefik";
 import { Agent } from "./agent";
@@ -55,6 +55,11 @@ export class Observability extends pulumi.ComponentResource {
     const password = (name: string) =>
       new random.RandomPassword(name, { length: 32, special: false }, childOpts).result;
 
+    // Rotating this makes stored third-party tokens unreadable, so it must stay stable.
+    const tokenEncryptionKey = pulumi.secret(
+      new random.RandomId("hyperdx-token-encryption-key", { byteLength: 32 }, childOpts).hex,
+    );
+
     // The release name fixes the generated names: clickstack-otel-collector, clickstack-app.
     const releaseName = "clickstack";
 
@@ -87,6 +92,7 @@ export class Observability extends pulumi.ComponentResource {
               CLICKHOUSE_PASSWORD: password("clickhouse-otel-password"),
               CLICKHOUSE_APP_PASSWORD: password("clickhouse-app-password"),
               MONGODB_PASSWORD: password("mongodb-password"),
+              TOKEN_ENCRYPTION_KEY: tokenEncryptionKey,
             },
             config: {
               FRONTEND_URL: `https://hyperdx.internal.${args.domain}`,
@@ -97,15 +103,19 @@ export class Observability extends pulumi.ComponentResource {
               HYPERDX_OTEL_EXPORTER_RECONCILE_TABLE_TTL: "true",
             },
             deployment: {
+              podAnnotations: serviceNameAnnotation("hyperdx"),
               resources: {
                 requests: { cpu: "200m", memory: "512Mi" },
                 limits: { cpu: "1000m", memory: "2Gi" },
               },
             },
           },
+          "otel-collector": { podAnnotations: serviceNameAnnotation("otel-gateway") },
           clickhouse: {
             keeper: {
               spec: {
+                annotations: serviceNameAnnotation("clickhouse-keeper"),
+                settings: { logger: { level: "warning" } },
                 dataVolumeClaimSpec: {
                   storageClassName: args.noBackupStorageClassName,
                   accessModes: ["ReadWriteOnce"],
@@ -115,6 +125,7 @@ export class Observability extends pulumi.ComponentResource {
             },
             cluster: {
               spec: {
+                annotations: serviceNameAnnotation("clickhouse"),
                 settings: {
                   extraConfig: {
                     mark_cache_size: 536870912,
@@ -143,6 +154,7 @@ export class Observability extends pulumi.ComponentResource {
             spec: {
               statefulSet: {
                 spec: {
+                  template: { metadata: { annotations: serviceNameAnnotation("mongodb") } },
                   volumeClaimTemplates: [
                     {
                       metadata: { name: "data-volume" },
