@@ -134,7 +134,7 @@ fi
           spec: {
             restartPolicy: "Never",
             serviceAccountName: sa.metadata.name,
-            // The CLI refuses to run as root, which is what the image defaults to.
+            // The CLI refuses to run as root, so never rely on the image default.
             securityContext: { runAsUser: GIT_UID, runAsGroup: GIT_UID, fsGroup: GIT_UID },
             volumes: [configVolume(args.configSecretName)],
             containers: [

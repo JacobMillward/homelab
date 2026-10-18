@@ -1,16 +1,18 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
-import { dockerImage, selfBuiltImage, RegistryTarget, serviceNameAnnotation } from "homelab-lib";
+import { dockerImage, RegistryTarget, serviceNameAnnotation } from "homelab-lib";
 import { PlatformCtx } from "../context";
 import { OidcClientSpec } from "../authelia";
 import { CrowdsecPluginSpec, ForwardAuthSpec, PublicDnsSpec, createPublicDnsRecord } from "../traefik";
-import { buildForgejoConfig, buildFirewallBouncerConfig } from "./config";
+import { buildForgejoConfig, SSH_LISTEN_PORT } from "./config";
 import {
+  GIT_UID,
   configVolume,
   configVolumeMount,
   dataVolumeMount,
   dbEnv,
+  pathEnv,
   seedConfigCommand,
 } from "./container";
 import { createBootstrapJob } from "./bootstrap-job";
@@ -20,8 +22,11 @@ import { ForgejoActionSecret, ForgejoPushMirror, ForgejoRepository } from "./api
 import { ForgejoAdminToken } from "./admin-token";
 import { createRunner } from "./runner";
 
-const SSH_PORT = 22;
-const BOUNCER_CONFIG_PATH = "/etc/crowdsec/bouncers/crowdsec-firewall-bouncer.yaml";
+const containerSecurityContext = {
+  allowPrivilegeEscalation: false,
+  readOnlyRootFilesystem: true,
+  capabilities: { drop: ["ALL"] },
+};
 
 export interface ForgejoArgs {
   domain: string;
@@ -31,7 +36,6 @@ export interface ForgejoArgs {
   crowdsecPluginSpec: CrowdsecPluginSpec;
   forwardAuthSpec: ForwardAuthSpec;
   githubMirrorToken: pulumi.Input<string>;
-  crowdsecFirewallBouncerApiKey: pulumi.Output<string>;
   registry: RegistryTarget;
   publicDns: PublicDnsSpec;
   metricsToken: pulumi.Input<string>;
@@ -120,23 +124,6 @@ export class Forgejo extends pulumi.ComponentResource {
       childOpts,
     );
 
-    const firewallBouncerConfig = new k8s.core.v1.Secret(
-      "forgejo-crowdsec-bouncer-config",
-      {
-        metadata: { namespace: this.namespace.metadata.name },
-        stringData: {
-          "crowdsec-firewall-bouncer.yaml": buildFirewallBouncerConfig(args.crowdsecFirewallBouncerApiKey),
-        },
-      },
-      childOpts,
-    );
-
-    const firewallBouncerImage = selfBuiltImage(this, {
-      name: "crowdsec-firewall-bouncer",
-      contextDir: "images/crowdsec-firewall-bouncer",
-      registry: args.registry,
-    });
-
     const dataPvc = new k8s.core.v1.PersistentVolumeClaim(
       "forgejo-data",
       {
@@ -163,16 +150,20 @@ export class Forgejo extends pulumi.ComponentResource {
           template: {
             metadata: { labels, annotations: serviceNameAnnotation("forgejo") },
             spec: {
+              securityContext: {
+                runAsNonRoot: true,
+                runAsUser: GIT_UID,
+                runAsGroup: GIT_UID,
+                fsGroup: GIT_UID,
+                fsGroupChangePolicy: "OnRootMismatch",
+                seccompProfile: { type: "RuntimeDefault" },
+              },
               initContainers: [
                 {
                   name: "seed-config",
                   image: dockerImage("forgejo"),
                   command: seedConfigCommand,
-                  securityContext: {
-                    allowPrivilegeEscalation: false,
-                    seccompProfile: { type: "RuntimeDefault" },
-                    capabilities: { drop: ["ALL"], add: ["CHOWN", "DAC_OVERRIDE", "FOWNER"] },
-                  },
+                  securityContext: containerSecurityContext,
                   volumeMounts: [configVolumeMount, dataVolumeMount],
                 },
               ],
@@ -182,23 +173,15 @@ export class Forgejo extends pulumi.ComponentResource {
                   image: dockerImage("forgejo"),
                   ports: [
                     { name: "http", containerPort: 3000 },
-                    { name: "ssh", containerPort: SSH_PORT },
+                    { name: "ssh", containerPort: SSH_LISTEN_PORT },
                   ],
-                  env: dbEnv(dbSecretName),
-                  // The image starts s6 and sshd as root, then drops to git, so it can't run non-root.
-                  securityContext: {
-                    allowPrivilegeEscalation: false,
-                    seccompProfile: { type: "RuntimeDefault" },
-                    capabilities: {
-                      drop: ["ALL"],
-                      add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETUID", "SETGID", "SYS_CHROOT", "KILL", "NET_BIND_SERVICE"],
-                    },
-                  },
+                  env: [...dbEnv(dbSecretName), ...pathEnv],
+                  securityContext: containerSecurityContext,
                   resources: {
                     requests: { cpu: "100m", memory: "384Mi" },
                     limits: { memory: "1Gi" },
                   },
-                  volumeMounts: [dataVolumeMount],
+                  volumeMounts: [dataVolumeMount, { name: "tmp", mountPath: "/tmp" }],
                   readinessProbe: {
                     httpGet: { path: "/api/healthz", port: "http" },
                     initialDelaySeconds: 15,
@@ -206,32 +189,11 @@ export class Forgejo extends pulumi.ComponentResource {
                     failureThreshold: 3,
                   },
                 },
-                {
-                  name: "crowdsec-bouncer",
-                  image: firewallBouncerImage,
-                  securityContext: {
-                    allowPrivilegeEscalation: false,
-                    seccompProfile: { type: "RuntimeDefault" },
-                    capabilities: { drop: ["ALL"], add: ["NET_ADMIN", "NET_RAW"] },
-                  },
-                  resources: {
-                    requests: { cpu: "10m", memory: "32Mi" },
-                    limits: { memory: "128Mi" },
-                  },
-                  args: ["-c", BOUNCER_CONFIG_PATH],
-                  volumeMounts: [
-                    {
-                      name: "bouncer-config",
-                      mountPath: BOUNCER_CONFIG_PATH,
-                      subPath: "crowdsec-firewall-bouncer.yaml",
-                    },
-                  ],
-                },
               ],
               volumes: [
                 configVolume(configSecret.metadata.name),
                 { name: "data", persistentVolumeClaim: { claimName: dataPvc.metadata.name } },
-                { name: "bouncer-config", secret: { secretName: firewallBouncerConfig.metadata.name } },
+                { name: "tmp", emptyDir: {} },
               ],
             },
           },
@@ -258,7 +220,7 @@ export class Forgejo extends pulumi.ComponentResource {
           type: "LoadBalancer",
           loadBalancerIP: args.sshLoadBalancerIp,
           selector: labels,
-          ports: [{ name: "ssh", port: 22, targetPort: SSH_PORT }],
+          ports: [{ name: "ssh", port: 22, targetPort: SSH_LISTEN_PORT }],
         },
       },
       childOpts,

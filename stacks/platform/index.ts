@@ -136,7 +136,6 @@ const forgejo = new Forgejo(ctx, {
   crowdsecPluginSpec: traefik.crowdsecPluginSpec,
   forwardAuthSpec: traefik.forwardAuthSpec,
   githubMirrorToken: config.requireSecret("githubMirrorToken"),
-  crowdsecFirewallBouncerApiKey: crowdsec.firewallBouncerApiKey,
   registry: {
     pushHost: registry.pushHost,
     username: registry.username,
