@@ -7,6 +7,9 @@ on:
       timezone: Europe/London
   push:
     branches: [main]
+  # Ticking a dashboard checkbox edits the issue body, which fires issues rather than issue_comment.
+  issues:
+    types: [edited]
   issue_comment:
     types: [created, edited]
   workflow_dispatch:
@@ -14,6 +17,8 @@ on:
 jobs:
   renovate:
     runs-on: self-hosted
+    # Renovate edits its own dashboard on every run, so skip the bot to avoid a loop.
+    if: github.actor != 'renovate-bot'
     env:
       # This job holds a repo-write token, and only the lockfile matters here.
       npm_config_ignore_scripts: "true"
