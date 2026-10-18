@@ -124,18 +124,6 @@ export class PulumiOperator extends pulumi.ComponentResource {
       { parent: this },
     );
 
-    const workspacePodSpec = (repoDir: string) => ({
-      initContainers: [
-        {
-          name: "generate-netbird-sdk",
-          image: dockerImage("pulumiCli"),
-          command: ["pulumi", "install", "--no-dependencies", "--cwd", `/share/source/${repoDir}`],
-          volumeMounts: [{ name: "share", mountPath: "/share" }],
-        },
-      ],
-      containers: [],
-    });
-
     const commonStackSpec = {
       serviceAccountName: workspaceSa.metadata.name,
       envRefs: {
@@ -172,7 +160,7 @@ export class PulumiOperator extends pulumi.ComponentResource {
               image: dockerImage("pulumiCli"),
               podTemplate: {
                 metadata: { annotations: serviceNameAnnotation("pulumi-operator-sync-platform") },
-                spec: workspacePodSpec("stacks/apps"),
+                spec: { containers: [] },
               },
             },
           },
@@ -197,7 +185,7 @@ export class PulumiOperator extends pulumi.ComponentResource {
               image: dockerImage("pulumiCli"),
               podTemplate: {
                 metadata: { annotations: serviceNameAnnotation("pulumi-operator-sync-apps") },
-                spec: workspacePodSpec("stacks/platform"),
+                spec: { containers: [] },
               },
             },
           },
