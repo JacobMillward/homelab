@@ -1,7 +1,7 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as random from "@pulumi/random";
-import { dockerImage, dockerImageRef } from "homelab-lib";
+import { dockerImage, dockerImageRef, serviceNameAnnotation } from "homelab-lib";
 import { PlatformCtx } from "./context";
 import {
   ForgejoAccessToken,
@@ -35,6 +35,7 @@ export class PulumiOperator extends pulumi.ComponentResource {
       {
         chart: `oci://${chart.image}@${chart.digest}`,
         namespace: ns.metadata.name,
+        values: { podAnnotations: serviceNameAnnotation("pulumi-operator") },
       },
       { parent: this },
     );
@@ -169,7 +170,10 @@ export class PulumiOperator extends pulumi.ComponentResource {
           workspaceTemplate: {
             spec: {
               image: dockerImage("pulumiCli"),
-              podTemplate: { spec: workspacePodSpec("stacks/apps") },
+              podTemplate: {
+                metadata: { annotations: serviceNameAnnotation("pulumi-workspace-platform") },
+                spec: workspacePodSpec("stacks/apps"),
+              },
             },
           },
         },
@@ -191,7 +195,10 @@ export class PulumiOperator extends pulumi.ComponentResource {
           workspaceTemplate: {
             spec: {
               image: dockerImage("pulumiCli"),
-              podTemplate: { spec: workspacePodSpec("stacks/platform") },
+              podTemplate: {
+                metadata: { annotations: serviceNameAnnotation("pulumi-workspace-apps") },
+                spec: workspacePodSpec("stacks/platform"),
+              },
             },
           },
         },
