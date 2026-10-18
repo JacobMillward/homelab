@@ -7,6 +7,7 @@ export interface HyperdxConfigArgs {
   apiKey: pulumi.Input<string>;
   webhookUrl: pulumi.Input<string>;
   webhookToken: pulumi.Input<string>;
+  topic: string;
 }
 
 export class HyperdxConfig extends pulumi.ComponentResource {
@@ -17,13 +18,13 @@ export class HyperdxConfig extends pulumi.ComponentResource {
 
     const webhook = new HyperdxWebhook(
       "ntfy-webhook",
-      { client, name: "ntfy", url: args.webhookUrl, token: args.webhookToken },
+      { client, name: "ntfy", url: args.webhookUrl, token: args.webhookToken, topic: args.topic },
       childOpts,
     );
 
     for (const def of ALERTS) {
       new HyperdxAlert(
-        `alert-${def.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+        `alert-${def.id}`,
         { client, def, webhookId: webhook.webhookId },
         childOpts,
       );

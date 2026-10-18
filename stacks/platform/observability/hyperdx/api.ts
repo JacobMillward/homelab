@@ -1,44 +1,52 @@
 export interface AlertDef {
-  name: string;
+  id: string;
+  title: string;
+  note: string;
   sql: string;
   threshold: number;
-  thresholdType: "above";
   interval: "1m" | "5m" | "15m" | "30m" | "1h" | "6h" | "12h" | "1d";
 }
 
 const gauge = "default.otel_metrics_gauge";
 const DAY = 86400;
 
+// Every query is 0 when healthy: HyperDX reads an empty window as 0, and an alert fires at >= threshold.
+// A second string column names the culprit; HyperDX alerts and clears each name on its own.
 export const ALERTS: AlertDef[] = [
   {
-    name: "Pod restarts",
-    sql: `SELECT $__timeInterval(TimeUnix) AS ts, sum(d) AS restarts
+    id: "pod-restarts",
+    title: "{{group}} restarted ({{value}} times in 5 minutes)",
+    note: "This container crashed or ran out of memory. Open Logs in HyperDX and search for its name to see why. If it began right after an update, revert that update in Git.",
+    sql: `SELECT ts, who, sum(d) AS restarts
 FROM (
-  SELECT TimeUnix, max(Value) OVER w - min(Value) OVER w AS d
+  SELECT $__timeInterval(TimeUnix) AS ts,
+    concat(ResourceAttributes['k8s.namespace.name'], '/', ResourceAttributes['k8s.pod.name']) AS who,
+    max(Value) - min(Value) AS d
   FROM ${gauge}
   WHERE MetricName = 'k8s.container.restarts' AND $__timeFilter(TimeUnix)
-  WINDOW w AS (PARTITION BY ResourceAttributes['k8s.pod.name'], ResourceAttributes['k8s.container.name'])
+  GROUP BY ts, who, ResourceAttributes['k8s.container.name']
 )
-GROUP BY ts`,
+GROUP BY ts, who`,
     threshold: 1,
-    thresholdType: "above",
     interval: "5m",
   },
   {
-    name: "Node disk over 85%",
+    id: "node-disk",
+    title: "The server disk is {{value}}% full",
+    note: "At 100% the server evicts pods and services stop. Container images and logs are the usual cause. In HyperDX, the metric k8s.node.filesystem.usage shows what the trend looks like.",
     sql: `SELECT $__timeInterval(TimeUnix) AS ts,
-  maxIf(Value, MetricName = 'k8s.node.filesystem.usage') / maxIf(Value, MetricName = 'k8s.node.filesystem.capacity') * 100 AS pct
+  round(maxIf(Value, MetricName = 'k8s.node.filesystem.usage') / maxIf(Value, MetricName = 'k8s.node.filesystem.capacity') * 100) AS pct
 FROM ${gauge}
 WHERE MetricName IN ('k8s.node.filesystem.usage', 'k8s.node.filesystem.capacity') AND $__timeFilter(TimeUnix)
 GROUP BY ts`,
     threshold: 85,
-    thresholdType: "above",
     interval: "15m",
   },
   {
-    name: "Volume over 85%",
-    sql: `SELECT $__timeInterval(TimeUnix) AS ts,
-  max(100 - avail / cap * 100) AS pct
+    id: "volume-full",
+    title: "Volume {{group}} is {{value}}% full",
+    note: "An app has nearly filled its storage. Free up data inside that app, or raise the volume size in the homelab code and apply it.",
+    sql: `SELECT $__timeInterval(TimeUnix) AS ts, pvc, round(max(100 - avail / cap * 100)) AS pct
 FROM (
   SELECT TimeUnix, ResourceAttributes['k8s.persistentvolumeclaim.name'] AS pvc,
     maxIf(Value, MetricName = 'k8s.volume.available') AS avail,
@@ -48,73 +56,78 @@ FROM (
   GROUP BY TimeUnix, pvc
   HAVING cap > 0 AND pvc != ''
 )
-GROUP BY ts`,
+GROUP BY ts, pvc`,
     threshold: 85,
-    thresholdType: "above",
     interval: "15m",
   },
   {
-    name: "Longhorn disk over 85%",
+    id: "longhorn-disk",
+    title: "The storage disk is {{value}}% full",
+    note: "This disk holds every app's volumes. When it fills, apps can no longer save data. Delete data in the biggest apps, or add disk.",
     sql: `SELECT $__timeInterval(TimeUnix) AS ts,
-  maxIf(Value, MetricName = 'longhorn_disk_usage_bytes') / maxIf(Value, MetricName = 'longhorn_disk_capacity_bytes') * 100 AS pct
+  round(maxIf(Value, MetricName = 'longhorn_disk_usage_bytes') / maxIf(Value, MetricName = 'longhorn_disk_capacity_bytes') * 100) AS pct
 FROM ${gauge}
 WHERE MetricName IN ('longhorn_disk_usage_bytes', 'longhorn_disk_capacity_bytes') AND $__timeFilter(TimeUnix)
 GROUP BY ts`,
     threshold: 85,
-    thresholdType: "above",
     interval: "15m",
   },
   {
-    // Every query is 0 when healthy: HyperDX reads an empty window as 0, and `above` means >=.
     // longhorn_volume_robustness: 1 healthy, 2 degraded, 3 faulted.
-    name: "Longhorn volume degraded",
-    sql: `SELECT $__timeInterval(TimeUnix) AS ts, max(Value) AS robustness
+    id: "longhorn-volume",
+    title: "Storage volume {{group}} is unhealthy",
+    note: "Longhorn says a copy of this volume's data is missing or broken. Open Logs in HyperDX and search for the namespace longhorn-system to see why.",
+    sql: `SELECT $__timeInterval(TimeUnix) AS ts, concat(Attributes['pvc_namespace'], '/', Attributes['pvc']) AS volume, max(Value) AS robustness
 FROM ${gauge}
 WHERE MetricName = 'longhorn_volume_robustness' AND $__timeFilter(TimeUnix)
-GROUP BY ts`,
+GROUP BY ts, volume`,
     threshold: 2,
-    thresholdType: "above",
     interval: "15m",
   },
   {
-    name: "Certificate expires within 14 days",
-    sql: `SELECT $__timeInterval(TimeUnix) AS ts, greatest(0, ${14 * DAY} - (min(Value) - toUnixTimestamp(now()))) AS seconds_short
+    id: "certificate-expiry",
+    title: "Certificate {{group}} expires within 14 days",
+    note: "Automatic renewal is failing, so sites using it will break when it expires. Open Logs in HyperDX and search for cert-manager; the error says why.",
+    sql: `SELECT $__timeInterval(TimeUnix) AS ts, Attributes['name'] AS cert,
+  greatest(0, ${14 * DAY} - (min(Value) - toUnixTimestamp(now()))) AS seconds_short
 FROM ${gauge}
 WHERE MetricName = 'certmanager_certificate_expiration_timestamp_seconds' AND $__timeFilter(TimeUnix)
-GROUP BY ts`,
+GROUP BY ts, cert`,
     threshold: 1,
-    thresholdType: "above",
     interval: "1h",
   },
   {
-    name: "Relay certificate expires within 14 days",
+    id: "relay-certificate-expiry",
+    title: "The NetBird relay certificate expires within 14 days",
+    note: "Its daily renewal on the VPS is failing, and the VPS cannot be logged into. Check the Cloudflare token it renews with is still valid, then apply the VPS stack. Rebuilding the VPS issues a new certificate, with a few minutes of outage.",
     sql: `SELECT $__timeInterval(TimeUnix) AS ts, greatest(0, ${14 * DAY} - min(Value)) AS seconds_short
 FROM ${gauge}
 WHERE MetricName = 'tlscheck.time_left' AND $__timeFilter(TimeUnix)
 GROUP BY ts`,
     threshold: 1,
-    thresholdType: "above",
     interval: "1h",
   },
   {
-    name: "PostgreSQL down",
-    sql: `SELECT $__timeInterval(TimeUnix) AS ts, 1 - min(Value) AS down
+    id: "database-down",
+    title: "Database {{group}} is down",
+    note: "Apps that use it will fail. Open Logs in HyperDX and search for the database name to see why. If a storage alert fired recently, a full disk is the likely cause.",
+    sql: `SELECT $__timeInterval(TimeUnix) AS ts, Attributes['cluster'] AS db, 1 - min(Value) AS down
 FROM ${gauge}
 WHERE MetricName = 'cnpg_collector_up' AND $__timeFilter(TimeUnix)
-GROUP BY ts`,
+GROUP BY ts, db`,
     threshold: 1,
-    thresholdType: "above",
     interval: "5m",
   },
   {
     // Healthy is under 3 minutes with a 25 second keepalive.
-    name: "WireGuard handshake stale",
-    sql: `SELECT $__timeInterval(TimeUnix) AS ts, max(Value) AS age_seconds
+    id: "vpn-tunnel",
+    title: "The VPS tunnel has been silent for {{value}} seconds",
+    note: "Home and the VPS cannot talk, so public sites and pushing code are unreachable. First check the home internet is up. If it is, check the VPS is running in the Hetzner console.",
+    sql: `SELECT $__timeInterval(TimeUnix) AS ts, round(max(Value)) AS age_seconds
 FROM ${gauge}
 WHERE MetricName = 'wg_latest_handshake_age_seconds' AND $__timeFilter(TimeUnix)
 GROUP BY ts`,
     threshold: 180,
-    thresholdType: "above",
     interval: "5m",
   },
 ];
@@ -128,9 +141,10 @@ export interface AlertContext {
 export function buildAlertBody(def: AlertDef, ctx: AlertContext) {
   return {
     source: "inline",
-    name: def.name,
+    name: def.title,
+    note: def.note,
     threshold: def.threshold,
-    thresholdType: def.thresholdType,
+    thresholdType: "above",
     interval: def.interval,
     channels: [{ type: "webhook", webhookId: ctx.webhookId }],
     chartConfig: {
@@ -139,7 +153,7 @@ export function buildAlertBody(def: AlertDef, ctx: AlertContext) {
       connectionId: ctx.connectionId,
       ...(ctx.sourceId ? { sourceId: ctx.sourceId } : {}),
       sqlTemplate: def.sql,
-      name: def.name,
+      name: def.id,
     },
   };
 }
@@ -148,16 +162,19 @@ export interface WebhookArgs {
   name: string;
   url: string;
   token: string;
+  topic: string;
 }
 
 export function buildWebhookBody(args: WebhookArgs) {
+  const message = '{{#if (eq status "firing")}}{{note}}{{else}}This has cleared.{{/if}}';
+  const priority = '{{#if (eq status "firing")}}4{{else}}2{{/if}}';
   return {
     name: args.name,
     service: "generic",
     url: args.url,
-    description: "ntfy topic for homelab alerts",
-    headers: { Authorization: `Bearer ${args.token}` },
-    body: "{{title}}\n{{body}}\n{{link}}",
+    description: "Publishes to the ntfy alerts topic",
+    headers: { Authorization: `Bearer ${args.token}`, "Content-Type": "application/json" },
+    body: `{"topic":"${args.topic}","title":"{{title}}","message":"${message}","priority":${priority},"click":"{{hdxLink}}"}`,
   };
 }
 
@@ -196,6 +213,7 @@ export interface WebhookInputs {
   name: string;
   url: string;
   token: string;
+  topic: string;
 }
 
 export interface WebhookOutputs extends WebhookInputs {

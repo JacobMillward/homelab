@@ -31,7 +31,7 @@ test("webhookProvider.create posts the webhook and keeps the id", async () => {
     assert.equal(b.headers.Authorization, "Bearer tk_x");
     return json({ data: { _id: "w1" } }, 201);
   };
-  const r = await webhookProvider.create({ client, name: "ntfy", url: "http://n/alerts", token: "tk_x" }, f);
+  const r = await webhookProvider.create({ client, name: "ntfy", url: "http://n/alerts", token: "tk_x", topic: "alerts" }, f);
   assert.equal(r.id, "w1");
   assert.equal(r.outs.webhookId, "w1");
 });
@@ -43,7 +43,7 @@ test("webhookProvider.update PUTs the new body to the same id", async () => {
     return json({ data: { id: "w1" } });
   };
   const olds = { client, name: "ntfy", url: "http://n/alerts", token: "tk_x", webhookId: "w1" };
-  const r = await webhookProvider.update("w1", olds, { client, name: "ntfy", url: "http://n/new", token: "tk_x" }, f);
+  const r = await webhookProvider.update("w1", olds, { client, name: "ntfy", url: "http://n/new", token: "tk_x", topic: "alerts" }, f);
   assert.equal(seen.method, "PUT");
   assert.ok(seen.url.endsWith("/api/v2/webhooks/w1"));
   assert.equal(r.outs.url, "http://n/new");
@@ -61,7 +61,7 @@ test("webhookProvider.delete DELETEs by stored id", async () => {
   assert.ok(seen.url.endsWith("/api/v2/webhooks/w1"));
 });
 
-const def = { name: "A", sql: "SELECT $__timeInterval(t) FROM x WHERE $__timeFilter(t)", threshold: 1, thresholdType: "above", interval: "5m" };
+const def = { id: "a", title: "A", note: "A note.", sql: "SELECT $__timeInterval(t) FROM x WHERE $__timeFilter(t)", threshold: 1, interval: "5m" };
 
 test("alertProvider.create resolves the connection then posts an inline alert", async () => {
   const calls = [];

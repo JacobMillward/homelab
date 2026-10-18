@@ -88,8 +88,9 @@ if (hyperdxApiKey) {
   new HyperdxConfig("hyperdx-config", {
     endpoint: observability.apiEndpoint,
     apiKey: hyperdxApiKey,
-    webhookUrl: `${ntfy.serviceUrl}/${ALERTS_TOPIC}`,
+    webhookUrl: ntfy.serviceUrl,
     webhookToken: ntfy.publisherToken,
+    topic: ALERTS_TOPIC,
   });
 }
 new PostgreSQL(ctx);

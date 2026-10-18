@@ -21,7 +21,7 @@ class HyperdxAlertProvider implements pulumi.dynamic.ResourceProvider<AlertInput
 export class HyperdxWebhook extends pulumi.dynamic.Resource {
   public readonly webhookId!: pulumi.Output<string>;
 
-  constructor(name: string, args: { client: HyperdxClientArgs; name: string; url: pulumi.Input<string>; token: pulumi.Input<string> }, opts?: pulumi.CustomResourceOptions) {
+  constructor(name: string, args: { client: HyperdxClientArgs; name: string; url: pulumi.Input<string>; token: pulumi.Input<string>; topic: string }, opts?: pulumi.CustomResourceOptions) {
     super(new HyperdxWebhookProvider(), name, { ...args, webhookId: undefined }, {
       ...opts,
       additionalSecretOutputs: ["client", "token"],
