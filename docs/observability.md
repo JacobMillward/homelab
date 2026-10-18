@@ -39,7 +39,7 @@ HyperDX alert checks run as a CronJob (`hyperdx.tasks.enabled`). Create the webh
 2. Alerts to create (a starting list; add one only when it should have paged you and did not):
    - Pod restarts or crash loops; OOMKilled.
    - Node disk, and the ClickHouse volume, over 85%.
-   - Longhorn volume over 85% or degraded (existing volumes use 3 replicas on one node, so expect these to fire until they are set to 1 replica).
+   - Longhorn disk or a PVC over 85%; a degraded Longhorn volume.
    - Certificate expiring within 14 days (`certmanager_certificate_expiration_timestamp_seconds`); relay certificate (tlscheck).
    - PostgreSQL down.
    - Failed Renovate or CI job.
@@ -54,7 +54,7 @@ HyperDX alert checks run as a CronJob (`hyperdx.tasks.enabled`). Create the webh
 
 - ntfy runs in the cluster, so it dies with the cluster. There is no active "homelab is down" page. The app's connection-lost notification is the only signal. Moving ntfy to the VPS later is possible.
 - No linked HAProxy to Traefik traces (TCP passthrough). Correlate by client IP and time.
-- Container logs on the VPS come from the Docker `json-file` driver (haproxy, relay). `journalctl` no longer shows those two; use `docker logs`.
+- Container logs on the VPS come from the Docker `json-file` driver (haproxy, relay). `journalctl` does not show those two; use `docker logs`.
 
 - The collectors mount only `/proc` and `/sys`, not the host root, so a compromised collector cannot read node or VPS secrets. The cost: no filesystem-usage metrics from `hostmetrics`. Node disk comes from kubelet stats; the VPS has no disk-usage metric.
 
