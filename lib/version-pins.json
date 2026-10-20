@@ -75,7 +75,7 @@
     "mosquitto": { "image": "eclipse-mosquitto", "tag": "2.0.22", "digest": "sha256:199ea8ef2e35ec2b1b37e59cfd1dbae538ed4dfa4a2251a121a52215a6248a21" },
     "joplin": { "image": "joplin/server", "tag": "3.7.2", "digest": "sha256:3f7b852959aac38da10e3a451823bf149cbae6e74d8258db5b6e6e7f0db50c26" },
     "authelia": { "image": "authelia/authelia", "tag": "4.39", "digest": "sha256:bd97cff4fcbf715b5ff1f9ae286afbe6033afce385302520b0368122d43a6f54", "tier": "core-infra" },
-    "onePasswordConnectApi": { "image": "1password/connect-api", "tag": "1.8.2", "digest": "sha256:e915c0c843972f02b0e7e2de502bda8bd4a092288b3f1866098a857bd715a281" },
+    "onePasswordConnectApi": { "image": "1password/connect-api", "tag": "1.8.3", "digest": "sha256:656e4b10df83ca258d8a75b2a051f7c06dd608212f8ae5ba4722e3fe164099d3" },
     "onePasswordConnectSync": { "image": "1password/connect-sync", "tag": "1.8.2", "digest": "sha256:6297ca6136c0f0fb096bc64c49e1bc8df2aab35282ebff8c7bb60745ef176d0d" },
     "pulumiCli": { "image": "pulumi/pulumi", "tag": "3.263.0-nonroot", "digest": "sha256:470b9e17d7544af3fd643fb5675849ff912639d0e7caa1a92852d7649ca0dad0" },
     "pulumiKubernetesOperator": { "image": "ghcr.io/pulumi/helm-charts/pulumi-kubernetes-operator", "tag": "2.9.1", "digest": "sha256:1454e81ca5d681f85d605e4051c50f7767a229821e1df52fa4cdd2208b3d12b1" },
