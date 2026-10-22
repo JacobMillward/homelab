@@ -81,7 +81,7 @@
     "pulumiKubernetesOperator": { "image": "ghcr.io/pulumi/helm-charts/pulumi-kubernetes-operator", "tag": "2.9.1", "digest": "sha256:1454e81ca5d681f85d605e4051c50f7767a229821e1df52fa4cdd2208b3d12b1" },
     "forgejo": { "image": "codeberg.org/forgejo/forgejo", "tag": "17.0.0-rootless", "digest": "sha256:6554520f7574602100b7d6620c6ac5b18cec30325f823777497eac36234f5cf8", "tier": "core-infra" },
     "otelCollectorContrib": { "image": "otel/opentelemetry-collector-contrib", "tag": "0.161.0", "digest": "sha256:fd328de2552466ad78385e1b1289c3f2402b1c45f265b252aab1955b42845ac1" },
-    "ntfy": { "image": "binwiederhier/ntfy", "tag": "v2.28.0", "digest": "sha256:6ef4b819f722fccdc036af611c4774cfdc2de821ab74fdd48bbf4c9d6f8973da" },
+    "ntfy": { "image": "binwiederhier/ntfy", "tag": "v2.29.0", "digest": "sha256:4c599cf0818965782f93f652bd843e92714992e84d6b88ad17713dc0951cda1f" },
     "nodeExporter": { "image": "prom/node-exporter", "tag": "v1.12.1", "digest": "sha256:1b4e4438faca4dd7e001dd445d161a4a2091b0fededa84093b3a8dfeae1f1be0" },
     "zot": { "image": "ghcr.io/project-zot/zot-linux-amd64", "tag": "v2.1.21", "digest": "sha256:8258443838e95989c13c891f78a02bc1c391b5a00591ffef24cb8c17cde28038", "tier": "core-infra" },
     "haproxy": { "image": "haproxy", "tag": "3.4.4-alpine", "digest": "sha256:52c5921e1619f39cbd5b25e1b4b5847667917f39745056cf004d9c263fbf11b9", "tier": "core-infra" },
