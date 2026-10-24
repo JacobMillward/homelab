@@ -76,7 +76,7 @@
     "joplin": { "image": "joplin/server", "tag": "3.7.2", "digest": "sha256:3f7b852959aac38da10e3a451823bf149cbae6e74d8258db5b6e6e7f0db50c26" },
     "authelia": { "image": "authelia/authelia", "tag": "4.39", "digest": "sha256:bd97cff4fcbf715b5ff1f9ae286afbe6033afce385302520b0368122d43a6f54", "tier": "core-infra" },
     "onePasswordConnectApi": { "image": "1password/connect-api", "tag": "1.8.3", "digest": "sha256:656e4b10df83ca258d8a75b2a051f7c06dd608212f8ae5ba4722e3fe164099d3" },
-    "onePasswordConnectSync": { "image": "1password/connect-sync", "tag": "1.8.2", "digest": "sha256:6297ca6136c0f0fb096bc64c49e1bc8df2aab35282ebff8c7bb60745ef176d0d" },
+    "onePasswordConnectSync": { "image": "1password/connect-sync", "tag": "1.8.3", "digest": "sha256:a760350c941a3e7c98dd66394e9fc3c7e68b6a0a2246a837c74084e534f75f6b" },
     "pulumiCli": { "image": "pulumi/pulumi", "tag": "3.263.0-nonroot", "digest": "sha256:470b9e17d7544af3fd643fb5675849ff912639d0e7caa1a92852d7649ca0dad0" },
     "pulumiKubernetesOperator": { "image": "ghcr.io/pulumi/helm-charts/pulumi-kubernetes-operator", "tag": "2.9.1", "digest": "sha256:1454e81ca5d681f85d605e4051c50f7767a229821e1df52fa4cdd2208b3d12b1" },
     "forgejo": { "image": "codeberg.org/forgejo/forgejo", "tag": "17.0.0-rootless", "digest": "sha256:6554520f7574602100b7d6620c6ac5b18cec30325f823777497eac36234f5cf8", "tier": "core-infra" },
