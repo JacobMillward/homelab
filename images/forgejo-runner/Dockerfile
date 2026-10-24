@@ -3,7 +3,7 @@ FROM code.forgejo.org/forgejo/runner:13.2.0@sha256:ca3d5eea46004789a175d1369eec6
 # renovate: datasource=npm depName=pnpm
 ARG PNPM_VERSION=12.14.0
 # renovate: datasource=npm depName=renovate
-ARG RENOVATE_VERSION=44.171.1
+ARG RENOVATE_VERSION=44.173.1
 
 # Host mode runs workflow steps in this image itself, so the toolchain the
 # workflows need has to be baked in rather than pulled per job.
