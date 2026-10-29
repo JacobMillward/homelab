@@ -84,7 +84,8 @@ server:
             spec: {
               // Pods resolve through CoreDNS, which never sees the node's
               // /etc/hosts, so the talos entry for the registry misses here.
-              hostAliases: [{ ip: TRAEFIK_IP, hostnames: [`registry.internal.${DOMAIN}`] }],
+              // Jobs also get Forgejo's public name as their server URL.
+              hostAliases: [{ ip: TRAEFIK_IP, hostnames: [`registry.internal.${DOMAIN}`, `git.${DOMAIN}`] }],
               volumes: [
                 { name: "config", secret: { secretName: configSecret.metadata.name } },
                 { name: "data", emptyDir: {} },
