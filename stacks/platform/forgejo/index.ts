@@ -396,7 +396,7 @@ export class Forgejo extends pulumi.ComponentResource {
 
     createRunner(this, {
       namespace: this.namespace.metadata.name,
-      endpoint: this.endpoint,
+      endpoint: pulumi.interpolate`http://forgejo.${this.namespace.metadata.name}.svc.cluster.local`,
       secret: runnerSecret.hex,
       imageBuilderSecret: imageBuilderSecret.hex,
       registry: args.registry,
