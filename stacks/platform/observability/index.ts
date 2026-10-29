@@ -131,11 +131,8 @@ export class Observability extends pulumi.ComponentResource {
                 settings: {
                   extraConfig: {
                     mark_cache_size: 536870912,
-                    // metric_log has 1349 columns; one row a second makes thousands of tiny parts whose merges need gigabytes.
-                    metric_log: {
-                      collect_interval_milliseconds: 60000,
-                      flush_interval_milliseconds: 600000,
-                    },
+                    // metric_log has 1349 columns, so any merge needs gigabytes; the failed merge retries in a loop and floods the kernel audit log.
+                    metric_log: { "@remove": "remove" },
                   },
                 },
                 containerTemplate: {
