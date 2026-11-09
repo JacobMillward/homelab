@@ -71,7 +71,7 @@
     "netbirdServer": { "image": "netbirdio/netbird-server", "tag": "0.81.3", "digest": "sha256:541ecef7e98a66b17411d44e9d4dcfdb65913415f39b3b944b8e7e748f997f1d", "tier": "core-infra" },
     "netbirdDashboard": { "image": "netbirdio/dashboard", "tag": "v2.92.0", "digest": "sha256:fa2d8b02a81761e4d2a22df4041d13316b7635f1e93273eafeb53d4991e55b5a", "tier": "core-infra" },
     "crowdsecCurl": { "image": "curlimages/curl", "tag": "8.22.0", "digest": "sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777", "tier": "core-infra" },
-    "crowdsecKubectl": { "image": "alpine/kubectl", "tag": "1.37.0", "digest": "sha256:954b65dea0eb140219b440413ede17c2eca205866df350d3c1fbc84d28af14ae", "tier": "core-infra" },
+    "crowdsecKubectl": { "image": "alpine/kubectl", "tag": "1.37.1", "digest": "sha256:a5d0fbecab3f7b6c2ab7398f1daa73a3e0ed6ece18556d21698233e9e3759cc7", "tier": "core-infra" },
     "mosquitto": { "image": "eclipse-mosquitto", "tag": "2.0.22", "digest": "sha256:199ea8ef2e35ec2b1b37e59cfd1dbae538ed4dfa4a2251a121a52215a6248a21" },
     "joplin": { "image": "joplin/server", "tag": "3.7.2", "digest": "sha256:3f7b852959aac38da10e3a451823bf149cbae6e74d8258db5b6e6e7f0db50c26" },
     "authelia": { "image": "authelia/authelia", "tag": "4.39", "digest": "sha256:bd97cff4fcbf715b5ff1f9ae286afbe6033afce385302520b0368122d43a6f54", "tier": "core-infra" },
