@@ -67,6 +67,18 @@ export interface AgentNetworkPolicyTokenLimit {
 
 export interface AgentNetworkProviderModel {
     /**
+     * Anthropic-shape cache rate — cost per 1k cache-creation tokens (additive to input tokens), in USD. Omitted means inherit NetBird's default rate for this model when one exists; 0 means cache writes bill at input_per_1k.
+     */
+    cacheCreationPer1k?: pulumi.Input<number | undefined>;
+    /**
+     * Anthropic-shape cache rate — cost per 1k cache-read tokens (additive to input tokens), in USD. Omitted means inherit NetBird's default rate for this model when one exists; 0 means cache reads bill at input_per_1k.
+     */
+    cacheReadPer1k?: pulumi.Input<number | undefined>;
+    /**
+     * OpenAI-shape cache rate — cost per 1k cached prompt tokens (a subset of input tokens), in USD. Omitted means inherit NetBird's default rate for this model when one exists; 0 means no discount (cached tokens bill at input_per_1k).
+     */
+    cachedInputPer1k?: pulumi.Input<number | undefined>;
+    /**
      * Model identifier (e.g. `gpt-4o-mini`)
      */
     id: pulumi.Input<string>;
