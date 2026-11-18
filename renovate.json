@@ -4,7 +4,9 @@
     "config:best-practices",
     ":enableVulnerabilityAlertsWithLabel(\"security\")"
   ],
-  "dependencyDashboard": true,
+  "dependencyDashboard": {
+    "enabled": true
+  },
   "rebaseWhen": "behind-base-branch",
   "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
