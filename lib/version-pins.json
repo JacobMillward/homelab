@@ -35,7 +35,7 @@
     },
     "crowdsec": {
       "chart": "crowdsec",
-      "version": "0.24.2",
+      "version": "0.24.3",
       "registryUrl": "https://crowdsecurity.github.io/helm-charts",
       "tier": "core-infra"
     },
