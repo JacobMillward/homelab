@@ -109,10 +109,12 @@ export function deployMosquitto<const T extends readonly string[]>(
                   "sh",
                   "-c",
                   [
-                    "touch /mosquitto/auth/passwords && chmod 0700 /mosquitto/auth/passwords",
+                    "touch /mosquitto/auth/passwords && chmod 0600 /mosquitto/auth/passwords",
                     'while IFS=: read -r user pass || [ -n "$user" ]; do',
                     '  mosquitto_passwd -b /mosquitto/auth/passwords "$user" "$pass"',
                     "done < /mosquitto/credentials/password_list.txt",
+                    // 2.1 reads the file after dropping to uid 1883
+                    "chown 1883:1883 /mosquitto/auth/passwords",
                   ].join("\n"),
                 ],
                 volumeMounts: [
