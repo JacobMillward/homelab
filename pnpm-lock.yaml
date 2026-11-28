@@ -53,8 +53,8 @@ importers:
         version: link:../../lib
     devDependencies:
       '@types/node':
-        specifier: 26.6.6
-        version: 26.6.6
+        specifier: 26.6.7
+        version: 26.6.7
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -96,8 +96,8 @@ importers:
         version: link:../../lib
     devDependencies:
       '@types/node':
-        specifier: 26.6.6
-        version: 26.6.6
+        specifier: 26.6.7
+        version: 26.6.7
       '@types/ws':
         specifier: 8.18.2
         version: 8.18.2
@@ -477,6 +477,9 @@ packages:
 
   '@types/node@26.6.6':
     resolution: {integrity: sha512-MzQj+8Kx3XI40OmUAE6Qoh58ZMNstNNMwn2nfd3qWsfe7nDNSqJNzes4njhz6AHwrSHOffSLwXU6yb474Q4aog==}
+
+  '@types/node@26.6.7':
+    resolution: {integrity: sha512-tovuRfrUILu6v46bMG+BgXxMvsqPBx2WO2as8Rpln+JTff1dbexMtAM4KFTejmL0axsnSWViCW7MecUQpLuBRA==}
 
   '@types/semver@7.8.0':
     resolution: {integrity: sha512-1mAINjtQCXXeLkJ9ehXkwOcBpqtLxiVtKhpUf83DdRNdQKV0iXZpaHYqRr7nj+wvxuJzoAmAwXI+sCNMv1CzLQ==}
@@ -1042,7 +1045,7 @@ snapshots:
   '@kubernetes/client-node@2.0.2':
     dependencies:
       '@types/js-yaml': 4.0.9
-      '@types/node': 26.6.6
+      '@types/node': 26.6.7
       '@types/stream-buffers': 3.0.8
       form-data: 4.0.6
       hpagent: 1.2.0
@@ -1396,15 +1399,19 @@ snapshots:
     dependencies:
       undici-types: 8.9.0
 
+  '@types/node@26.6.7':
+    dependencies:
+      undici-types: 8.9.0
+
   '@types/semver@7.8.0': {}
 
   '@types/stream-buffers@3.0.8':
     dependencies:
-      '@types/node': 26.6.6
+      '@types/node': 26.6.7
 
   '@types/ws@8.18.2':
     dependencies:
-      '@types/node': 26.6.6
+      '@types/node': 26.6.7
 
   agent-base@9.0.0: {}
 
